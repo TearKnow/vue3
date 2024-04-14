@@ -1,4 +1,8 @@
 <template>
+      <div>
+
+      </div><br><br>
+
     <div>例子1: ref进行响应式更新（比如每隔几秒更新下）</div>
     <div>这是用正常思路做的，每隔几秒有新值，但是界面是不会变的：{{myRandomValue}}</div>
     <div>这是用了ref响应式的, <span class="important">要用const，然后修改value才行。这里npm i uuid安装了uuid模块</span>：{{ uuidRef }}</div>
@@ -22,7 +26,12 @@
     <br><br>
 
 
-    
+    <div>
+      例子4: computed的使用<span class="important">需要用.value, return a.value + b.value</span>
+    </div>
+    <div>10+20 = <span class="important">{{ c }}</span></div>
+    <br><br>
+
 
 
 
@@ -31,7 +40,7 @@
 
 
 <script setup>
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { reactive } from 'vue'
   import { v4 as uuid } from 'uuid'
   import { toRef } from 'vue'
@@ -56,7 +65,12 @@
   const {name, age} = user
 
 
-
+  //例子4: computed
+  const a = ref(10)
+  const b = ref(20)
+  const c = computed(() => {
+    return a.value + b.value
+  })
 
 
 </script>
