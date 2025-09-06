@@ -21,4 +21,6 @@ useSeoMeta({
 
 showSuccessToast('成功文案');
 
+const {data} = await useFetch('/api/channel')
+console.log(data.value)
 </script>
