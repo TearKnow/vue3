@@ -1,5 +1,5 @@
 <template>
-    <button @click="changeName">changename</button>
+    <button @click="changeName">changename</button><br>
     name:{{ name }} <br>
     age:{{ age }}
 </template>
@@ -14,7 +14,7 @@
     let {age, name} = toRefs(person)
 
     function changeName() {
-        name.value += '!'
+        name.value += '~'
     }
     
 </script>
