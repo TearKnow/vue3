@@ -1,13 +1,7 @@
 <template>
   <div>
-    213dssd
-    <div>
-      123sdsdddd
-      sd
-      <div>
-        123
-      </div>
-    </div>
-    sd
+    <div>123</div>
+
+    <span />
   </div>
 </template>
