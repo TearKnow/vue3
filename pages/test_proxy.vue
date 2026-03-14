@@ -23,5 +23,9 @@ const { data, pending, error, refresh } = await useFetch('/api/v2/common/nav/hea
       错误：{{ error.message }}
     </div>
     <pre v-else>{{ data }}</pre>
+
+    pnpm add -D eslint @nuxt/eslint-config
+    pnpm add -D @stylistic/eslint-plugin
+    pnpm eslint --ext .vue . --fix 手动测试
   </div>
 </template>
