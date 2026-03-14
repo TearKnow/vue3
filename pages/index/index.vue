@@ -1,9 +1,11 @@
 <template>
-  <button @click="changeName">
-    changename
-  </button><br>
-  name:{{ name }} <br>
-  age:{{ age }}
+  <div>
+    <button @click="changeName">
+      changename
+    </button><br>
+    name:{{ name }} <br>
+    age:{{ age }}
+  </div>
 </template>
 
 <script lang="ts" setup>
