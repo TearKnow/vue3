@@ -1,0 +1,11 @@
+{
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": false,  // 关闭默认格式化
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"  // 只让 ESLint 修复
+  },
+  "eslint.validate": ["javascript", "typescript", "vue"],
+  "eslint.run": "onSave",
+  "files.autoSave": "off"
+}
