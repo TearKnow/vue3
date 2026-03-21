@@ -1,6 +1,6 @@
 <template>
   <div>
-    demo1 & demo2: check vue file
+    demo1 & demo2: check vue file<br>
     the alert is demo3
 
     <van-popup
