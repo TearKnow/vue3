@@ -7,17 +7,13 @@
   <van-button type="default">默认按钮</van-button>
   <van-button type="danger">危险按钮</van-button>
   <van-button type="warning">警告按钮</van-button> -->
-
-
 </template>
-
 
 <script setup lang="ts">
 useSeoMeta({
-  title: "bilibili",
-  description: "b站，你的选择",
+  title: 'bilibili',
+  description: 'b站，你的选择',
 })
-
 
 // showSuccessToast('成功文案');
 
