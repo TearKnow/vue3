@@ -121,35 +121,51 @@ onMounted(async () => {
  * 模拟多个异步操作，展示如何使用 Promise 链式调用和 async/await 避免回调地狱
  */
 
+interface UserInfo {
+  userId: number
+  name: string
+}
+
+interface OrderSummary {
+  orderId: number
+  amount: number
+}
+
+interface OrderDetail {
+  orderId: number
+  amount: number
+  status: string
+}
+
 // 模拟异步操作 1: 获取用户信息
 const getUserInfo = () => {
-  return new Promise<any>((resolve) => {
+  return new Promise<UserInfo>((resolve) => {
     setTimeout(() => {
-      console.log('获取用户信息完成');
-      resolve({ userId: 1, name: '张三' });
-    }, 1000);
-  });
-};
+      console.log('获取用户信息完成')
+      resolve({ userId: 1, name: '张三' })
+    }, 1000)
+  })
+}
 
 // 模拟异步操作 2: 根据用户ID获取订单列表
 const getOrders = (userId: number) => {
-  return new Promise<any>((resolve) => {
+  return new Promise<OrderSummary[]>((resolve) => {
     setTimeout(() => {
-      console.log(`获取用户 ${userId} 的订单完成`);
-      resolve([{ orderId: 1, amount: 100 }, { orderId: 2, amount: 200 }]);
-    }, 1000);
-  });
-};
+      console.log(`获取用户 ${userId} 的订单完成`)
+      resolve([{ orderId: 1, amount: 100 }, { orderId: 2, amount: 200 }])
+    }, 1000)
+  })
+}
 
 // 模拟异步操作 3: 根据订单ID获取订单详情
 const getOrderDetail = (orderId: number) => {
-  return new Promise<any>((resolve) => {
+  return new Promise<OrderDetail>((resolve) => {
     setTimeout(() => {
-      console.log(`获取订单 ${orderId} 的详情完成`);
-      resolve({ orderId, amount: 100, status: '已完成' });
-    }, 1000);
-  });
-};
+      console.log(`获取订单 ${orderId} 的详情完成`)
+      resolve({ orderId, amount: 100, status: '已完成' })
+    }, 1000)
+  })
+}
 
 // 回调地狱版本（不推荐）
 // const callbackHellVersion = () => {
@@ -165,39 +181,40 @@ const getOrderDetail = (orderId: number) => {
 
 // Promise 链式调用版本（推荐）
 const promiseChainVersion = () => {
-  console.log('=== Promise 链式调用版本 ===');
+  console.log('=== Promise 链式调用版本 ===')
   getUserInfo()
-    .then((userInfo: any) => getOrders(userInfo.userId))
-    .then((orders: any[]) => getOrderDetail(orders[0].orderId))
+    .then(userInfo => getOrders(userInfo.userId))
+    .then(orders => getOrderDetail(orders[0].orderId))
     .then((orderDetail) => {
-      console.log('最终结果:', orderDetail);
+      console.log('最终结果:', orderDetail)
     })
     .catch((error) => {
-      console.error('出错了:', error);
-    });
-};
+      console.error('出错了:', error)
+    })
+}
 
 // async/await 版本（更推荐）
 const asyncAwaitVersion = async () => {
-  console.log('=== async/await 版本 ===');
+  console.log('=== async/await 版本 ===')
   try {
-    const userInfo = await getUserInfo();
-    const orders = await getOrders((userInfo as any).userId);
-    const orderDetail = await getOrderDetail((orders as any[])[0].orderId);
-    console.log('最终结果:', orderDetail);
-  } catch (error) {
-    console.error('出错了:', error);
+    const userInfo = await getUserInfo()
+    const orders = await getOrders(userInfo.userId)
+    const orderDetail = await getOrderDetail(orders[0].orderId)
+    console.log('最终结果:', orderDetail)
   }
-};
+  catch (error) {
+    console.error('出错了:', error)
+  }
+}
 
 // 页面加载时执行示例
 onMounted(() => {
   // 执行 Promise 链式调用示例
-  promiseChainVersion();
-  
+  promiseChainVersion()
+
   // 执行 async/await 示例（延迟执行，避免输出混乱）
   setTimeout(() => {
-    asyncAwaitVersion();
-  }, 3500);
-});
+    asyncAwaitVersion()
+  }, 3500)
+})
 </script>
