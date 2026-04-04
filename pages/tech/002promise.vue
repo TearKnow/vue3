@@ -185,12 +185,8 @@ const promiseChainVersion = () => {
   getUserInfo()
     .then(userInfo => getOrders(userInfo.userId))
     .then(orders => getOrderDetail(orders[0].orderId))
-    .then((orderDetail) => {
-      console.log('最终结果:', orderDetail)
-    })
-    .catch((error) => {
-      console.error('出错了:', error)
-    })
+    .then(orderDetail => console.log('最终结果:', orderDetail))
+    .catch(error => console.error('出错了:', error))
 }
 
 // async/await 版本（更推荐）
