@@ -6,7 +6,7 @@
     "source.fixAll.eslint": "explicit"  // 只让 ESLint 修复
   },
   "eslint.useFlatConfig": true,//新版 ESLint 扩展的正式开关。开启后，扩展会用 ESLint 9 推荐的 flat config 机制去加载规则
-  "eslint.experimental.useFlatConfig": true,//旧版本扩展里的实验开关。现在很多环境里已经被 eslint.useFlatConfig 替代，但保留它通常无害，主要是兼容不同版本扩展。
+  //"eslint.experimental.useFlatConfig": true,//旧版本扩展里的实验开关。现在很多环境里已经被 eslint.useFlatConfig 替代，但保留它通常无害，主要是兼容不同版本扩展。
   "eslint.validate": ["javascript", "typescript", "vue"],
   "eslint.run": "onSave",
   "files.autoSave": "off"
