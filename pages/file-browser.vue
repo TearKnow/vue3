@@ -22,6 +22,15 @@
             <span class="file-count">{{ visibleFileCount }} / {{ treeTotal }} 个文件</span>
           </div>
           <div class="file-tree-actions">
+            <button type="button" class="locate-file-btn" title="定位当前文件" :disabled="!selectedFile" @click="locateSelectedFile">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="8" />
+                <line x1="12" y1="2" x2="12" y2="6" />
+                <line x1="12" y1="18" x2="12" y2="22" />
+                <line x1="2" y1="12" x2="6" y2="12" />
+                <line x1="18" y1="12" x2="22" y2="12" />
+              </svg>
+            </button>
             <button type="button" @click="expandAllFolders">
               全部展开
             </button>
@@ -57,6 +66,7 @@
             :selected-file="selectedFile"
             :expand-all="treeExpanded"
             :search-keyword="searchKeyword"
+            :locate-key="locateKey"
             @select-file="selectFile"
           />
         </ul>
@@ -99,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, resolveComponent, watch } from 'vue'
+import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, resolveComponent, watch } from 'vue'
 
 type ProjectTreeNode = {
   name: string
@@ -132,6 +142,7 @@ const content = ref('')
 const contentPending = ref(false)
 const contentErrorText = ref('')
 const treeExpanded = ref<boolean | undefined>(undefined)
+const locateKey = ref(0)
 const searchKeyword = ref('')
 const layoutRef = ref<HTMLElement | null>(null)
 const sidebarWidthCookie = useCookie<string>('file-browser-sidebar-width', {
@@ -291,6 +302,16 @@ function collapseAllFolders() {
   treeExpanded.value = false
 }
 
+async function locateSelectedFile() {
+  if (!selectedFile.value)
+    return
+  locateKey.value++
+  await nextTick()
+  await nextTick()
+  document.querySelector('.browser-file-button.is-active')
+    ?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+}
+
 watch(selectedFile, async (filePath) => {
   await loadFileContent(filePath)
 }, { immediate: true })
@@ -348,6 +369,10 @@ const FileTreeNode = defineComponent({
       type: String,
       default: '',
     },
+    locateKey: {
+      type: Number,
+      default: 0,
+    },
   },
   emits: ['selectFile'],
   setup(props, { emit }) {
@@ -381,6 +406,14 @@ const FileTreeNode = defineComponent({
       () => props.selectedFile,
       (filePath) => {
         if (isAncestorOfSelected(filePath))
+          isOpen.value = true
+      },
+    )
+
+    watch(
+      () => props.locateKey,
+      () => {
+        if (isAncestorOfSelected(props.selectedFile))
           isOpen.value = true
       },
     )
@@ -422,6 +455,7 @@ const FileTreeNode = defineComponent({
                 selectedFile: props.selectedFile,
                 expandAll: props.expandAll,
                 searchKeyword: props.searchKeyword,
+                locateKey: props.locateKey,
                 onSelectFile: (filePath: string) => emit('selectFile', filePath),
               }),
             ),
@@ -564,8 +598,26 @@ const FileTreeNode = defineComponent({
   font-size: 12px;
 }
 
-.file-tree-actions button:hover {
+.file-tree-actions button:hover:not(:disabled) {
   background: #eef2f7;
+}
+
+.file-tree-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.locate-file-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.locate-file-btn svg {
+  flex-shrink: 0;
 }
 
 .file-search-box {
@@ -580,6 +632,7 @@ const FileTreeNode = defineComponent({
   background: #fff;
   color: #334155;
   outline: none;
+  box-sizing: border-box;
 }
 
 .file-search-input:focus {
