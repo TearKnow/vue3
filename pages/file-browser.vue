@@ -252,7 +252,7 @@ const FileTreeNode = defineComponent({
   emits: ['selectFile'],
   setup(props, { emit }) {
     const SelfComponent = resolveComponent('FileTreeNode')
-    const isOpen = ref(props.node.path.split('/').length <= 2)
+    const isOpen = ref(false)
 
     watch(
       () => props.expandAll,
@@ -287,6 +287,7 @@ const FileTreeNode = defineComponent({
           },
         }, [
           h('summary', { class: 'browser-folder-summary' }, [
+            h('span', { class: 'browser-folder-toggle' }, isOpen.value ? '-' : '+'),
             h('span', { class: 'browser-folder-name' }, node.name),
           ]),
           h(
@@ -453,6 +454,9 @@ const FileTreeNode = defineComponent({
 }
 
 .browser-folder-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
   list-style: none;
@@ -461,6 +465,20 @@ const FileTreeNode = defineComponent({
 
 .browser-folder-summary::-webkit-details-marker {
   display: none;
+}
+
+.browser-folder-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 700;
+  line-height: 1;
+  flex: 0 0 auto;
 }
 
 .browser-folder-name {
@@ -493,7 +511,7 @@ const FileTreeNode = defineComponent({
 .file-content-panel {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   background: #0f172a;
 }
 
@@ -532,7 +550,7 @@ const FileTreeNode = defineComponent({
 
 .file-code-shell {
   flex: 1;
-  overflow: auto;
+  overflow: visible;
 }
 
 .file-code {
@@ -543,7 +561,6 @@ const FileTreeNode = defineComponent({
 .file-line {
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr);
-  min-width: max-content;
 }
 
 .file-line:hover {
@@ -563,7 +580,8 @@ const FileTreeNode = defineComponent({
   padding: 0 16px;
   color: #e2e8f0;
   line-height: 1.7;
-  white-space: pre;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .file-line-content .token-comment {
