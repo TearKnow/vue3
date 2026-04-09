@@ -182,6 +182,10 @@ const RouteTreeNode = defineComponent({
   padding: 24px;
 }
 
+.page-nav > .route-tree-list {
+  padding-left: 0;
+}
+
 .route-actions {
   display: flex;
   gap: 12px;
@@ -189,26 +193,82 @@ const RouteTreeNode = defineComponent({
 }
 
 .route-actions button {
-  padding: 6px 12px;
-  border: 1px solid #d9dde5;
-  border-radius: 8px;
-  background: #fff;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   cursor: pointer;
+  color: #334155;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgb(15 23 42 / 8%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.route-actions button:first-child {
+  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #93c5fd;
+}
+
+.route-actions button:last-child {
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f5c96a;
 }
 
 .route-actions button:hover {
-  background: #f7f8fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgb(15 23 42 / 12%);
 }
 
 .route-tree-list {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 18px;
   list-style: none;
 }
 
 .route-folder,
 .route-file {
-  margin: 8px 0;
+  position: relative;
+  margin: 6px 0;
+  padding-left: 22px;
+}
+
+.route-folder::before,
+.route-file::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 17px;
+  width: 10px;
+  height: 1px;
+  background: #d7dde6;
+}
+
+.route-folder::after,
+.route-file::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: -8px;
+  bottom: -8px;
+  width: 1px;
+  background: #d7dde6;
+}
+
+.page-nav > .route-tree-list > .route-folder,
+.page-nav > .route-tree-list > .route-file {
+  padding-left: 0;
+}
+
+.page-nav > .route-tree-list > .route-folder::before,
+.page-nav > .route-tree-list > .route-folder::after,
+.page-nav > .route-tree-list > .route-file::before,
+.page-nav > .route-tree-list > .route-file::after {
+  display: none;
+}
+
+.route-tree-list > .route-folder:last-child::after,
+.route-tree-list > .route-file:last-child::after {
+  bottom: auto;
+  height: 26px;
 }
 
 .route-folder-summary {
@@ -249,12 +309,24 @@ const RouteTreeNode = defineComponent({
 }
 
 .route-folder-content {
-  padding-left: 18px;
-  margin-top: 8px;
+  margin-top: 6px;
+  padding-left: 0;
+  border-left: none;
 }
 
 .route-folder-link {
-  margin: 8px 0;
+  position: relative;
+  margin: 4px 0 6px 22px;
+}
+
+.route-folder-link::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 12px;
+  width: 10px;
+  height: 1px;
+  background: #d7dde6;
 }
 
 .route-file {
@@ -263,8 +335,10 @@ const RouteTreeNode = defineComponent({
 
 .route-file a,
 .route-folder-link a {
+  display: inline-block;
   color: #2563eb;
   text-decoration: none;
+  line-height: 1.6;
 }
 
 .route-file a:hover,
