@@ -289,6 +289,7 @@ const RouteTreeNode = defineComponent({
   border-radius: 10px;
   cursor: pointer;
   color: #334155;
+  font-size: inherit;
   font-weight: 600;
   box-shadow: 0 2px 6px rgb(15 23 42 / 8%);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
@@ -317,6 +318,7 @@ const RouteTreeNode = defineComponent({
   border-radius: 10px;
   background: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 100%);
   color: #5b21b6;
+  font-size: inherit;
   font-weight: 600;
   text-decoration: none;
   box-shadow: 0 2px 6px rgb(15 23 42 / 8%);
