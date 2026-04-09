@@ -184,7 +184,6 @@ const RouteTreeNode = defineComponent({
   },
   setup(props) {
     const NuxtLinkComponent = resolveComponent('NuxtLink')
-    const SelfComponent = resolveComponent('RouteTreeNode')
     const isOpen = ref(props.level < 2)
 
     watch(
@@ -240,7 +239,7 @@ const RouteTreeNode = defineComponent({
               'ul',
               { class: 'route-tree-list' },
               node.children.map(child =>
-                h(SelfComponent, {
+                h(RouteTreeNode, {
                   key: `${child.name}-${child.path || 'folder'}`,
                   node: child,
                   level: props.level + 1,

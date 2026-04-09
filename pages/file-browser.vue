@@ -109,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, resolveComponent, watch } from 'vue'
+import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 type ProjectTreeNode = {
   name: string
@@ -376,7 +376,6 @@ const FileTreeNode = defineComponent({
   },
   emits: ['selectFile'],
   setup(props, { emit }) {
-    const SelfComponent = resolveComponent('FileTreeNode')
     const isAncestorOfSelected = (filePath: string) =>
       !!filePath && filePath.startsWith(props.node.path + '/')
 
@@ -449,7 +448,7 @@ const FileTreeNode = defineComponent({
             'ul',
             { class: 'file-tree-list file-tree-children' },
             (node.children ?? []).map(child =>
-              h(SelfComponent, {
+              h(FileTreeNode, {
                 key: child.path,
                 node: child,
                 selectedFile: props.selectedFile,
