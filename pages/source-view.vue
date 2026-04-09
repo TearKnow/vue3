@@ -18,12 +18,12 @@
 
       <div class="source-code">
         <div
-          v-for="(line, index) in sourceLines"
+          v-for="(line, index) in highlightedLines"
           :key="index"
           class="source-line"
         >
           <span class="source-line-number">{{ index + 1 }}</span>
-          <code class="source-line-content">{{ line || ' ' }}</code>
+          <code class="source-line-content" v-html="line" />
         </div>
       </div>
     </div>
@@ -65,6 +65,38 @@ const sourceCode = computed(() => {
 
 const sourceLines = computed(() => {
   return sourceCode.value.split('\n')
+})
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+}
+
+function highlightLine(line: string) {
+  const placeholders: string[] = []
+  const stash = (value: string) => {
+    const index = placeholders.push(value) - 1
+    return `__TOKEN_${index}__`
+  }
+
+  let output = escapeHtml(line)
+
+  output = output.replace(/(&lt;!--.*?--&gt;)/g, match => stash(`<span class="token-comment">${match}</span>`))
+  output = output.replace(/(\/\/.*)$/g, match => stash(`<span class="token-comment">${match}</span>`))
+  output = output.replace(/('[^']*'|"[^"]*"|`[^`]*`)/g, match => stash(`<span class="token-string">${match}</span>`))
+  output = output.replace(/([:@#]?[\w-]+)(=)/g, '<span class="token-attr">$1</span><span class="token-punctuation">$2</span>')
+  output = output.replace(/(&lt;\/?)([A-Za-z][\w-]*)(?=[\s/&gt;])/g, '$1<span class="token-tag">$2</span>')
+  output = output.replace(/\b(import|from|const|let|var|function|return|if|else|for|while|await|async|type|interface|new|as|default|export|defineProps|defineEmits|defineModel|computed|ref|reactive|watch|useRoute|useRouter)\b/g, '<span class="token-keyword">$1</span>')
+  output = output.replace(/\b(true|false|null|undefined)\b/g, '<span class="token-constant">$1</span>')
+  output = output.replace(/\b(\d+)\b/g, '<span class="token-number">$1</span>')
+
+  return output.replace(/__TOKEN_(\d+)__/g, (_, index) => placeholders[Number(index)] ?? '')
+}
+
+const highlightedLines = computed(() => {
+  return sourceLines.value.map(line => highlightLine(line || ' '))
 })
 </script>
 
@@ -165,6 +197,38 @@ const sourceLines = computed(() => {
   color: #e2e8f0;
   line-height: 1.7;
   white-space: pre;
+}
+
+.source-line-content :deep(.token-comment) {
+  color: #6a9955;
+}
+
+.source-line-content :deep(.token-string) {
+  color: #ce9178;
+}
+
+.source-line-content :deep(.token-keyword) {
+  color: #c586c0;
+}
+
+.source-line-content :deep(.token-constant) {
+  color: #569cd6;
+}
+
+.source-line-content :deep(.token-number) {
+  color: #b5cea8;
+}
+
+.source-line-content :deep(.token-tag) {
+  color: #569cd6;
+}
+
+.source-line-content :deep(.token-attr) {
+  color: #9cdcfe;
+}
+
+.source-line-content :deep(.token-punctuation) {
+  color: #d4d4d4;
 }
 
 .source-empty {
