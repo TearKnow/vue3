@@ -13,12 +13,13 @@
       </button>
     </div>
 
-    <div class="file-browser-layout">
-      <aside class="file-sidebar">
+    <div ref="layoutRef" class="file-browser-layout">
+      <div class="file-sidebar-wrap" :style="{ width: `${sidebarWidth + 16}px` }">
+        <aside class="file-sidebar">
         <div class="file-sidebar-header">
           <div class="file-sidebar-title">
             <span>文件树</span>
-            <span class="file-count">{{ treeTotal }} 项</span>
+            <span class="file-count">{{ visibleFileCount }} / {{ treeTotal }} 个文件</span>
           </div>
           <div class="file-tree-actions">
             <button type="button" @click="expandAllFolders">
@@ -30,23 +31,38 @@
           </div>
         </div>
 
+        <div class="file-search-box">
+          <input
+            v-model.trim="searchKeyword"
+            type="text"
+            class="file-search-input"
+            placeholder="搜索文件或目录"
+          >
+        </div>
+
         <div v-if="treePending" class="file-sidebar-empty">
           正在加载文件树...
         </div>
         <div v-else-if="treeErrorText" class="file-sidebar-empty">
           {{ treeErrorText }}
         </div>
+        <div v-else-if="!displayTreeItems.length" class="file-sidebar-empty">
+          未找到匹配的文件或目录。
+        </div>
         <ul v-else class="file-tree-list">
           <FileTreeNode
-            v-for="item in treeItems"
+            v-for="item in displayTreeItems"
             :key="item.path"
             :node="item"
             :selected-file="selectedFile"
             :expand-all="treeExpanded"
+            :search-keyword="searchKeyword"
             @select-file="selectFile"
           />
         </ul>
-      </aside>
+        </aside>
+        <div class="file-sidebar-resizer" @pointerdown="startResize" />
+      </div>
 
       <main class="file-content-panel">
         <div class="file-content-toolbar">
@@ -83,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, ref, resolveComponent, watch } from 'vue'
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, resolveComponent, watch } from 'vue'
 
 type ProjectTreeNode = {
   name: string
@@ -116,11 +132,117 @@ const content = ref('')
 const contentPending = ref(false)
 const contentErrorText = ref('')
 const treeExpanded = ref<boolean | undefined>(undefined)
+const searchKeyword = ref('')
+const layoutRef = ref<HTMLElement | null>(null)
+const sidebarWidthCookie = useCookie<string>('file-browser-sidebar-width', {
+  default: () => '320',
+})
+
+const SIDEBAR_MIN_WIDTH = 260
+const SIDEBAR_DEFAULT_WIDTH = 320
+const SIDEBAR_MAX_RATIO = 0.6
+
+function clampSidebarWidth(width: number) {
+  if (typeof window === 'undefined')
+    return Math.max(SIDEBAR_MIN_WIDTH, width)
+
+  const maxWidth = Math.max(SIDEBAR_MIN_WIDTH, Math.floor(window.innerWidth * SIDEBAR_MAX_RATIO))
+  return Math.min(Math.max(width, SIDEBAR_MIN_WIDTH), maxWidth)
+}
+
+function parseSidebarWidth(value: string | undefined) {
+  const parsed = Number.parseInt(value ?? '', 10)
+  return Number.isFinite(parsed) ? clampSidebarWidth(parsed) : SIDEBAR_DEFAULT_WIDTH
+}
+
+const sidebarWidth = ref(parseSidebarWidth(sidebarWidthCookie.value))
+let resizeStartLeft = 0
+
+function syncSidebarWidthCookie() {
+  sidebarWidthCookie.value = String(Math.round(sidebarWidth.value))
+}
+
+function handlePointerMove(event: PointerEvent) {
+  sidebarWidth.value = clampSidebarWidth(event.clientX - resizeStartLeft)
+  syncSidebarWidthCookie()
+}
+
+function stopResize() {
+  window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('pointerup', stopResize)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
+
+function startResize(event: PointerEvent) {
+  resizeStartLeft = layoutRef.value?.getBoundingClientRect().left ?? 0
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+  window.addEventListener('pointermove', handlePointerMove)
+  window.addEventListener('pointerup', stopResize)
+  event.preventDefault()
+}
+
+function handleWindowResize() {
+  sidebarWidth.value = clampSidebarWidth(sidebarWidth.value)
+  syncSidebarWidthCookie()
+}
+
+onMounted(() => {
+  handleWindowResize()
+  window.addEventListener('resize', handleWindowResize)
+})
+
+onBeforeUnmount(() => {
+  stopResize()
+  window.removeEventListener('resize', handleWindowResize)
+})
 
 const treeItems = computed(() => treeResponse.value?.items ?? [])
 const treeTotal = computed(() => treeResponse.value?.total ?? 0)
 const treeErrorText = computed(() => treeError.value?.message ?? '')
 const selectedFile = computed(() => typeof route.query.file === 'string' ? route.query.file : '')
+
+function filterTree(nodes: ProjectTreeNode[], keyword: string): ProjectTreeNode[] {
+  const normalizedKeyword = keyword.trim().toLowerCase()
+
+  if (!normalizedKeyword)
+    return nodes
+
+  return nodes.flatMap((node) => {
+    const matchesSelf = node.name.toLowerCase().includes(normalizedKeyword)
+      || node.path.toLowerCase().includes(normalizedKeyword)
+
+    if (node.type === 'file')
+      return matchesSelf ? [node] : []
+
+    const filteredChildren = filterTree(node.children ?? [], normalizedKeyword)
+
+    if (!matchesSelf && !filteredChildren.length)
+      return []
+
+    return [{
+      ...node,
+      children: filteredChildren,
+    }]
+  })
+}
+
+function countFiles(nodes: ProjectTreeNode[]): number {
+  return nodes.reduce((count, node) => {
+    if (node.type === 'file')
+      return count + 1
+    return count + countFiles(node.children ?? [])
+  }, 0)
+}
+
+const displayTreeItems = computed(() => {
+  return filterTree(treeItems.value, searchKeyword.value)
+})
+
+const visibleFileCount = computed(() => {
+  return countFiles(displayTreeItems.value)
+})
 
 async function selectFile(filePath: string) {
   await router.replace({
@@ -222,6 +344,10 @@ const FileTreeNode = defineComponent({
       type: Boolean,
       default: null,
     },
+    searchKeyword: {
+      type: String,
+      default: '',
+    },
   },
   emits: ['selectFile'],
   setup(props, { emit }) {
@@ -233,6 +359,15 @@ const FileTreeNode = defineComponent({
       (value) => {
         if (typeof value === 'boolean')
           isOpen.value = value
+      },
+      { immediate: true },
+    )
+
+    watch(
+      () => props.searchKeyword,
+      (value) => {
+        if (value.trim())
+          isOpen.value = true
       },
       { immediate: true },
     )
@@ -273,6 +408,7 @@ const FileTreeNode = defineComponent({
                 node: child,
                 selectedFile: props.selectedFile,
                 expandAll: props.expandAll,
+                searchKeyword: props.searchKeyword,
                 onSelectFile: (filePath: string) => emit('selectFile', filePath),
               }),
             ),
@@ -331,10 +467,21 @@ const FileTreeNode = defineComponent({
 }
 
 .file-browser-layout {
-  display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  display: flex;
+  align-items: flex-start;
   gap: 16px;
   min-height: 70vh;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.file-sidebar-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 0;
+  padding-right: 16px;
+  box-sizing: border-box;
 }
 
 .file-sidebar,
@@ -346,8 +493,35 @@ const FileTreeNode = defineComponent({
 }
 
 .file-sidebar {
-  overflow: auto;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 12px;
+}
+
+.file-sidebar-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  cursor: col-resize;
+}
+
+.file-sidebar-resizer::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 7px;
+  width: 2px;
+  border-radius: 999px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.file-sidebar-resizer:hover::before {
+  background: #cbd5e1;
 }
 
 .file-sidebar-header {
@@ -359,6 +533,9 @@ const FileTreeNode = defineComponent({
 }
 
 .file-sidebar-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   color: #475569;
   font-weight: 600;
 }
@@ -367,6 +544,7 @@ const FileTreeNode = defineComponent({
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  padding-right: 12px;
 }
 
 .file-tree-actions button {
@@ -383,9 +561,29 @@ const FileTreeNode = defineComponent({
   background: #eef2f7;
 }
 
+.file-search-box {
+  margin-bottom: 18px;
+}
+
+.file-search-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  outline: none;
+}
+
+.file-search-input:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgb(147 197 253 / 20%);
+}
+
 .file-count {
   color: #94a3b8;
   font-size: 12px;
+  line-height: 1.4;
 }
 
 .file-sidebar-empty,
@@ -474,6 +672,7 @@ const FileTreeNode = defineComponent({
   background: #fef3c7;
   color: #7c5800;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .file-tree-children {
@@ -487,6 +686,8 @@ const FileTreeNode = defineComponent({
   color: #2563eb;
   cursor: pointer;
   text-align: left;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .browser-file-button.is-active {
@@ -495,6 +696,8 @@ const FileTreeNode = defineComponent({
 }
 
 .file-content-panel {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: visible;
@@ -604,7 +807,20 @@ const FileTreeNode = defineComponent({
 
 @media (max-width: 900px) {
   .file-browser-layout {
-    grid-template-columns: 1fr;
+    display: block;
+  }
+
+  .file-sidebar {
+    width: auto;
+    margin-bottom: 16px;
+  }
+
+  .file-sidebar-wrap {
+    width: 100% !important;
+  }
+
+  .file-sidebar-resizer {
+    display: none;
   }
 }
 </style>
