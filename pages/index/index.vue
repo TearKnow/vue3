@@ -19,7 +19,7 @@
       <button type="button" @click="collapseAllFolders">
         全部收起
       </button>
-      <NuxtLink class="file-browser-entry" to="/file-browser">
+      <NuxtLink class="file-browser-entry" to="/file-browser" target="_blank" rel="noopener noreferrer">
         打开文件浏览器
       </NuxtLink>
     </div>

@@ -11,8 +11,8 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: 'bilibili',
-  description: 'b站，你的选择',
+  title: 'vue3',
+  description: 'vue3，你的选择',
 })
 
 // showSuccessToast('成功文案');
