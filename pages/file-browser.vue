@@ -14,7 +14,7 @@
     </div>
 
     <div ref="layoutRef" class="file-browser-layout">
-      <div class="file-sidebar-wrap" :style="{ width: `${sidebarWidth + 16}px` }">
+      <div class="file-sidebar-wrap" :style="{ width: `${sidebarWidth}px` }">
         <aside class="file-sidebar">
         <div class="file-sidebar-header">
           <div class="file-sidebar-title">
@@ -469,7 +469,7 @@ const FileTreeNode = defineComponent({
 .file-browser-layout {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 11px;
   min-height: 70vh;
   width: 100%;
   min-width: 0;
@@ -480,7 +480,6 @@ const FileTreeNode = defineComponent({
   position: relative;
   flex: 0 0 auto;
   min-width: 0;
-  padding-right: 24px;
   box-sizing: border-box;
 }
 
@@ -490,6 +489,7 @@ const FileTreeNode = defineComponent({
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+  box-sizing: border-box;
 }
 
 .file-sidebar {
@@ -502,26 +502,20 @@ const FileTreeNode = defineComponent({
 .file-sidebar-resizer {
   position: absolute;
   top: 0;
-  right: 0;
+  right: -9px;
   bottom: 0;
-  width: 24px;
+  width: 7px;
   cursor: col-resize;
+  transition: background 0.15s ease;
+  z-index: 2;
 }
 
 .file-sidebar-resizer::before {
-  content: '';
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 11px;
-  width: 2px;
-  border-radius: 999px;
-  background: transparent;
-  transition: background 0.15s ease;
+  display: none;
 }
 
-.file-sidebar-resizer:hover::before {
-  background: #cbd5e1;
+.file-sidebar-resizer:hover {
+  background: rgb(51 65 85 / 16%);
 }
 
 .file-sidebar-header {
