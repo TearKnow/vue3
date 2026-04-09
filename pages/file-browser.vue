@@ -352,7 +352,12 @@ const FileTreeNode = defineComponent({
   emits: ['selectFile'],
   setup(props, { emit }) {
     const SelfComponent = resolveComponent('FileTreeNode')
-    const isOpen = ref(props.node.path === 'pages')
+    const isAncestorOfSelected = (filePath: string) =>
+      !!filePath && filePath.startsWith(props.node.path + '/')
+
+    const isOpen = ref(
+      props.node.path === 'pages' || isAncestorOfSelected(props.selectedFile),
+    )
 
     watch(
       () => props.expandAll,
@@ -370,6 +375,14 @@ const FileTreeNode = defineComponent({
           isOpen.value = true
       },
       { immediate: true },
+    )
+
+    watch(
+      () => props.selectedFile,
+      (filePath) => {
+        if (isAncestorOfSelected(filePath))
+          isOpen.value = true
+      },
     )
 
     return (): ReturnType<typeof h> => {
