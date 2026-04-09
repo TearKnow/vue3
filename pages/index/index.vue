@@ -137,7 +137,11 @@ const RouteTreeNode = defineComponent({
 
       if (!isFolder) {
         return h('li', { class: 'route-file' }, [
-          h(NuxtLinkComponent, { to: node.path }, () => node.name),
+          h(NuxtLinkComponent, {
+            to: node.path,
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          }, () => node.name),
         ])
       }
 
@@ -154,7 +158,11 @@ const RouteTreeNode = defineComponent({
           h('div', { class: 'route-folder-content' }, [
             node.path
               ? h('div', { class: 'route-folder-link' }, [
-                  h(NuxtLinkComponent, { to: node.path }, () => `打开 ${node.name}`),
+                  h(NuxtLinkComponent, {
+                    to: node.path,
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                  }, () => `打开 ${node.name}`),
                 ])
               : null,
             h(
