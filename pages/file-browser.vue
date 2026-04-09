@@ -480,7 +480,7 @@ const FileTreeNode = defineComponent({
   position: relative;
   flex: 0 0 auto;
   min-width: 0;
-  padding-right: 16px;
+  padding-right: 24px;
   box-sizing: border-box;
 }
 
@@ -504,7 +504,7 @@ const FileTreeNode = defineComponent({
   top: 0;
   right: 0;
   bottom: 0;
-  width: 16px;
+  width: 24px;
   cursor: col-resize;
 }
 
@@ -513,7 +513,7 @@ const FileTreeNode = defineComponent({
   position: absolute;
   top: 12px;
   bottom: 12px;
-  left: 7px;
+  left: 11px;
   width: 2px;
   border-radius: 999px;
   background: transparent;
