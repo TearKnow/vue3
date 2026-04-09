@@ -2,6 +2,9 @@
   <div class="file-browser-page">
     <div class="file-browser-header">
       <div>
+        <NuxtLink class="browser-back-home" to="/">
+          返回首页
+        </NuxtLink>
         <h2>项目文件浏览器</h2>
         <p>展示 Git 工作区里未被 `.gitignore` 忽略的文件与目录。</p>
       </div>
@@ -327,6 +330,18 @@ const FileTreeNode = defineComponent({
 
 .file-browser-header h2 {
   margin: 0 0 8px;
+}
+
+.browser-back-home {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.browser-back-home:hover {
+  text-decoration: underline;
 }
 
 .file-browser-header p {

@@ -19,6 +19,9 @@
       <button type="button" @click="collapseAllFolders">
         全部收起
       </button>
+      <NuxtLink class="file-browser-entry" to="/file-browser">
+        打开文件浏览器
+      </NuxtLink>
     </div>
     <hr>
 
@@ -209,7 +212,7 @@ const RouteTreeNode = defineComponent({
   setup(props) {
     const NuxtLinkComponent = resolveComponent('NuxtLink')
     const SelfComponent = resolveComponent('RouteTreeNode')
-    const isOpen = ref(props.level === 0)
+    const isOpen = ref(props.level < 2)
 
     function getNodeLink(node: RouteTreeItem) {
       if (props.sourceViewEnabled && node.sourceFile) {
@@ -266,6 +269,7 @@ const RouteTreeNode = defineComponent({
           },
         }, [
           h('summary', { class: 'route-folder-summary' }, [
+            h('span', { class: 'route-folder-toggle' }, isOpen.value ? '-' : '+'),
             h('span', { class: 'route-folder-name' }, node.name),
           ]),
           h('div', { class: 'route-folder-content' }, [
@@ -349,6 +353,24 @@ const RouteTreeNode = defineComponent({
 }
 
 .route-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgb(15 23 42 / 12%);
+}
+
+.file-browser-entry {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid #c7b5ff;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 100%);
+  color: #5b21b6;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgb(15 23 42 / 8%);
+}
+
+.file-browser-entry:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgb(15 23 42 / 12%);
 }
@@ -462,6 +484,7 @@ const RouteTreeNode = defineComponent({
 .route-folder-summary {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
   list-style: none;
@@ -472,28 +495,29 @@ const RouteTreeNode = defineComponent({
   display: none;
 }
 
+.route-folder-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 700;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
 .route-folder-name {
   display: inline-block;
-  min-width: 96px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: #ffe08a;
-  border: 1px solid #e7be52;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
-  color: #6a4e00;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #7c5800;
   font-weight: 600;
   line-height: 1.2;
   font-size: 14px;
-}
-
-.route-folder-name::after {
-  content: ' [展开]';
-  font-size: 12px;
-  color: #8b6a12;
-}
-
-.route-folder details[open] > .route-folder-summary .route-folder-name::after {
-  content: ' [收起]';
 }
 
 .route-folder-content {
