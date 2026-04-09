@@ -31,12 +31,65 @@ import { computed, defineComponent, h, ref, resolveComponent, watch } from 'vue'
 type RouteTreeItem = {
   name: string
   path: string | null
+  disabled: boolean
   children: RouteTreeItem[]
 }
 
 const route = useRoute()
 const router = useRouter()
 const folderExpanded = ref<boolean | undefined>(undefined)
+const pageSources = import.meta.glob('../**/*.vue', {
+  eager: true,
+  import: 'default',
+  query: '?raw',
+}) as Record<string, string>
+
+function normalizeRoutePath(filePath: string) {
+  const relativePath = filePath
+    .replace(/\\/g, '/')
+    .replace(/^.*\/pages\//, '')
+    .replace(/^\.\.\//, '')
+    .replace(/\.vue$/, '')
+
+  const routePath = `/${relativePath}`.replace(/\/index$/, '') || '/'
+  return routePath
+}
+
+function resolveImportedFilePath(filePath: string, importPath: string) {
+  const normalizedFilePath = filePath.replace(/\\/g, '/')
+  const baseDir = normalizedFilePath.slice(0, normalizedFilePath.lastIndexOf('/'))
+  const resolvedParts = `${baseDir}/${importPath}`.split('/')
+  const normalizedParts: string[] = []
+
+  resolvedParts.forEach((part) => {
+    if (!part || part === '.')
+      return
+    if (part === '..') {
+      normalizedParts.pop()
+      return
+    }
+    normalizedParts.push(part)
+  })
+
+  return normalizedParts.join('/')
+}
+
+const disabledRoutePaths = computed(() => {
+  const importedPaths = new Set<string>()
+  const vueImportRE = /import\s+.+?\s+from\s+['"](\.{1,2}\/[^'"]+\.vue)['"]/g
+
+  Object.entries(pageSources).forEach(([filePath, source]) => {
+    const matches = source.matchAll(vueImportRE)
+
+    for (const match of matches) {
+      const importPath = match[1]
+      const resolvedFilePath = resolveImportedFilePath(filePath, importPath)
+      importedPaths.add(normalizeRoutePath(resolvedFilePath))
+    }
+  })
+
+  return importedPaths
+})
 
 function expandAllFolders() {
   folderExpanded.value = true
@@ -72,6 +125,7 @@ function buildRouteTree(paths: string[]) {
         node = {
           name: segment,
           path: null,
+          disabled: false,
           children: [],
         }
         currentLevel.push(node)
@@ -79,6 +133,7 @@ function buildRouteTree(paths: string[]) {
 
       if (index === segments.length - 1) {
         node.path = fullPath
+        node.disabled = disabledRoutePaths.value.has(fullPath)
       }
 
       currentLevel = node.children
@@ -137,11 +192,16 @@ const RouteTreeNode = defineComponent({
 
       if (!isFolder) {
         return h('li', { class: 'route-file' }, [
-          h(NuxtLinkComponent, {
-            to: node.path,
-            target: '_blank',
-            rel: 'noopener noreferrer',
-          }, () => node.name),
+          node.disabled
+            ? h('span', {
+                class: 'route-file-text route-file-text-disabled',
+                title: '该文件被其他页面作为子组件引用，不提供直接跳转',
+              }, node.name)
+            : h(NuxtLinkComponent, {
+                to: node.path,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+              }, () => node.name),
         ])
       }
 
@@ -347,6 +407,17 @@ const RouteTreeNode = defineComponent({
   color: #2563eb;
   text-decoration: none;
   line-height: 1.6;
+}
+
+.route-file-text {
+  display: inline-block;
+  line-height: 1.6;
+}
+
+.route-file-text-disabled {
+  color: #94a3b8;
+  text-decoration: line-through;
+  cursor: not-allowed;
 }
 
 .route-file a:hover,
