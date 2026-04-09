@@ -2,13 +2,6 @@
   <div class="page-nav">
     <div class="page-header">
       <h2>页面导航</h2>
-      <label class="source-toggle">
-        <input v-model="sourceViewEnabled" type="checkbox">
-        <span class="source-toggle-track">
-          <span class="source-toggle-thumb" />
-        </span>
-        <span class="source-toggle-text">查看源码</span>
-      </label>
     </div>
     <p>新增 `pages` 下的页面后，这里会自动显示在目录树里。（此页面由AI生成）</p>
 
@@ -32,7 +25,6 @@
         :node="item"
         :level="0"
         :expand-all="folderExpanded"
-        :source-view-enabled="sourceViewEnabled"
       />
     </ul>
   </div>
@@ -44,7 +36,6 @@ import { computed, defineComponent, h, ref, resolveComponent, watch } from 'vue'
 type RouteTreeItem = {
   name: string
   path: string | null
-  sourceFile: string | null
   disabled: boolean
   children: RouteTreeItem[]
 }
@@ -52,7 +43,6 @@ type RouteTreeItem = {
 const route = useRoute()
 const router = useRouter()
 const folderExpanded = ref<boolean | undefined>(undefined)
-const sourceViewEnabled = ref(false)
 const pageSources = import.meta.glob('../**/*.vue', {
   eager: true,
   import: 'default',
@@ -92,17 +82,6 @@ function resolveImportedFilePath(filePath: string, importPath: string) {
 
   return normalizedParts.join('/')
 }
-
-const routeFileMap = computed(() => {
-  const map = new Map<string, string>()
-
-  Object.keys(pageSources).forEach((filePath) => {
-    const pageFilePath = normalizePageFilePath(filePath)
-    map.set(normalizeRoutePath(pageFilePath), pageFilePath)
-  })
-
-  return map
-})
 
 const disabledRoutePaths = computed(() => {
   const importedPaths = new Set<string>()
@@ -155,7 +134,6 @@ function buildRouteTree(paths: string[]) {
         node = {
           name: segment,
           path: null,
-          sourceFile: null,
           disabled: false,
           children: [],
         }
@@ -164,7 +142,6 @@ function buildRouteTree(paths: string[]) {
 
       if (index === segments.length - 1) {
         node.path = fullPath
-        node.sourceFile = routeFileMap.value.get(fullPath) ?? null
         node.disabled = disabledRoutePaths.value.has(fullPath)
       }
 
@@ -204,26 +181,11 @@ const RouteTreeNode = defineComponent({
       type: Boolean,
       default: null,
     },
-    sourceViewEnabled: {
-      type: Boolean,
-      default: false,
-    },
   },
   setup(props) {
     const NuxtLinkComponent = resolveComponent('NuxtLink')
     const SelfComponent = resolveComponent('RouteTreeNode')
     const isOpen = ref(props.level < 2)
-
-    function getNodeLink(node: RouteTreeItem) {
-      if (props.sourceViewEnabled && node.sourceFile) {
-        return {
-          path: '/source-view',
-          query: { file: node.sourceFile },
-        }
-      }
-
-      return node.path
-    }
 
     watch(
       () => props.expandAll,
@@ -237,24 +199,16 @@ const RouteTreeNode = defineComponent({
     return (): ReturnType<typeof h> => {
       const node = props.node as RouteTreeItem
       const isFolder = node.children.length > 0
-      const nodeLink = getNodeLink(node)
 
       if (!isFolder) {
         return h('li', { class: 'route-file' }, [
-          props.sourceViewEnabled && nodeLink
-            ? h(NuxtLinkComponent, {
-                to: nodeLink,
-                target: '_blank',
-                rel: 'noopener noreferrer',
-                class: node.disabled ? 'route-file-link-disabled' : '',
-              }, () => node.name)
-            : node.disabled
+          node.disabled
             ? h('span', {
                 class: 'route-file-text route-file-text-disabled',
                 title: '该文件被其他页面作为子组件引用，不提供直接跳转',
               }, node.name)
             : h(NuxtLinkComponent, {
-                to: nodeLink,
+                to: node.path,
                 target: '_blank',
                 rel: 'noopener noreferrer',
               }, () => node.name),
@@ -273,13 +227,13 @@ const RouteTreeNode = defineComponent({
             h('span', { class: 'route-folder-name' }, node.name),
           ]),
           h('div', { class: 'route-folder-content' }, [
-            nodeLink
+            node.path
               ? h('div', { class: 'route-folder-link' }, [
                   h(NuxtLinkComponent, {
-                    to: nodeLink,
+                    to: node.path,
                     target: '_blank',
                     rel: 'noopener noreferrer',
-                  }, () => props.sourceViewEnabled ? `查看 ${node.name} 源码` : `打开 ${node.name}`),
+                  }, () => `打开 ${node.name}`),
                 ])
               : null,
             h(
@@ -291,7 +245,6 @@ const RouteTreeNode = defineComponent({
                   node: child,
                   level: props.level + 1,
                   expandAll: props.expandAll,
-                  sourceViewEnabled: props.sourceViewEnabled,
                 }),
               ),
             ),
@@ -373,59 +326,6 @@ const RouteTreeNode = defineComponent({
 .file-browser-entry:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgb(15 23 42 / 12%);
-}
-
-.source-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #ecfccb 0%, #d9f99d 100%);
-  border: 1px solid #a3d34f;
-  color: #3f6212;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.source-toggle input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.source-toggle-track {
-  position: relative;
-  width: 42px;
-  height: 24px;
-  border-radius: 999px;
-  background: #cbd5e1;
-  box-shadow: inset 0 0 0 1px rgb(15 23 42 / 8%);
-  transition: background 0.2s ease;
-}
-
-.source-toggle-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgb(15 23 42 / 20%);
-  transition: transform 0.2s ease;
-}
-
-.source-toggle-text {
-  line-height: 1;
-}
-
-.source-toggle input:checked + .source-toggle-track {
-  background: #22c55e;
-}
-
-.source-toggle input:checked + .source-toggle-track .source-toggle-thumb {
-  transform: translateX(18px);
 }
 
 .route-tree-list {
