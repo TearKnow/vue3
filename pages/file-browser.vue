@@ -692,6 +692,7 @@ const FileTreeNode = defineComponent({
 .file-content-panel {
   flex: 1;
   min-width: 0;
+  min-height: 70vh;
   display: flex;
   flex-direction: column;
   overflow: visible;
