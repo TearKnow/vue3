@@ -122,20 +122,6 @@ const treeTotal = computed(() => treeResponse.value?.total ?? 0)
 const treeErrorText = computed(() => treeError.value?.message ?? '')
 const selectedFile = computed(() => typeof route.query.file === 'string' ? route.query.file : '')
 
-function findFirstFile(nodes: ProjectTreeNode[]): string {
-  for (const node of nodes) {
-    if (node.type === 'file')
-      return node.path
-    if (node.children?.length) {
-      const nestedFile = findFirstFile(node.children)
-      if (nestedFile)
-        return nestedFile
-    }
-  }
-
-  return ''
-}
-
 async function selectFile(filePath: string) {
   await router.replace({
     query: {
@@ -173,12 +159,6 @@ async function loadFileContent(filePath: string) {
 
 async function refreshTree() {
   await refreshTreeData()
-
-  if (!selectedFile.value) {
-    const firstFile = findFirstFile(treeItems.value)
-    if (firstFile)
-      await selectFile(firstFile)
-  }
 }
 
 function expandAllFolders() {
@@ -188,15 +168,6 @@ function expandAllFolders() {
 function collapseAllFolders() {
   treeExpanded.value = false
 }
-
-watch(treeItems, async (items) => {
-  if (!items.length || selectedFile.value)
-    return
-
-  const firstFile = findFirstFile(items)
-  if (firstFile)
-    await selectFile(firstFile)
-}, { immediate: true })
 
 watch(selectedFile, async (filePath) => {
   await loadFileContent(filePath)
@@ -255,7 +226,7 @@ const FileTreeNode = defineComponent({
   emits: ['selectFile'],
   setup(props, { emit }) {
     const SelfComponent = resolveComponent('FileTreeNode')
-    const isOpen = ref(false)
+    const isOpen = ref(props.node.path === 'pages')
 
     watch(
       () => props.expandAll,
