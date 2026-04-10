@@ -83,6 +83,16 @@
 
     <p v-else-if="pending" class="state">加载中…</p>
     <p v-else class="state error">找不到这篇文章。</p>
+
+    <button
+      type="button"
+      class="to-top"
+      :class="{ show: showToTop }"
+      aria-label="回到顶部"
+      @click="scrollToTop"
+    >
+      ↑
+    </button>
   </div>
 </template>
 
@@ -94,6 +104,7 @@ const route = useRoute()
 const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
+const showToTop = ref(false)
 
 const { data: post, pending, error, refresh } = await useAsyncData(
   () => `blog-current-post-${currentSlug.value}`,
@@ -111,6 +122,14 @@ watch(() => route.path, () => {
   tocOpen.value = false
   refresh()
 })
+
+const onScroll = () => {
+  showToTop.value = (window.scrollY || window.pageYOffset || 0) > 280
+}
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 watch(tocOpen, (open) => {
   if (process.client) {
@@ -153,7 +172,13 @@ onBeforeUnmount(() => {
     body.style.right = ''
     body.style.width = ''
     body.style.touchAction = ''
+    window.removeEventListener('scroll', onScroll)
   }
+})
+
+onMounted(() => {
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
 })
 
 const { data: postNavList } = await useAsyncData<BlogPostMeta[]>('blog-post-nav', () => fetchBlogMetaList())
@@ -220,18 +245,12 @@ watchEffect(() => {
 </script>
 
 <style scoped>
-:global(html),
-:global(body) {
-  max-width: 100%;
-  overflow-x: hidden;
+:global(html) {
+  overflow-x: clip;
 }
 
 .blog-article {
-  width: 100%;
-  margin: 0;
-  padding: 2rem 0 3rem;
-  box-sizing: border-box;
-  overflow-x: visible;
+  padding: 2rem 1rem 3rem;
 }
 
 .blog-article article {
@@ -245,7 +264,6 @@ watchEffect(() => {
 
 .article-shell {
   display: block;
-  min-width: 0;
 }
 
 .back {
@@ -258,7 +276,6 @@ watchEffect(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  position: relative;
 }
 
 .top-bar .back {
@@ -448,9 +465,32 @@ watchEffect(() => {
 
 .mobile-toc {
   display: none;
+  position: fixed;
+  left: 0.75rem;
+  right: 0.75rem;
+  top: 3.3rem;
+  width: auto;
+  max-width: 320px;
+  max-height: 70vh;
+  overflow: auto;
+  margin: 0;
+  z-index: 1001;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+  box-sizing: border-box;
+}
+
+.mobile-toc.open {
+  display: block;
 }
 
 .toc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.25);
+  z-index: 1000;
+}
+
+.desktop-toc {
   display: none;
 }
 
@@ -573,61 +613,42 @@ watchEffect(() => {
     margin-left: 0;
     text-align: left;
   }
-
-  .mobile-toc {
-    display: none;
-    position: fixed;
-    left: 0.75rem;
-    right: 0.75rem;
-    top: 3.3rem;
-    width: auto;
-    max-width: 320px;
-    max-height: 70vh;
-    overflow: auto;
-    margin: 0;
-    z-index: 1001;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
-    box-sizing: border-box;
-  }
-
-  .mobile-toc.open {
-    display: block;
-  }
-
-  .toc-overlay {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.25);
-    z-index: 1000;
-  }
-
-  .desktop-toc {
-    display: none;
-  }
 }
 
-@media (min-width: 980px) {
+@media (min-width: 1280px) {
+  .blog-article {
+    padding: 2rem 2rem 3rem;
+  }
+
+  .top-bar {
+    max-width: 820px;
+    margin: 0 auto 1rem;
+  }
+
   .article-shell {
-    display: grid;
-    grid-template-columns: 180px minmax(0, 980px) 240px;
-    justify-content: center;
-    gap: 1.2rem;
-    align-items: start;
+    display: flex;
+    align-items: flex-start;
+    max-width: 820px;
+    margin: 0 auto;
+    overflow: visible;
   }
 
   .article-shell > article {
-    grid-column: 2;
+    flex: 0 0 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
-  .toc {
-    grid-column: 3;
-    margin: 0;
-    width: 100%;
-    max-height: calc(100vh - 2rem);
-    overflow: auto;
-    top: 1rem;
+  .desktop-toc {
+    display: block;
+    flex: 0 0 200px;
+    margin-left: 1.5rem;
     position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    align-self: flex-start;
   }
 
   .toc-toggle {
@@ -636,6 +657,22 @@ watchEffect(() => {
 
   .mobile-toc {
     display: none !important;
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1279px) {
+  .blog-article {
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .top-bar {
+    max-width: 820px;
+    margin: 0 auto 1rem;
+  }
+
+  .article-shell {
+    max-width: 820px;
+    margin: 0 auto;
   }
 }
 
@@ -656,5 +693,35 @@ watchEffect(() => {
 
 .state.error {
   color: #b91c1c;
+}
+
+.to-top {
+  position: fixed;
+  right: calc(env(safe-area-inset-right, 0px) + 14px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  width: 40px;
+  height: 40px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.15);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  z-index: 1002;
+}
+
+.to-top.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.to-top:hover {
+  background: #dbeafe;
 }
 </style>
