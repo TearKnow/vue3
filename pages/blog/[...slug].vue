@@ -321,6 +321,7 @@ watchEffect(() => {
   font-size: 1.95rem;
   line-height: 1.25;
   letter-spacing: 0.01em;
+  color: #0f172a;
 }
 
 .article-desc {
@@ -364,11 +365,13 @@ watchEffect(() => {
 .article-body :deep(h2) {
   margin: 1.5rem 0 0.5rem;
   font-size: 1.25rem;
+  color: #0f172a;
 }
 
 .article-body :deep(h3) {
   margin: 1.25rem 0 0.4rem;
   font-size: 1.1rem;
+  color: #1e293b;
 }
 
 .article-body :deep(p) {
@@ -380,9 +383,9 @@ watchEffect(() => {
 }
 
 .article-body :deep(a) {
-  color: #334155;
+  color: #3b6fc0;
   text-decoration: underline;
-  text-decoration-color: #cbd5e1;
+  text-decoration-color: #a8c4e0;
   text-underline-offset: 2px;
   transition: color 0.18s ease, text-decoration-color 0.18s ease;
   overflow-wrap: anywhere;
@@ -390,12 +393,12 @@ watchEffect(() => {
 }
 
 .article-body :deep(a:hover) {
-  color: #0f172a;
-  text-decoration-color: #64748b;
+  color: #2b5aa0;
+  text-decoration-color: #6a9fd8;
 }
 
 .article-body :deep(a:visited) {
-  color: #334155;
+  color: #3b6fc0;
 }
 
 .article-body :deep(ul),
