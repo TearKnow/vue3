@@ -256,6 +256,9 @@ watchEffect(() => {
 
 .blog-article {
   padding: 2rem 1rem 3rem;
+  --toc-toggle-right: calc(env(safe-area-inset-right, 0px) + 12px);
+  --toc-toggle-size: 32px;
+  --mobile-toc-gap: 10px;
 }
 
 .blog-article article {
@@ -481,17 +484,18 @@ watchEffect(() => {
 .mobile-toc {
   display: none;
   position: fixed;
-  left: 0.75rem;
-  right: 0.75rem;
+  left: auto;
+  right: var(--toc-toggle-right);
   top: 3.3rem;
-  width: auto;
-  max-width: 320px;
+  width: min(320px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
   max-height: 70vh;
   overflow: auto;
   margin: 0;
   z-index: 1001;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
   box-sizing: border-box;
+  transform: translateX(calc(-1 * (var(--toc-toggle-size) + var(--mobile-toc-gap))));
 }
 
 .mobile-toc.open {
@@ -611,7 +615,7 @@ watchEffect(() => {
 
   .toc-toggle {
     position: fixed;
-    right: calc(env(safe-area-inset-right, 0px) + 12px);
+    right: var(--toc-toggle-right);
     top: calc(env(safe-area-inset-top, 0px) + 12px);
     margin: 0;
   }
