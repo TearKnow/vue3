@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@vant/nuxt'],
+  modules: ['@vant/nuxt', '@nuxt/content'],
   devtools: { enabled: true },
   compatibilityDate: '2024-11-01',
   runtimeConfig: {
@@ -10,14 +10,14 @@ export default defineNuxtConfig({
     githubBranch: process.env.GITHUB_BRANCH || 'main',
   },
   nitro: {
-    // 这种方法直接通过代码层面强行把流量塞进代理端口
+    // 注意：不要代理 /api/_content/**，否则会影响 @nuxt/content 的文章查询接口
     devProxy: {
-      '/api': {
+      '/api/jjshouse': {
         target: 'https://www.jjshouse.com/api',
       },
     },
     routeRules: {
-      '/api/**': {
+      '/api/jjshouse/**': {
         proxy: 'https://www.jjshouse.com/api/**',
       },
     },
