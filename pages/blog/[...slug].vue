@@ -380,20 +380,22 @@ watchEffect(() => {
 }
 
 .article-body :deep(a) {
-  color: #2563eb;
+  color: #334155;
   text-decoration: underline;
+  text-decoration-color: #cbd5e1;
   text-underline-offset: 2px;
-  transition: color 0.18s ease;
+  transition: color 0.18s ease, text-decoration-color 0.18s ease;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .article-body :deep(a:hover) {
-  color: #1d4ed8;
+  color: #0f172a;
+  text-decoration-color: #64748b;
 }
 
 .article-body :deep(a:visited) {
-  color: #2563eb;
+  color: #334155;
 }
 
 .article-body :deep(ul),
