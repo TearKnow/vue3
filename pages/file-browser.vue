@@ -82,6 +82,28 @@
           <span class="file-current-path">{{ selectedFile || '请选择左侧文件' }}</span>
         </div>
 
+        <div v-if="selectedFile" class="mobile-file-nav">
+          <button
+            type="button"
+            class="mobile-file-nav-btn"
+            :disabled="!prevFile"
+            @click="goToPrevFile"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            {{ prevFile ? prevFile.split('/').pop() : '无' }}
+          </button>
+          <span class="mobile-file-nav-pos">{{ currentFileIndex + 1 }}/{{ flatFileList.length }}</span>
+          <button
+            type="button"
+            class="mobile-file-nav-btn"
+            :disabled="!nextFile"
+            @click="goToNextFile"
+          >
+            {{ nextFile ? nextFile.split('/').pop() : '无' }}
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
+        </div>
+
         <div v-if="contentPending" class="file-empty">
           正在读取文件内容...
         </div>
@@ -292,6 +314,43 @@ const displayTreeItems = computed(() => {
 const visibleFileCount = computed(() => {
   return countFiles(displayTreeItems.value)
 })
+
+function flattenFiles(nodes: ProjectTreeNode[]): string[] {
+  return nodes.flatMap((node) => {
+    if (node.type === 'file')
+      return [node.path]
+    return flattenFiles(node.children ?? [])
+  })
+}
+
+const flatFileList = computed(() => flattenFiles(displayTreeItems.value))
+
+const currentFileIndex = computed(() => {
+  if (!selectedFile.value)
+    return -1
+  return flatFileList.value.indexOf(selectedFile.value)
+})
+
+const prevFile = computed(() => {
+  const idx = currentFileIndex.value
+  return idx > 0 ? flatFileList.value[idx - 1] : null
+})
+
+const nextFile = computed(() => {
+  const idx = currentFileIndex.value
+  const list = flatFileList.value
+  return idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null
+})
+
+function goToPrevFile() {
+  if (prevFile.value)
+    selectFile(prevFile.value)
+}
+
+function goToNextFile() {
+  if (nextFile.value)
+    selectFile(nextFile.value)
+}
 
 async function selectFile(filePath: string) {
   await router.replace({
@@ -940,6 +999,10 @@ const FileTreeNode = defineComponent({
   transform: translateY(12px);
 }
 
+.mobile-file-nav {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .file-browser-layout {
     display: block;
@@ -956,6 +1019,50 @@ const FileTreeNode = defineComponent({
 
   .file-sidebar-resizer {
     display: none;
+  }
+
+  .mobile-file-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    border-bottom: 1px solid #1e293b;
+    background: #111827;
+  }
+
+  .mobile-file-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    color: #93c5fd;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 50%;
+  }
+
+  .mobile-file-nav-btn svg {
+    flex-shrink: 0;
+  }
+
+  .mobile-file-nav-btn:active:not(:disabled) {
+    background: rgb(37 99 235 / 15%);
+  }
+
+  .mobile-file-nav-btn:disabled {
+    color: #334155;
+    cursor: not-allowed;
+  }
+
+  .mobile-file-nav-pos {
+    color: #64748b;
+    font-size: 12px;
+    flex-shrink: 0;
   }
 }
 </style>
