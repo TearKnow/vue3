@@ -16,4 +16,9 @@ export default createConfigForNuxt({
     'no-unused-vars': 'off',
 
   },
+}).append({
+  files: ['pages/**/*.vue', 'components/**/*.vue'],
+  rules: {
+    'vue/multi-word-component-names': 'off',
+  },
 })

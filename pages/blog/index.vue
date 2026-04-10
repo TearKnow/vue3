@@ -5,12 +5,21 @@
     </header>
 
     <div class="blog-layout">
-      <aside v-if="posts?.length" class="blog-aside">
+      <aside
+        v-if="posts?.length"
+        class="blog-aside"
+      >
         <section class="aside-block">
           <h2>标签</h2>
           <ul class="tag-list">
-            <li v-for="[tag, count] in tagEntries" :key="tag">
-              <NuxtLink :to="`/blog/tag/${encodeURIComponent(tag)}`" class="tag-link">
+            <li
+              v-for="[tag, count] in tagEntries"
+              :key="tag"
+            >
+              <NuxtLink
+                :to="`/blog/tag/${encodeURIComponent(tag)}`"
+                class="tag-link"
+              >
                 {{ tag }}
                 <span class="count">{{ count }}</span>
               </NuxtLink>
@@ -20,8 +29,14 @@
         <section class="aside-block">
           <h2>按月归档</h2>
           <ul class="archive-list">
-            <li v-for="{ ym, count } in monthEntries" :key="ym">
-              <NuxtLink :to="`/blog/archive/${ym}`" class="archive-link">
+            <li
+              v-for="{ ym, count } in monthEntries"
+              :key="ym"
+            >
+              <NuxtLink
+                :to="`/blog/archive/${ym}`"
+                class="archive-link"
+              >
                 {{ formatMonthLabel(ym) }}
                 <span class="count">{{ count }}</span>
               </NuxtLink>
@@ -31,16 +46,44 @@
       </aside>
 
       <main>
-        <p v-if="pending" class="state">加载中…</p>
-        <p v-else-if="error" class="state error">加载失败：{{ errorMessage }}</p>
+        <p
+          v-if="pending"
+          class="state"
+        >
+          加载中…
+        </p>
+        <p
+          v-else-if="error"
+          class="state error"
+        >
+          加载失败：{{ errorMessage }}
+        </p>
         <template v-else-if="posts?.length">
           <ul class="post-list">
-            <li v-for="post in pagedPosts" :key="post.urlPath || post._path" class="post-card">
-              <NuxtLink :to="post.urlPath || '#'" class="post-title">{{ post.title || '未命名' }}</NuxtLink>
-              <p v-if="post.description" class="post-desc">{{ post.description }}</p>
+            <li
+              v-for="post in pagedPosts"
+              :key="post.urlPath || post._path"
+              class="post-card"
+            >
+              <NuxtLink
+                :to="post.urlPath || '#'"
+                class="post-title"
+              >{{ post.title || '未命名' }}</NuxtLink>
+              <p
+                v-if="post.description"
+                class="post-desc"
+              >
+                {{ post.description }}
+              </p>
               <div class="post-meta">
-                <time v-if="post.date" :datetime="post.date">{{ post.date }}</time>
-                <span v-if="post.tags?.length" class="post-tags">
+                <time
+                  v-if="post.date"
+                  :datetime="post.date"
+                >{{ post.date }}</time>
+                <span
+                  v-if="post.tags?.length"
+                  class="post-tags"
+                >
                   <NuxtLink
                     v-for="t in post.tags"
                     :key="t"
@@ -53,7 +96,10 @@
               </div>
             </li>
           </ul>
-          <nav v-if="totalPages > 1" class="pager">
+          <nav
+            v-if="totalPages > 1"
+            class="pager"
+          >
             <NuxtLink
               class="pager-btn"
               :class="{ disabled: safePage <= 1 }"
@@ -71,7 +117,12 @@
             </NuxtLink>
           </nav>
         </template>
-        <p v-else class="state">暂无文章，往 <code>content/blog/</code> 添加 <code>.md</code> 即可。</p>
+        <p
+          v-else
+          class="state"
+        >
+          暂无文章，往 <code>content/blog/</code> 添加 <code>.md</code> 即可。
+        </p>
       </main>
     </div>
 
@@ -83,7 +134,16 @@
         title="回到顶部"
         @click="scrollToTop"
       >
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="18 15 12 9 6 15" />
         </svg>
       </button>
@@ -107,7 +167,7 @@ const { data: posts, pending, error } = await useAsyncData<BlogPostMeta[]>('blog
 const route = useRoute()
 
 const errorMessage = computed(() => {
-  const e = error.value as { message?: string; statusMessage?: string } | null
+  const e = error.value as { message?: string, statusMessage?: string } | null
   return e?.statusMessage || e?.message || '请查看控制台日志'
 })
 

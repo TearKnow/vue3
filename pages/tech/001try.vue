@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 try {
   throw { error: 1, msg: 'something wrong' }
 }

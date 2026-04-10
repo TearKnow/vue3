@@ -5,16 +5,39 @@
         <NuxtLink to="/blog">← 全部文章</NuxtLink>
       </p>
       <h1>归档：{{ monthLabel }}</h1>
-      <p class="lead">共 {{ filtered.length }} 篇</p>
+      <p class="lead">
+        共 {{ filtered.length }} 篇
+      </p>
     </header>
 
-    <ul v-if="filtered.length" class="post-list">
-      <li v-for="post in pagedPosts" :key="post.urlPath || post._path" class="post-card">
-        <NuxtLink :to="post.urlPath || '#'" class="post-title">{{ post.title || '未命名' }}</NuxtLink>
-        <p v-if="post.description" class="post-desc">{{ post.description }}</p>
+    <ul
+      v-if="filtered.length"
+      class="post-list"
+    >
+      <li
+        v-for="post in pagedPosts"
+        :key="post.urlPath || post._path"
+        class="post-card"
+      >
+        <NuxtLink
+          :to="post.urlPath || '#'"
+          class="post-title"
+        >{{ post.title || '未命名' }}</NuxtLink>
+        <p
+          v-if="post.description"
+          class="post-desc"
+        >
+          {{ post.description }}
+        </p>
         <div class="post-meta">
-          <time v-if="post.date" :datetime="post.date">{{ post.date }}</time>
-          <span v-if="post.tags?.length" class="post-tags">
+          <time
+            v-if="post.date"
+            :datetime="post.date"
+          >{{ post.date }}</time>
+          <span
+            v-if="post.tags?.length"
+            class="post-tags"
+          >
             <NuxtLink
               v-for="t in post.tags"
               :key="t"
@@ -27,7 +50,10 @@
         </div>
       </li>
     </ul>
-    <nav v-if="totalPages > 1" class="pager">
+    <nav
+      v-if="totalPages > 1"
+      class="pager"
+    >
       <NuxtLink
         class="pager-btn"
         :class="{ disabled: safePage <= 1 }"
@@ -44,7 +70,12 @@
         下一页
       </NuxtLink>
     </nav>
-    <p v-else class="empty">该月份暂无文章。</p>
+    <p
+      v-else
+      class="empty"
+    >
+      该月份暂无文章。
+    </p>
   </div>
 </template>
 
@@ -67,7 +98,7 @@ const { data: posts } = await useAsyncData<BlogPostMeta[]>('blog-meta-all', () =
 const filtered = computed(() => {
   const ym = monthKey.value
   if (!ym) return []
-  return (posts.value ?? []).filter((p) => monthKeyFromDate(p.date) === ym)
+  return (posts.value ?? []).filter(p => monthKeyFromDate(p.date) === ym)
 })
 
 const currentPage = computed(() => {

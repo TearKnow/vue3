@@ -1,12 +1,21 @@
 {
   "editor.tabSize": 2,
   "editor.detectIndentation": false,
-  "editor.formatOnSave": false,  // 关闭默认格式化
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"  // 只让 ESLint 修复
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "eslint.useFlatConfig": true,//新版 ESLint 扩展的正式开关。开启后，扩展会用 ESLint 9 推荐的 flat config 机制去加载规则
-  //"eslint.experimental.useFlatConfig": true,//旧版本扩展里的实验开关。现在很多环境里已经被 eslint.useFlatConfig 替代，但保留它通常无害，主要是兼容不同版本扩展。
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.useFlatConfig": true,
   "eslint.validate": ["javascript", "typescript", "vue"],
   "eslint.run": "onSave",
   "files.autoSave": "off"
