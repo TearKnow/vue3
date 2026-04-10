@@ -133,12 +133,12 @@ pinned: true
 
 ## 8. 代码块
 
-```md
+````md
 ```ts
 const count = ref(0)
 const doubled = computed(() => count.value * 2)
 ```
-```
+````
 
 示例：
 
