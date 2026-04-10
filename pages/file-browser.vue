@@ -229,8 +229,7 @@ function startResize(event: PointerEvent) {
 }
 
 function handleWindowResize() {
-  sidebarWidth.value = clampSidebarWidth(sidebarWidth.value)
-  syncSidebarWidthCookie()
+  sidebarWidth.value = clampSidebarWidth(parseSidebarWidth(sidebarWidthCookie.value))
 }
 
 function handleScroll() {
