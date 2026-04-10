@@ -52,8 +52,8 @@
         </section>
 
         <section class="comments">
-          <h2>评论</h2>
-          <UtterancesComments repo="TearKnow/comments" issue-term="pathname" />
+          <h2 v-show="commentsReady">评论</h2>
+          <UtterancesComments repo="TearKnow/comments" issue-term="pathname" @ready="commentsReady = true" />
         </section>
       </article>
 
@@ -109,6 +109,7 @@ const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blo
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
 const showToTop = ref(false)
+const commentsReady = ref(false)
 
 const { data: post, pending, error, refresh } = await useAsyncData(
   () => `blog-current-post-${currentSlug.value}`,

@@ -1,17 +1,30 @@
 <template>
   <div class="utterances-container">
-    <div v-if="loading" class="utterances-loading" aria-live="polite">
-      <p class="loading-label">评论加载中...</p>
-      <div class="skeleton-line" />
-      <div class="skeleton-line short" />
-      <div class="skeleton-line" />
+    <div v-show="loading" class="utterances-loading" aria-live="polite">
+      <div class="loading-spinner" />
+      <p class="loading-label">评论加载中…</p>
+      <div class="skeleton-block">
+        <div class="skeleton-avatar" />
+        <div class="skeleton-body">
+          <div class="skeleton-line w60" />
+          <div class="skeleton-line w100" />
+          <div class="skeleton-line w80" />
+        </div>
+      </div>
+      <div class="skeleton-block">
+        <div class="skeleton-avatar" />
+        <div class="skeleton-body">
+          <div class="skeleton-line w40" />
+          <div class="skeleton-line w100" />
+        </div>
+      </div>
     </div>
-    <div ref="containerRef" class="utterances-embed" />
+    <div ref="containerRef" class="utterances-embed" :class="{ hidden: loading }" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   repo: string
@@ -22,13 +35,34 @@ const props = withDefaults(defineProps<{
   theme: 'github-light',
 })
 
+const emit = defineEmits<{ ready: [] }>()
+
 const containerRef = ref<HTMLDivElement>()
 const loading = ref(true)
+let settled = false
+
+function markReady() {
+  if (settled) return
+  settled = true
+  loading.value = false
+  emit('ready')
+}
+
+function onMessage(e: MessageEvent) {
+  if (e.origin !== 'https://utteranc.es') return
+  if (e.data?.type === 'resize') {
+    markReady()
+    window.removeEventListener('message', onMessage)
+  }
+}
 
 function loadScript() {
   if (!containerRef.value) return
   containerRef.value.innerHTML = ''
   loading.value = true
+  settled = false
+
+  window.addEventListener('message', onMessage)
 
   const script = document.createElement('script')
   script.src = 'https://utteranc.es/client.js'
@@ -38,17 +72,16 @@ function loadScript() {
   script.setAttribute('crossorigin', 'anonymous')
   script.async = true
 
-  script.addEventListener('load', () => {
-    loading.value = false
-  })
-  script.addEventListener('error', () => {
-    loading.value = false
-  })
+  script.addEventListener('error', () => markReady())
 
   containerRef.value.appendChild(script)
 }
 
 onMounted(loadScript)
+
+onBeforeUnmount(() => {
+  window.removeEventListener('message', onMessage)
+})
 
 watch(() => props.theme, loadScript)
 </script>
@@ -59,40 +92,78 @@ watch(() => props.theme, loadScript)
   margin: 2rem auto;
 }
 
+.utterances-embed.hidden {
+  height: 0;
+  overflow: hidden;
+}
+
 .utterances-loading {
-  display: grid;
-  gap: 0.75rem;
-  min-height: 140px;
-  padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 2rem 1.5rem;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .loading-label {
-  margin: 0 0 0.75rem;
-  color: #475569;
-  font-size: 0.95rem;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.skeleton-block {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.skeleton-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
 }
 
 .skeleton-line {
-  width: 100%;
-  height: 1rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.14) 50%, rgba(0, 0, 0, 0.08) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s infinite ease-in-out;
+  height: 0.75rem;
+  border-radius: 6px;
+  background: #e2e8f0;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
-.skeleton-line.short {
-  width: 45%;
+.skeleton-line.w100 { width: 100%; }
+.skeleton-line.w80 { width: 80%; }
+.skeleton-line.w60 { width: 60%; }
+.skeleton-line.w40 { width: 40%; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>
