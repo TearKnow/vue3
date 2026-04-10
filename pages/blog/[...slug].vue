@@ -18,16 +18,34 @@
       </button>
     </div>
 
-    <div v-if="tocLinks.length && tocOpen" class="toc-overlay" @click="tocOpen = false" />
+    <div
+      v-if="tocLinks.length && tocOpen"
+      class="toc-overlay"
+      @click="tocOpen = false"
+    />
 
-    <div v-if="post" class="article-shell">
+    <div
+      v-if="post"
+      class="article-shell"
+    >
       <article>
         <header class="article-head">
           <h1>{{ post.title }}</h1>
-          <p v-if="post.description" class="article-desc">{{ post.description }}</p>
+          <p
+            v-if="post.description"
+            class="article-desc"
+          >
+            {{ post.description }}
+          </p>
           <div class="article-meta">
-            <time v-if="post.date" :datetime="String(post.date)">{{ post.date }}</time>
-            <span v-if="articleTags.length" class="tags">
+            <time
+              v-if="post.date"
+              :datetime="String(post.date)"
+            >{{ post.date }}</time>
+            <span
+              v-if="articleTags.length"
+              class="tags"
+            >
               <NuxtLink
                 v-for="t in articleTags"
                 :key="t"
@@ -40,27 +58,55 @@
           </div>
         </header>
 
-        <ContentRenderer v-if="post" :value="post" class="article-body" />
+        <ContentRenderer
+          v-if="post"
+          :value="post"
+          class="article-body"
+        />
 
-        <section v-if="prevPost || nextPost" class="neighbors">
-          <NuxtLink v-if="prevPost?.urlPath" :to="prevPost.urlPath" class="neighbor prev">
+        <section
+          v-if="prevPost || nextPost"
+          class="neighbors"
+        >
+          <NuxtLink
+            v-if="prevPost?.urlPath"
+            :to="prevPost.urlPath"
+            class="neighbor prev"
+          >
             ← 上一篇：{{ prevPost.title || '未命名' }}
           </NuxtLink>
-          <NuxtLink v-if="nextPost?.urlPath" :to="nextPost.urlPath" class="neighbor next">
+          <NuxtLink
+            v-if="nextPost?.urlPath"
+            :to="nextPost.urlPath"
+            class="neighbor next"
+          >
             下一篇：{{ nextPost.title || '未命名' }} →
           </NuxtLink>
         </section>
 
         <section class="comments">
-          <h2 v-show="commentsReady">评论</h2>
-          <UtterancesComments repo="TearKnow/comments" issue-term="pathname" @ready="commentsReady = true" />
+          <h2 v-show="commentsReady">
+            评论
+          </h2>
+          <UtterancesComments
+            repo="TearKnow/comments"
+            issue-term="pathname"
+            @ready="commentsReady = true"
+          />
         </section>
       </article>
 
-      <nav v-if="tocLinks.length" class="toc desktop-toc">
+      <nav
+        v-if="tocLinks.length"
+        class="toc desktop-toc"
+      >
         <h2>目录</h2>
         <ul>
-          <li v-for="item in tocLinks" :key="item.id" :class="`depth-${item.depth}`">
+          <li
+            v-for="item in tocLinks"
+            :key="item.id"
+            :class="`depth-${item.depth}`"
+          >
             <a :href="`#${item.id}`">{{ item.text }}</a>
           </li>
         </ul>
@@ -75,14 +121,31 @@
     >
       <h2>目录</h2>
       <ul>
-        <li v-for="item in tocLinks" :key="item.id" :class="`depth-${item.depth}`">
-          <a :href="`#${item.id}`" @click="tocOpen = false">{{ item.text }}</a>
+        <li
+          v-for="item in tocLinks"
+          :key="item.id"
+          :class="`depth-${item.depth}`"
+        >
+          <a
+            :href="`#${item.id}`"
+            @click="tocOpen = false"
+          >{{ item.text }}</a>
         </li>
       </ul>
     </nav>
 
-    <p v-else-if="pending" class="state">加载中…</p>
-    <p v-else class="state error">找不到这篇文章。</p>
+    <p
+      v-else-if="pending"
+      class="state"
+    >
+      加载中…
+    </p>
+    <p
+      v-else
+      class="state error"
+    >
+      找不到这篇文章。
+    </p>
 
     <Transition name="fade-up">
       <button
@@ -92,7 +155,16 @@
         title="回到顶部"
         @click="scrollToTop"
       >
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="18 15 12 9 6 15" />
         </svg>
       </button>
@@ -137,7 +209,7 @@ const scrollToTop = () => {
 }
 
 watch(tocOpen, (open) => {
-  if (process.client) {
+  if (import.meta.client) {
     const html = document.documentElement
     const body = document.body
     if (open) {
@@ -166,7 +238,7 @@ watch(tocOpen, (open) => {
 })
 
 onBeforeUnmount(() => {
-  if (process.client) {
+  if (import.meta.client) {
     const html = document.documentElement
     const body = document.body
     html.style.overflow = ''
@@ -189,7 +261,7 @@ onMounted(() => {
 const { data: postNavList } = await useAsyncData<BlogPostMeta[]>('blog-post-nav', () => fetchBlogMetaList())
 
 const currentIndex = computed(() =>
-  (postNavList.value ?? []).findIndex((item) => item.slug === currentSlug.value),
+  (postNavList.value ?? []).findIndex(item => item.slug === currentSlug.value),
 )
 
 const prevPost = computed(() => {
@@ -215,8 +287,8 @@ interface TocLinkNode {
   children?: TocLinkNode[]
 }
 
-const flattenTocLinks = (nodes: TocLinkNode[] = [], depth = 0): Array<{ id: string; text: string; depth: number }> => {
-  const result: Array<{ id: string; text: string; depth: number }> = []
+const flattenTocLinks = (nodes: TocLinkNode[] = [], depth = 0): Array<{ id: string, text: string, depth: number }> => {
+  const result: Array<{ id: string, text: string, depth: number }> = []
   for (const node of nodes) {
     if (node.id && node.text) {
       result.push({ id: node.id, text: node.text, depth })
@@ -467,6 +539,21 @@ watchEffect(() => {
   width: max-content;
   max-width: 100%;
   overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.article-body :deep(table th),
+.article-body :deep(table td) {
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.article-body :deep(table th) {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #0f172a;
 }
 
 .toc {

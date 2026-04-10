@@ -159,13 +159,13 @@ const doubled = computed(() => count.value * 2)
 
 ```md
 | 名称 | 说明 | 备注 |
-|---|---|---|
+| --- | --- | --- |
 | Nuxt | 框架 | SSR/SSG |
 | Content | 内容模块 | 写博客很好用 |
 ```
 
 | 名称 | 说明 | 备注 |
-|---|---|---|
+| --- | --- | --- |
 | Nuxt | 框架 | SSR/SSG |
 | Content | 内容模块 | 写博客很好用 |
 
