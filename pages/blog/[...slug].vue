@@ -37,11 +37,21 @@
 </template>
 
 <script setup lang="ts">
+import { pathToSlug } from '~/composables/useBlogPosts'
+
 const route = useRoute()
 
 const { data: post, pending, error, refresh } = await useAsyncData(
   'blog-current-post',
-  () => queryContent(route.path).findOne().then((doc) => doc ?? null),
+  async () => {
+    const docs = await queryContent('/blog').find()
+    const currentSlug = decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, ''))
+    const matched = (docs as Array<Record<string, unknown>>).find((doc) => {
+      const path = typeof doc._path === 'string' ? doc._path : ''
+      return pathToSlug(path) === currentSlug
+    })
+    return matched ?? null
+  },
 )
 
 watch(() => route.path, () => {

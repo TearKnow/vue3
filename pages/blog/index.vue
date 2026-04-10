@@ -34,8 +34,8 @@
         <p v-if="pending" class="state">加载中…</p>
         <p v-else-if="error" class="state error">加载失败：{{ errorMessage }}</p>
         <ul v-else-if="posts?.length" class="post-list">
-          <li v-for="post in pagedPosts" :key="post._path" class="post-card">
-            <NuxtLink :to="post._path || '#'" class="post-title">{{ post.title || '未命名' }}</NuxtLink>
+          <li v-for="post in pagedPosts" :key="post.urlPath || post._path" class="post-card">
+            <NuxtLink :to="post.urlPath || '#'" class="post-title">{{ post.title || '未命名' }}</NuxtLink>
             <p v-if="post.description" class="post-desc">{{ post.description }}</p>
             <div class="post-meta">
               <time v-if="post.date" :datetime="post.date">{{ post.date }}</time>
