@@ -2,7 +2,7 @@
 title: 四月工具链回顾：pnpm、ESLint 与自动化
 description: 整理近期在项目里用到的开发工具与实践。
 date: 2026-04-06
-pinned: true
+pinned: false
 tags:
   - 工具链
   - 前端
