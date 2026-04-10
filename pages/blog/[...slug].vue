@@ -450,7 +450,7 @@ watchEffect(() => {
 
 .article-body :deep(h3) {
   margin: 1.25rem 0 0.4rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #1e293b;
 }
 
