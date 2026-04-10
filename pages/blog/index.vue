@@ -74,10 +74,25 @@
         <p v-else class="state">暂无文章，往 <code>content/blog/</code> 添加 <code>.md</code> 即可。</p>
       </main>
     </div>
+
+    <Transition name="fade-up">
+      <button
+        v-if="showBackToTop"
+        type="button"
+        class="back-to-top-btn"
+        title="回到顶部"
+        @click="scrollToTop"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15" />
+        </svg>
+      </button>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
 
@@ -135,6 +150,24 @@ const pagedPosts = computed(() => {
 const pageTo = (page: number) => ({
   path: '/blog',
   query: page <= 1 ? {} : { page: String(page) },
+})
+
+const showBackToTop = ref(false)
+
+function handleScroll() {
+  showBackToTop.value = window.scrollY > 300
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -378,5 +411,41 @@ const pageTo = (page: number) => ({
   color: #94a3b8;
   border-color: #e2e8f0;
   background: #f8fafc;
+}
+
+.back-to-top-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #dbe3ee;
+  border-radius: 50%;
+  background: #fff;
+  color: #475569;
+  box-shadow: 0 4px 14px rgb(15 23 42 / 12%);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.back-to-top-btn:hover {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 6px 20px rgb(37 99 235 / 30%);
+}
+
+.fade-up-enter-active,
+.fade-up-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fade-up-enter-from,
+.fade-up-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
 }
 </style>
