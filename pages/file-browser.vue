@@ -8,9 +8,6 @@
         <h2>项目文件浏览器</h2>
         <p>展示 Git 工作区里未被 `.gitignore` 忽略的文件与目录。</p>
       </div>
-      <button type="button" class="refresh-button" @click="refreshTree">
-        刷新文件树
-      </button>
     </div>
 
     <div ref="layoutRef" class="file-browser-layout">
@@ -171,7 +168,6 @@ const {
   data: treeResponse,
   pending: treePending,
   error: treeError,
-  refresh: refreshTreeData,
 } = await useFetch<FileTreeResponse>('/project-files/tree')
 
 const content = ref('')
@@ -388,10 +384,6 @@ async function loadFileContent(filePath: string) {
   }
 }
 
-async function refreshTree() {
-  await refreshTreeData()
-}
-
 function expandAllFolders() {
   treeExpanded.value = true
 }
@@ -572,10 +564,6 @@ const FileTreeNode = defineComponent({
 }
 
 .file-browser-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 16px;
 }
 
@@ -598,16 +586,6 @@ const FileTreeNode = defineComponent({
 .file-browser-header p {
   margin: 0;
   color: #64748b;
-}
-
-.refresh-button {
-  padding: 8px 14px;
-  border: 1px solid #bfdbfe;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #1e3a8a;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .file-browser-layout {
