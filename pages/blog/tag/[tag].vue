@@ -17,7 +17,7 @@
         </div>
       </li>
     </ul>
-    <nav v-if="totalPages > 1" class="pager">
+    <nav v-if="filtered.length && totalPages > 1" class="pager">
       <NuxtLink
         class="pager-btn"
         :class="{ disabled: safePage <= 1 }"
@@ -34,7 +34,7 @@
         下一页
       </NuxtLink>
     </nav>
-    <p v-else class="empty">该标签下暂无文章。</p>
+    <p v-if="!filtered.length" class="empty">该标签下暂无文章。</p>
   </div>
 </template>
 
