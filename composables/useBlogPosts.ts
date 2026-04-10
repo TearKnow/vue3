@@ -6,6 +6,8 @@ export interface BlogPostMeta {
   description?: string
   date?: string
   tags?: string[]
+  pinned?: boolean
+  draft?: boolean
 }
 
 export const BLOG_PAGE_SIZE = 8
@@ -35,12 +37,16 @@ export function slugToBlogPath(slug: string) {
   return `/blog/${slug}`
 }
 
-export async function fetchBlogMetaList(): Promise<BlogPostMeta[]> {
+interface FetchBlogMetaOptions {
+  includeDraft?: boolean
+}
+
+export async function fetchBlogMetaList(options: FetchBlogMetaOptions = {}): Promise<BlogPostMeta[]> {
+  const { includeDraft = false } = options
   const docs = await queryContent('/blog')
-    .sort({ date: -1 })
     .find()
 
-  return (docs as Record<string, unknown>[]).map((doc) => ({
+  const mapped = (docs as Record<string, unknown>[]).map((doc) => ({
     _path: typeof doc._path === 'string' ? doc._path : undefined,
     slug: typeof doc._path === 'string' ? pathToSlug(doc._path) : undefined,
     urlPath: typeof doc._path === 'string' ? slugToBlogPath(pathToSlug(doc._path)) : undefined,
@@ -48,5 +54,13 @@ export async function fetchBlogMetaList(): Promise<BlogPostMeta[]> {
     description: typeof doc.description === 'string' ? doc.description : undefined,
     date: typeof doc.date === 'string' ? doc.date : undefined,
     tags: Array.isArray(doc.tags) ? (doc.tags.filter((t) => typeof t === 'string') as string[]) : [],
+    pinned: Boolean(doc.pinned),
+    draft: Boolean(doc.draft),
   }))
+
+  const visible = includeDraft ? mapped : mapped.filter((post) => !post.draft)
+  return visible.sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
+    return (b.date || '').localeCompare(a.date || '')
+  })
 }

@@ -8,6 +8,9 @@ export default defineNuxtConfig({
     githubOwner: process.env.GITHUB_OWNER || 'TearKnow',
     githubRepo: process.env.GITHUB_REPO || 'vue3',
     githubBranch: process.env.GITHUB_BRANCH || 'main',
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    },
   },
   nitro: {
     // 注意：不要代理 /api/_content/**，否则会影响 @nuxt/content 的文章查询接口

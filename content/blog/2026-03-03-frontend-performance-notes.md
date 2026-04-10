@@ -2,6 +2,7 @@
 title: 前端性能优化笔记（Nuxt 场景）
 description: 记录静态博客中最容易落地的性能优化动作。
 date: 2026-03-03
+draft: true
 tags:
   - 前端
   - 性能

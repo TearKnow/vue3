@@ -23,7 +23,25 @@
         </div>
       </header>
 
+      <nav v-if="tocLinks.length" class="toc">
+        <h2>目录</h2>
+        <ul>
+          <li v-for="item in tocLinks" :key="item.id">
+            <a :href="`#${item.id}`">{{ item.text }}</a>
+          </li>
+        </ul>
+      </nav>
+
       <ContentRenderer v-if="post" :value="post" class="article-body" />
+
+      <section v-if="prevPost || nextPost" class="neighbors">
+        <NuxtLink v-if="prevPost?.urlPath" :to="prevPost.urlPath" class="neighbor prev">
+          ← 上一篇：{{ prevPost.title || '未命名' }}
+        </NuxtLink>
+        <NuxtLink v-if="nextPost?.urlPath" :to="nextPost.urlPath" class="neighbor next">
+          下一篇：{{ nextPost.title || '未命名' }} →
+        </NuxtLink>
+      </section>
 
       <section class="comments">
         <h2>评论</h2>
@@ -37,18 +55,19 @@
 </template>
 
 <script setup lang="ts">
-import { pathToSlug } from '~/composables/useBlogPosts'
+import type { BlogPostMeta } from '~/composables/useBlogPosts'
+import { fetchBlogMetaList, pathToSlug } from '~/composables/useBlogPosts'
 
 const route = useRoute()
+const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
 
 const { data: post, pending, error, refresh } = await useAsyncData(
-  'blog-current-post',
+  () => `blog-current-post-${currentSlug.value}`,
   async () => {
     const docs = await queryContent('/blog').find()
-    const currentSlug = decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, ''))
     const matched = (docs as Array<Record<string, unknown>>).find((doc) => {
       const path = typeof doc._path === 'string' ? doc._path : ''
-      return pathToSlug(path) === currentSlug
+      return pathToSlug(path) === currentSlug.value
     })
     return matched ?? null
   },
@@ -58,9 +77,51 @@ watch(() => route.path, () => {
   refresh()
 })
 
+const { data: postNavList } = await useAsyncData<BlogPostMeta[]>('blog-post-nav', () => fetchBlogMetaList())
+
+const currentIndex = computed(() =>
+  (postNavList.value ?? []).findIndex((item) => item.slug === currentSlug.value),
+)
+
+const prevPost = computed(() => {
+  const idx = currentIndex.value
+  if (idx <= 0) return null
+  return (postNavList.value ?? [])[idx - 1] ?? null
+})
+
+const nextPost = computed(() => {
+  const idx = currentIndex.value
+  if (idx < 0) return null
+  return (postNavList.value ?? [])[idx + 1] ?? null
+})
+
 const articleTags = computed(() => {
   const t = post.value?.tags
   return Array.isArray(t) ? (t as string[]) : []
+})
+
+interface TocLinkNode {
+  id?: string
+  text?: string
+  children?: TocLinkNode[]
+}
+
+const flattenTocLinks = (nodes: TocLinkNode[] = [], depth = 0): Array<{ id: string; text: string }> => {
+  const result: Array<{ id: string; text: string }> = []
+  for (const node of nodes) {
+    if (node.id && node.text) {
+      result.push({ id: node.id, text: `${'  '.repeat(depth)}${node.text}` })
+    }
+    if (Array.isArray(node.children) && node.children.length) {
+      result.push(...flattenTocLinks(node.children, depth + 1))
+    }
+  }
+  return result
+}
+
+const tocLinks = computed(() => {
+  const toc = (post.value?.body as { toc?: { links?: TocLinkNode[] } } | undefined)?.toc?.links
+  return flattenTocLinks(toc ?? [])
 })
 
 watchEffect(() => {
@@ -130,6 +191,12 @@ watchEffect(() => {
   font-size: 0.85rem;
   color: #64748b;
   margin-bottom: 1.5rem;
+}
+
+.tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.38rem 0.55rem;
 }
 
 .mini-tag {
@@ -206,6 +273,83 @@ watchEffect(() => {
   height: auto;
   border-radius: 8px;
   margin: 0.75rem 0;
+}
+
+.toc {
+  margin: 1rem 0 1.25rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.toc h2 {
+  margin: 0 0 0.45rem;
+  font-size: 0.95rem;
+}
+
+.toc ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.toc li {
+  margin: 0.25rem 0;
+}
+
+.toc a {
+  color: #334155;
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.toc a:hover {
+  color: #1d4ed8;
+}
+
+.neighbors {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 0.65rem;
+  margin-top: 1.6rem;
+}
+
+.neighbor {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1e3a8a;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 0.42rem 0.7rem;
+  font-size: 0.85rem;
+  max-width: calc(50% - 0.35rem);
+}
+
+.neighbor.next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.neighbor:hover {
+  background: #dbeafe;
+}
+
+@media (max-width: 640px) {
+  .neighbors {
+    flex-direction: column;
+  }
+
+  .neighbor {
+    max-width: 100%;
+  }
+
+  .neighbor.next {
+    margin-left: 0;
+    text-align: left;
+  }
 }
 
 .comments {
