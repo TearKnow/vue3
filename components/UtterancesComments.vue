@@ -1,6 +1,7 @@
 <template>
   <div class="utterances-container">
     <div v-if="loading" class="utterances-loading" aria-live="polite">
+      <p class="loading-label">评论加载中...</p>
       <div class="skeleton-line" />
       <div class="skeleton-line short" />
       <div class="skeleton-line" />
@@ -61,14 +62,21 @@ watch(() => props.theme, loadScript)
 .utterances-loading {
   display: grid;
   gap: 0.75rem;
+  min-height: 140px;
   padding: 1.5rem;
   background: rgba(0, 0, 0, 0.03);
   border-radius: 0.75rem;
 }
 
+.loading-label {
+  margin: 0 0 0.75rem;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
 .skeleton-line {
   width: 100%;
-  height: 0.9rem;
+  height: 1rem;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.14) 50%, rgba(0, 0, 0, 0.08) 75%);
   background-size: 200% 100%;
