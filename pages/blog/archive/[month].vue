@@ -97,9 +97,16 @@ useSeoMeta({
 
 <style scoped>
 .blog-page {
-  max-width: 720px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 2rem 1rem 3rem;
+}
+
+.blog-header {
+  padding: 1.15rem 1.2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .back {
@@ -118,12 +125,12 @@ useSeoMeta({
 
 .blog-header h1 {
   margin: 0 0 0.35rem;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
 }
 
 .lead {
   margin: 0;
-  color: #64748b;
+  color: #475569;
   font-size: 0.9rem;
 }
 
@@ -134,19 +141,30 @@ useSeoMeta({
 }
 
 .post-card {
-  padding: 1rem 0;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.05rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  margin-bottom: 0.8rem;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
 }
 
 .post-title {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #1d4ed8;
+  color: #0f172a;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .post-title:hover {
-  text-decoration: underline;
+  color: #1d4ed8;
 }
 
 .post-desc {
@@ -167,16 +185,17 @@ useSeoMeta({
 
 .mini-tag {
   display: inline-block;
-  padding: 0.1rem 0.45rem;
-  border-radius: 4px;
-  background: #f1f5f9;
-  color: #334155;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1e3a8a;
   text-decoration: none;
   font-size: 0.75rem;
+  border: 1px solid #dbeafe;
 }
 
 .mini-tag:hover {
-  background: #e2e8f0;
+  background: #dbeafe;
 }
 
 .empty {
@@ -187,23 +206,37 @@ useSeoMeta({
 .pager {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 1.4rem;
 }
 
 .pager-info {
   font-size: 0.85rem;
-  color: #64748b;
+  color: #475569;
+  min-width: 112px;
+  text-align: center;
 }
 
 .pager-btn {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   text-decoration: none;
   color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9px;
+  transition: all 0.2s ease;
+}
+
+.pager-btn:hover {
+  background: #dbeafe;
 }
 
 .pager-btn.disabled {
   pointer-events: none;
   color: #94a3b8;
+  border-color: #e2e8f0;
+  background: #f8fafc;
 }
 </style>

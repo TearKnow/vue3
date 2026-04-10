@@ -71,9 +71,17 @@ watchEffect(() => {
 
 <style scoped>
 .blog-article {
-  max-width: 720px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 2rem 1rem 3rem;
+}
+
+.blog-article article {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+  padding: 1.4rem 1.2rem;
 }
 
 .back {
@@ -92,8 +100,9 @@ watchEffect(() => {
 
 .article-head h1 {
   margin: 0 0 0.5rem;
-  font-size: 1.75rem;
+  font-size: 1.95rem;
   line-height: 1.25;
+  letter-spacing: 0.01em;
 }
 
 .article-desc {
@@ -115,16 +124,17 @@ watchEffect(() => {
 
 .mini-tag {
   display: inline-block;
-  padding: 0.1rem 0.45rem;
-  border-radius: 4px;
-  background: #f1f5f9;
-  color: #334155;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1e3a8a;
   text-decoration: none;
   font-size: 0.75rem;
+  border: 1px solid #dbeafe;
 }
 
 .mini-tag:hover {
-  background: #e2e8f0;
+  background: #dbeafe;
 }
 
 .article-body :deep(h2) {
@@ -152,11 +162,12 @@ watchEffect(() => {
 .article-body :deep(pre) {
   margin: 1rem 0;
   padding: 0.85rem 1rem;
-  border-radius: 8px;
-  background: #0f172a;
+  border-radius: 10px;
+  background: #020617;
   color: #e2e8f0;
   overflow-x: auto;
   font-size: 0.85rem;
+  border: 1px solid #0f172a;
 }
 
 .article-body :deep(code) {
@@ -173,8 +184,10 @@ watchEffect(() => {
 
 .article-body :deep(blockquote) {
   margin: 1rem 0;
-  padding: 0.35rem 0 0.35rem 1rem;
-  border-left: 4px solid #cbd5e1;
+  padding: 0.45rem 0.8rem;
+  border-left: 4px solid #93c5fd;
+  background: #f8fafc;
+  border-radius: 6px;
   color: #475569;
 }
 
