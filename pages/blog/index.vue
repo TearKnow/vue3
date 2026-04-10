@@ -33,42 +33,44 @@
       <main>
         <p v-if="pending" class="state">加载中…</p>
         <p v-else-if="error" class="state error">加载失败：{{ errorMessage }}</p>
-        <ul v-else-if="posts?.length" class="post-list">
-          <li v-for="post in pagedPosts" :key="post.urlPath || post._path" class="post-card">
-            <NuxtLink :to="post.urlPath || '#'" class="post-title">{{ post.title || '未命名' }}</NuxtLink>
-            <p v-if="post.description" class="post-desc">{{ post.description }}</p>
-            <div class="post-meta">
-              <time v-if="post.date" :datetime="post.date">{{ post.date }}</time>
-              <span v-if="post.tags?.length" class="post-tags">
-                <NuxtLink
-                  v-for="t in post.tags"
-                  :key="t"
-                  :to="`/blog/tag/${encodeURIComponent(t)}`"
-                  class="mini-tag"
-                >
-                  {{ t }}
-                </NuxtLink>
-              </span>
-            </div>
-          </li>
-        </ul>
-        <nav v-if="totalPages > 1" class="pager">
-          <NuxtLink
-            class="pager-btn"
-            :class="{ disabled: safePage <= 1 }"
-            :to="pageTo(Math.max(1, safePage - 1))"
-          >
-            上一页
-          </NuxtLink>
-          <span class="pager-info">第 {{ safePage }} / {{ totalPages }} 页</span>
-          <NuxtLink
-            class="pager-btn"
-            :class="{ disabled: safePage >= totalPages }"
-            :to="pageTo(Math.min(totalPages, safePage + 1))"
-          >
-            下一页
-          </NuxtLink>
-        </nav>
+        <template v-else-if="posts?.length">
+          <ul class="post-list">
+            <li v-for="post in pagedPosts" :key="post.urlPath || post._path" class="post-card">
+              <NuxtLink :to="post.urlPath || '#'" class="post-title">{{ post.title || '未命名' }}</NuxtLink>
+              <p v-if="post.description" class="post-desc">{{ post.description }}</p>
+              <div class="post-meta">
+                <time v-if="post.date" :datetime="post.date">{{ post.date }}</time>
+                <span v-if="post.tags?.length" class="post-tags">
+                  <NuxtLink
+                    v-for="t in post.tags"
+                    :key="t"
+                    :to="`/blog/tag/${encodeURIComponent(t)}`"
+                    class="mini-tag"
+                  >
+                    {{ t }}
+                  </NuxtLink>
+                </span>
+              </div>
+            </li>
+          </ul>
+          <nav v-if="totalPages > 1" class="pager">
+            <NuxtLink
+              class="pager-btn"
+              :class="{ disabled: safePage <= 1 }"
+              :to="pageTo(Math.max(1, safePage - 1))"
+            >
+              上一页
+            </NuxtLink>
+            <span class="pager-info">第 {{ safePage }} / {{ totalPages }} 页</span>
+            <NuxtLink
+              class="pager-btn"
+              :class="{ disabled: safePage >= totalPages }"
+              :to="pageTo(Math.min(totalPages, safePage + 1))"
+            >
+              下一页
+            </NuxtLink>
+          </nav>
+        </template>
         <p v-else class="state">暂无文章，往 <code>content/blog/</code> 添加 <code>.md</code> 即可。</p>
       </main>
     </div>

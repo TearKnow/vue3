@@ -15,6 +15,9 @@
       <NuxtLink class="file-browser-entry" to="/file-browser" target="_blank" rel="noopener noreferrer">
         打开文件浏览器
       </NuxtLink>
+      <NuxtLink class="blog-entry" to="/blog">
+        博客
+      </NuxtLink>
     </div>
     <hr>
 
@@ -300,7 +303,7 @@ const RouteTreeNode = defineComponent({
   border-color: #93c5fd;
 }
 
-.route-actions button:last-child {
+.route-actions button:nth-child(2) {
   background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
   border-color: #f5c96a;
 }
@@ -325,6 +328,26 @@ const RouteTreeNode = defineComponent({
 }
 
 .file-browser-entry:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgb(15 23 42 / 12%);
+}
+
+.blog-entry {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid #6ee7b7;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgb(15 23 42 / 8%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.blog-entry:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgb(15 23 42 / 12%);
 }
