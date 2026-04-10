@@ -557,7 +557,7 @@ watchEffect(() => {
 }
 
 .toc {
-  margin: 1rem 0 1.25rem;
+  margin: 0 0 1.25rem;
   padding: 0.8rem 0.9rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -751,7 +751,7 @@ watchEffect(() => {
     margin-left: 1.5rem;
     position: sticky;
     top: 1rem;
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100vh - 10rem);
     overflow-y: auto;
     overflow-x: hidden;
     align-self: flex-start;
