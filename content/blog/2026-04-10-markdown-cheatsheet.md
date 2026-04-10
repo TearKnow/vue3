@@ -3,7 +3,6 @@ title: Markdown 常用写法速查
 description: 博客写作时最常用的 Markdown 示例，含图片、代码、表格和提示块。
 date: 2026-04-10
 tags:
-  - 写作
   - Markdown
 draft: false
 ---

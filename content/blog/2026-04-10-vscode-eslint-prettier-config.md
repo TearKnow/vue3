@@ -2,7 +2,7 @@
 title: 解决 VS Code 中某些文件无法自动格式化的问题
 description: 修复 ESLint 配置和 settings.json，统一 Prettier 格式化工具
 date: 2026-04-10
-tags: [VS Code, ESLint, Prettier, 配置, 开发工具]
+tags: [VS Code, ESLint, Prettier]
 ---
 
 ## 问题描述
