@@ -73,9 +73,7 @@
     <p
       v-else
       class="empty"
-    >
-      该月份暂无文章。
-    </p>
+    />
   </div>
 </template>
 
