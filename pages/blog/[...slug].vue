@@ -382,6 +382,11 @@ watchEffect(() => {
   word-break: break-word;
 }
 
+.article-body :deep(strong) {
+  color: #334155;
+  font-weight: 600;
+}
+
 .article-body :deep(a) {
   color: #3b6fc0;
   text-decoration: underline;
