@@ -4,18 +4,6 @@
       <h1>一网打尽</h1>
     </header>
 
-    <Transition name="fade">
-      <div
-        v-if="navigating"
-        class="page-loading-overlay"
-      >
-        <div class="loading-panel">
-          <div class="spinner" />
-          <p>正在跳转到文章详情…</p>
-        </div>
-      </div>
-    </Transition>
-
     <div class="search-box">
       <input
         id="blog-search"
@@ -277,7 +265,6 @@ const allMonthCount = computed(() => {
 
 const router = useRouter()
 const route = useRoute()
-const navigating = ref(false)
 
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const searchKeyword = computed(() => searchQuery.value.trim())
@@ -295,19 +282,18 @@ function createLoadingOverlay() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'rgba(255, 255, 255, 0.92)',
+    background: 'rgba(255, 255, 255, 0.5)',
     pointerEvents: 'none',
   })
 
   const panel = document.createElement('div')
   Object.assign(panel.style, {
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    gap: '0.75rem',
-    padding: '1rem 1.3rem',
+    justifyContent: 'center',
+    padding: '1rem',
     borderRadius: '16px',
-    background: '#ffffff',
+    background: 'rgba(255, 255, 255, 0.82)',
     boxShadow: '0 18px 40px rgba(15, 23, 42, 0.14)',
     pointerEvents: 'auto',
   })
@@ -322,16 +308,7 @@ function createLoadingOverlay() {
     animation: 'blog-page-loading-spin 1s linear infinite',
   })
 
-  const text = document.createElement('p')
-  text.textContent = '正在跳转到文章详情…'
-  Object.assign(text.style, {
-    margin: '0',
-    color: '#334155',
-    fontSize: '0.96rem',
-  })
-
   panel.appendChild(spinner)
-  panel.appendChild(text)
   overlay.appendChild(panel)
   document.body.appendChild(overlay)
 }
@@ -457,7 +434,6 @@ const pageTo = (page: number) => {
 const showBackToTop = ref(false)
 
 function startNavigate() {
-  navigating.value = true
   createLoadingOverlay()
 }
 
