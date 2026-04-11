@@ -38,7 +38,12 @@
                 class="tag-link"
               >
                 {{ tag }}
-                <span class="count">{{ count }}</span>
+                <span class="count">
+                  {{ count }}
+                  <template v-if="searchKeyword">
+                    / {{ allTagCount.get(tag) ?? 0 }}
+                  </template>
+                </span>
               </NuxtLink>
             </li>
           </ul>
@@ -55,7 +60,12 @@
                 class="archive-link"
               >
                 {{ formatMonthLabel(ym) }}
-                <span class="count">{{ count }}</span>
+                <span class="count">
+                  {{ count }}
+                  <template v-if="searchKeyword">
+                    / {{ allMonthCount.get(ym) ?? 0 }}
+                  </template>
+                </span>
               </NuxtLink>
             </li>
           </ul>
@@ -212,7 +222,7 @@ const errorMessage = computed(() => {
 
 const tagEntries = computed(() => {
   const map = new Map<string, number>()
-  for (const p of posts.value ?? []) {
+  for (const p of filteredPosts.value ?? []) {
     for (const t of p.tags ?? []) {
       map.set(t, (map.get(t) ?? 0) + 1)
     }
@@ -222,7 +232,7 @@ const tagEntries = computed(() => {
 
 const monthEntries = computed(() => {
   const map = new Map<string, number>()
-  for (const p of posts.value ?? []) {
+  for (const p of filteredPosts.value ?? []) {
     const ym = monthKeyFromDate(p.date)
     if (!ym) continue
     map.set(ym, (map.get(ym) ?? 0) + 1)
@@ -230,6 +240,26 @@ const monthEntries = computed(() => {
   return [...map.entries()]
     .map(([ym, count]) => ({ ym, count }))
     .sort((a, b) => b.ym.localeCompare(a.ym))
+})
+
+const allTagCount = computed(() => {
+  const map = new Map<string, number>()
+  for (const p of posts.value ?? []) {
+    for (const t of p.tags ?? []) {
+      map.set(t, (map.get(t) ?? 0) + 1)
+    }
+  }
+  return map
+})
+
+const allMonthCount = computed(() => {
+  const map = new Map<string, number>()
+  for (const p of posts.value ?? []) {
+    const ym = monthKeyFromDate(p.date)
+    if (!ym) continue
+    map.set(ym, (map.get(ym) ?? 0) + 1)
+  }
+  return map
 })
 
 const router = useRouter()
