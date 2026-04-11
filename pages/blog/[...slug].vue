@@ -367,7 +367,7 @@ watchEffect(() => {
 }
 
 .blog-article {
-  padding: 2rem 1rem 3rem;
+  padding: 2rem 0rem 3rem;
   --toc-toggle-right: calc(env(safe-area-inset-right, 0px) + 12px);
   --toc-toggle-size: 32px;
   --mobile-toc-gap: 10px;
