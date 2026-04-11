@@ -24,14 +24,11 @@
         >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
-        <span class="comment-nav-text">
-          <span class="comment-nav-label">Comments</span>
-          <span
-            v-if="commentsCount !== null"
-            class="comment-nav-count"
-            aria-hidden="true"
-          >({{ commentsCount }})</span>
-        </span>
+        <span
+          v-if="commentsCount !== null"
+          class="comment-nav-count"
+          aria-hidden="true"
+        >({{ commentsCount }})</span>
       </button>
       <button
         v-if="tocLinks.length"
@@ -479,20 +476,6 @@ watchEffect(() => {
   width: 18px;
   height: 18px;
   transform: translateY(0.5px);
-}
-
-/* 中文与半角括号基线不一致，用 flex 居中对齐整块文案 */
-.comment-nav-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.08rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.comment-nav-label {
-  flex-shrink: 0;
-  font-weight: 500;
 }
 
 .comment-nav-count {
