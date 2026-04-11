@@ -176,6 +176,7 @@ onMounted(() => {
 }
 
 .post-card {
+  position: relative;
   padding: 1rem 1.05rem;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -183,6 +184,7 @@ onMounted(() => {
   margin-bottom: 0.8rem;
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .post-card:hover {
@@ -198,8 +200,15 @@ onMounted(() => {
   transition: color 0.2s ease;
 }
 
+.post-title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+}
+
 .post-title:hover {
-  color: #1d4ed8;
+  color: #3b6fc0;
 }
 
 .post-desc {
@@ -218,7 +227,15 @@ onMounted(() => {
   color: #64748b;
 }
 
+.post-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.55rem;
+}
+
 .mini-tag {
+  position: relative;
+  z-index: 1;
   display: inline-block;
   padding: 0.16rem 0.5rem;
   border-radius: 999px;

@@ -34,6 +34,19 @@
             v-if="post.date"
             :datetime="post.date"
           >{{ post.date }}</time>
+          <span
+            v-if="post.tags?.length"
+            class="post-tags"
+          >
+            <NuxtLink
+              v-for="t in post.tags"
+              :key="t"
+              :to="`/blog/tag/${encodeURIComponent(t)}`"
+              class="mini-tag"
+            >
+              {{ t }}
+            </NuxtLink>
+          </span>
         </div>
       </li>
     </ul>
@@ -172,6 +185,7 @@ onMounted(() => {
 }
 
 .post-card {
+  position: relative;
   padding: 1rem 1.05rem;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -179,6 +193,7 @@ onMounted(() => {
   margin-bottom: 0.8rem;
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .post-card:hover {
@@ -194,8 +209,16 @@ onMounted(() => {
   transition: color 0.2s ease;
 }
 
+/* 与 blog 首页一致：标题链接触发整卡点击 */
+.post-title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+}
+
 .post-title:hover {
-  color: #1d4ed8;
+  color: #3b6fc0;
 }
 
 .post-desc {
@@ -206,8 +229,35 @@ onMounted(() => {
 }
 
 .post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
   font-size: 0.8rem;
   color: #64748b;
+}
+
+.post-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+}
+
+.mini-tag {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  text-decoration: none;
+  font-size: 0.75rem;
+  border: 1px solid #dbeafe;
+}
+
+.mini-tag:hover {
+  background: #dbeafe;
 }
 
 .empty {
