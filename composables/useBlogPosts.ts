@@ -6,6 +6,7 @@ export interface BlogPostMeta {
   description?: string
   date?: string
   tags?: string[]
+  content?: string
   pinned?: boolean
   draft?: boolean
 }
@@ -41,24 +42,41 @@ interface FetchBlogMetaOptions {
   includeDraft?: boolean
 }
 
+function extractPlainText(value: unknown): string {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) return value.map(extractPlainText).join(' ')
+  if (typeof value === 'object') {
+    return Object.entries(value).reduce((text, [key, nested]) => {
+      if (key === 'type' || key === 'position') return text
+      return `${text} ${extractPlainText(nested)}`
+    }, '').trim()
+  }
+  return ''
+}
+
 export async function fetchBlogMetaList(options: FetchBlogMetaOptions = {}): Promise<BlogPostMeta[]> {
   const { includeDraft = false } = options
   const docs = await queryContent('/blog')
     .find()
 
-  const mapped = (docs as Record<string, unknown>[]).map((doc) => ({
-    _path: typeof doc._path === 'string' ? doc._path : undefined,
-    slug: typeof doc._path === 'string' ? pathToSlug(doc._path) : undefined,
-    urlPath: typeof doc._path === 'string' ? slugToBlogPath(pathToSlug(doc._path)) : undefined,
-    title: typeof doc.title === 'string' ? doc.title : undefined,
-    description: typeof doc.description === 'string' ? doc.description : undefined,
-    date: typeof doc.date === 'string' ? doc.date : undefined,
-    tags: Array.isArray(doc.tags) ? (doc.tags.filter((t) => typeof t === 'string') as string[]) : [],
-    pinned: Boolean(doc.pinned),
-    draft: Boolean(doc.draft),
-  }))
+  const mapped = (docs as Record<string, unknown>[]).map((doc) => {
+    const rawContent = extractPlainText((doc as Record<string, unknown>).body)
+    return {
+      _path: typeof doc._path === 'string' ? doc._path : undefined,
+      slug: typeof doc._path === 'string' ? pathToSlug(doc._path) : undefined,
+      urlPath: typeof doc._path === 'string' ? slugToBlogPath(pathToSlug(doc._path)) : undefined,
+      title: typeof doc.title === 'string' ? doc.title : undefined,
+      description: typeof doc.description === 'string' ? doc.description : undefined,
+      date: typeof doc.date === 'string' ? doc.date : undefined,
+      tags: Array.isArray(doc.tags) ? (doc.tags.filter(t => typeof t === 'string') as string[]) : [],
+      content: rawContent || undefined,
+      pinned: Boolean(doc.pinned),
+      draft: Boolean(doc.draft),
+    }
+  })
 
-  const visible = includeDraft ? mapped : mapped.filter((post) => !post.draft)
+  const visible = includeDraft ? mapped : mapped.filter(post => !post.draft)
   return visible.sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
     return (b.date || '').localeCompare(a.date || '')

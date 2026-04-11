@@ -4,6 +4,23 @@
       <h1>一网打尽</h1>
     </header>
 
+    <div class="search-box">
+      <input
+        id="blog-search"
+        v-model="searchQuery"
+        type="search"
+        class="search-input"
+        placeholder="搜索标题、摘要或标签"
+        @input="onSearchInput"
+      >
+      <p
+        v-if="searchQuery"
+        class="search-info"
+      >
+        匹配到 {{ filteredPosts.length }} 篇文章
+      </p>
+    </div>
+
     <div class="blog-layout">
       <aside
         v-if="posts?.length"
@@ -59,63 +76,85 @@
           加载失败：{{ errorMessage }}
         </p>
         <template v-else-if="posts?.length">
-          <ul class="post-list">
-            <li
-              v-for="post in pagedPosts"
-              :key="post.urlPath || post._path"
-              class="post-card"
+          <template v-if="filteredPostsCount">
+            <ul class="post-list">
+              <li
+                v-for="post in pagedPosts"
+                :key="post.urlPath || post._path"
+                class="post-card"
+              >
+                <NuxtLink
+                  :to="post.urlPath || '#'"
+                  class="post-title"
+                >
+                  <span class="highlight-break">
+                    <template
+                      v-for="(token, idx) in splitHighlightText(post.title || '未命名', searchKeyword)"
+                      :key="idx"
+                    >
+                      <span :class="{ 'highlighted-token': token.highlight }">{{ token.text }}</span>
+                    </template>
+                  </span>
+                </NuxtLink>
+                <p
+                  v-if="post.description || getPostSnippet(post)"
+                  class="post-desc"
+                >
+                  <template
+                    v-for="(token, idx) in splitHighlightText(getPostSummaryText(post), searchKeyword)"
+                    :key="idx"
+                  >
+                    <span :class="{ 'highlighted-token': token.highlight }">{{ token.text }}</span>
+                  </template>
+                </p>
+                <div class="post-meta">
+                  <time
+                    v-if="post.date"
+                    :datetime="post.date"
+                  >{{ post.date }}</time>
+                  <span
+                    v-if="post.tags?.length"
+                    class="post-tags"
+                  >
+                    <NuxtLink
+                      v-for="t in post.tags"
+                      :key="t"
+                      :to="`/blog/tag/${encodeURIComponent(t)}`"
+                      class="mini-tag"
+                    >
+                      {{ t }}
+                    </NuxtLink>
+                  </span>
+                </div>
+              </li>
+            </ul>
+            <nav
+              v-if="totalPages > 1"
+              class="pager"
             >
               <NuxtLink
-                :to="post.urlPath || '#'"
-                class="post-title"
-              >{{ post.title || '未命名' }}</NuxtLink>
-              <p
-                v-if="post.description"
-                class="post-desc"
+                class="pager-btn"
+                :class="{ disabled: safePage <= 1 }"
+                :to="pageTo(Math.max(1, safePage - 1))"
               >
-                {{ post.description }}
-              </p>
-              <div class="post-meta">
-                <time
-                  v-if="post.date"
-                  :datetime="post.date"
-                >{{ post.date }}</time>
-                <span
-                  v-if="post.tags?.length"
-                  class="post-tags"
-                >
-                  <NuxtLink
-                    v-for="t in post.tags"
-                    :key="t"
-                    :to="`/blog/tag/${encodeURIComponent(t)}`"
-                    class="mini-tag"
-                  >
-                    {{ t }}
-                  </NuxtLink>
-                </span>
-              </div>
-            </li>
-          </ul>
-          <nav
-            v-if="totalPages > 1"
-            class="pager"
+                上一页
+              </NuxtLink>
+              <span class="pager-info">第 {{ safePage }} / {{ totalPages }} 页</span>
+              <NuxtLink
+                class="pager-btn"
+                :class="{ disabled: safePage >= totalPages }"
+                :to="pageTo(Math.min(totalPages, safePage + 1))"
+              >
+                下一页
+              </NuxtLink>
+            </nav>
+          </template>
+          <p
+            v-else
+            class="state"
           >
-            <NuxtLink
-              class="pager-btn"
-              :class="{ disabled: safePage <= 1 }"
-              :to="pageTo(Math.max(1, safePage - 1))"
-            >
-              上一页
-            </NuxtLink>
-            <span class="pager-info">第 {{ safePage }} / {{ totalPages }} 页</span>
-            <NuxtLink
-              class="pager-btn"
-              :class="{ disabled: safePage >= totalPages }"
-              :to="pageTo(Math.min(totalPages, safePage + 1))"
-            >
-              下一页
-            </NuxtLink>
-          </nav>
+            未找到符合 “{{ searchQuery }}” 的文章。
+          </p>
         </template>
         <p
           v-else
@@ -152,7 +191,8 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
+import { useRouter, useRoute } from '#imports'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
 
@@ -164,7 +204,6 @@ useSeoMeta({
 const { data: posts, pending, error } = await useAsyncData<BlogPostMeta[]>('blog-meta-all', () =>
   fetchBlogMetaList(),
 )
-const route = useRoute()
 
 const errorMessage = computed(() => {
   const e = error.value as { message?: string, statusMessage?: string } | null
@@ -193,24 +232,129 @@ const monthEntries = computed(() => {
     .sort((a, b) => b.ym.localeCompare(a.ym))
 })
 
+const router = useRouter()
+const route = useRoute()
+
+const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const searchKeyword = computed(() => searchQuery.value.trim())
+
+watch(
+  () => route.query.q,
+  (value) => {
+    searchQuery.value = typeof value === 'string' ? value : ''
+  },
+)
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function splitHighlightText(value: string, keyword: string) {
+  if (!keyword) return [{ text: value, highlight: false }]
+  const safeKeyword = escapeRegExp(keyword)
+  const regex = new RegExp(safeKeyword, 'gi')
+  const tokens: Array<{ text: string, highlight: boolean }> = []
+  let lastIndex = 0
+
+  for (const match of value.matchAll(regex)) {
+    if (match.index == null) continue
+    const start = match.index
+    const end = start + match[0].length
+    if (start > lastIndex) {
+      tokens.push({ text: value.slice(lastIndex, start), highlight: false })
+    }
+    tokens.push({ text: value.slice(start, end), highlight: true })
+    lastIndex = end
+  }
+
+  if (lastIndex < value.length) {
+    tokens.push({ text: value.slice(lastIndex), highlight: false })
+  }
+
+  return tokens.length ? tokens : [{ text: value, highlight: false }]
+}
+
+function getPostSnippet(post: BlogPostMeta) {
+  const keyword = searchKeyword.value
+  if (!keyword || !post.content) return ''
+  const raw = post.content
+  const lower = raw.toLowerCase()
+  const idx = lower.indexOf(keyword.toLowerCase())
+  if (idx === -1) return ''
+  const start = Math.max(0, idx - 40)
+  const end = Math.min(raw.length, idx + keyword.length + 120)
+  let snippet = raw.slice(start, end).trim()
+  if (start > 0) snippet = `...${snippet}`
+  if (end < raw.length) snippet = `${snippet}...`
+  return snippet
+}
+
+function getPostSummaryText(post: BlogPostMeta) {
+  const keyword = searchKeyword.value
+  const description = post.description ?? ''
+  if (!keyword) return description
+  if (description.toLowerCase().includes(keyword.toLowerCase())) {
+    return description
+  }
+  return getPostSnippet(post) || description
+}
+
+const filteredPosts = computed(() => {
+  const keyword = searchQuery.value.trim().toLowerCase()
+  if (!keyword) return posts.value ?? []
+
+  return (posts.value ?? []).filter((post) => {
+    const title = post.title?.toLowerCase() ?? ''
+    const description = post.description?.toLowerCase() ?? ''
+    const tags = (post.tags ?? []).join(' ').toLowerCase()
+    const content = post.content?.toLowerCase() ?? ''
+    return title.includes(keyword)
+      || description.includes(keyword)
+      || tags.includes(keyword)
+      || content.includes(keyword)
+  })
+})
+
 const currentPage = computed(() => {
   const raw = route.query.page
   const val = Number(Array.isArray(raw) ? raw[0] : raw)
   return Number.isFinite(val) && val > 0 ? Math.floor(val) : 1
 })
 
-const totalPages = computed(() => Math.max(1, Math.ceil((posts.value?.length ?? 0) / BLOG_PAGE_SIZE)))
+const totalPages = computed(() => Math.max(1, Math.ceil((filteredPosts.value.length ?? 0) / BLOG_PAGE_SIZE)))
 const safePage = computed(() => Math.min(currentPage.value, totalPages.value))
 
 const pagedPosts = computed(() => {
   const start = (safePage.value - 1) * BLOG_PAGE_SIZE
-  return (posts.value ?? []).slice(start, start + BLOG_PAGE_SIZE)
+  return filteredPosts.value.slice(start, start + BLOG_PAGE_SIZE)
 })
 
-const pageTo = (page: number) => ({
-  path: '/blog',
-  query: page <= 1 ? {} : { page: String(page) },
-})
+const filteredPostsCount = computed(() => filteredPosts.value.length)
+
+function updateRouteQuery(query: Record<string, string | undefined>) {
+  router.replace({
+    path: '/blog',
+    query: Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== '')),
+  })
+}
+
+function onSearchInput() {
+  updateRouteQuery({
+    ...route.query,
+    q: searchQuery.value.trim() || undefined,
+    page: '1',
+  })
+}
+const pageTo = (page: number) => {
+  const query: Record<string, string | undefined> = {
+    ...(page > 1 ? { page: String(page) } : undefined),
+    ...(searchQuery.value.trim() ? { q: searchQuery.value.trim() } : undefined),
+  }
+  return {
+    path: '/blog',
+    query,
+  }
+}
 
 const showBackToTop = ref(false)
 
@@ -249,6 +393,41 @@ onBeforeUnmount(() => {
   margin: 0 0 0.35rem;
   font-size: 1.85rem;
   letter-spacing: 0.01em;
+}
+
+.search-box {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.search-input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  font-size: 0.96rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+}
+
+.search-info {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.highlighted-token {
+  background: #fde68a;
+  color: #92400e;
+  padding: 0 0.1rem;
+  border-radius: 0.15rem;
 }
 
 .lead {
