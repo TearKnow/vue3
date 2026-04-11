@@ -17,7 +17,7 @@
         v-if="searchQuery"
         class="search-info"
       >
-        匹配到 {{ filteredPosts.length }} 篇文章
+        匹配到 {{ filteredPosts.length }}/{{ posts?.length || 0 }} 篇文章
       </p>
     </div>
 
@@ -27,7 +27,17 @@
         class="blog-aside"
       >
         <section class="aside-block">
-          <h2>标签</h2>
+          <h2 class="section-header">
+            标签
+            <span class="total-count">
+              <template v-if="searchKeyword">
+                共 {{ filteredPosts.length }}/{{ posts?.length || 0 }} 篇
+              </template>
+              <template v-else>
+                共 {{ posts?.length || 0 }} 篇
+              </template>
+            </span>
+          </h2>
           <ul class="tag-list">
             <li
               v-for="[tag, count] in tagEntries"
@@ -39,9 +49,11 @@
               >
                 {{ tag }}
                 <span class="count">
-                  {{ count }}
                   <template v-if="searchKeyword">
-                    / {{ allTagCount.get(tag) ?? 0 }}
+                    {{ count }}/{{ allTagCount.get(tag) ?? 0 }}
+                  </template>
+                  <template v-else>
+                    {{ count }}
                   </template>
                 </span>
               </NuxtLink>
@@ -49,7 +61,17 @@
           </ul>
         </section>
         <section class="aside-block">
-          <h2>按月归档</h2>
+          <h2 class="section-header">
+            按月归档
+            <span class="total-count">
+              <template v-if="searchKeyword">
+                共 {{ filteredPosts.length }}/{{ posts?.length || 0 }} 篇
+              </template>
+              <template v-else>
+                共 {{ posts?.length || 0 }} 篇
+              </template>
+            </span>
+          </h2>
           <ul class="archive-list">
             <li
               v-for="{ ym, count } in monthEntries"
@@ -61,9 +83,11 @@
               >
                 {{ formatMonthLabel(ym) }}
                 <span class="count">
-                  {{ count }}
                   <template v-if="searchKeyword">
-                    / {{ allMonthCount.get(ym) ?? 0 }}
+                    {{ count }}/{{ allMonthCount.get(ym) ?? 0 }}
+                  </template>
+                  <template v-else>
+                    {{ count }}
                   </template>
                 </span>
               </NuxtLink>
@@ -515,6 +539,21 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #64748b;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.total-count {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .tag-list,
