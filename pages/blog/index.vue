@@ -112,55 +112,12 @@
         <template v-else-if="posts?.length">
           <template v-if="filteredPostsCount">
             <ul class="post-list">
-              <li
+              <BlogPostListCard
                 v-for="post in pagedPosts"
                 :key="post.urlPath || post._path"
-                class="post-card"
-              >
-                <NuxtLink
-                  :to="post.urlPath || '#'"
-                  class="post-title"
-                >
-                  <span class="highlight-break">
-                    <template
-                      v-for="(token, idx) in splitHighlightText(post.title || '未命名', searchKeyword)"
-                      :key="idx"
-                    >
-                      <span :class="{ 'highlighted-token': token.highlight }">{{ token.text }}</span>
-                    </template>
-                  </span>
-                </NuxtLink>
-                <p
-                  v-if="post.description || getPostSnippet(post)"
-                  class="post-desc"
-                >
-                  <template
-                    v-for="(token, idx) in splitHighlightText(getPostSummaryText(post), searchKeyword)"
-                    :key="idx"
-                  >
-                    <span :class="{ 'highlighted-token': token.highlight }">{{ token.text }}</span>
-                  </template>
-                </p>
-                <div class="post-meta">
-                  <time
-                    v-if="post.date"
-                    :datetime="post.date"
-                  >{{ post.date }}</time>
-                  <span
-                    v-if="post.tags?.length"
-                    class="post-tags"
-                  >
-                    <NuxtLink
-                      v-for="t in post.tags"
-                      :key="t"
-                      :to="`/blog/tag/${encodeURIComponent(t)}`"
-                      class="mini-tag"
-                    >
-                      {{ t }}
-                    </NuxtLink>
-                  </span>
-                </div>
-              </li>
+                :post="post"
+                :highlight-keyword="searchKeyword"
+              />
             </ul>
             <nav
               v-if="totalPages > 1"
@@ -300,60 +257,6 @@ watch(
   },
 )
 
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function splitHighlightText(value: string, keyword: string) {
-  if (!keyword) return [{ text: value, highlight: false }]
-  const safeKeyword = escapeRegExp(keyword)
-  const regex = new RegExp(safeKeyword, 'gi')
-  const tokens: Array<{ text: string, highlight: boolean }> = []
-  let lastIndex = 0
-
-  for (const match of value.matchAll(regex)) {
-    if (match.index == null) continue
-    const start = match.index
-    const end = start + match[0].length
-    if (start > lastIndex) {
-      tokens.push({ text: value.slice(lastIndex, start), highlight: false })
-    }
-    tokens.push({ text: value.slice(start, end), highlight: true })
-    lastIndex = end
-  }
-
-  if (lastIndex < value.length) {
-    tokens.push({ text: value.slice(lastIndex), highlight: false })
-  }
-
-  return tokens.length ? tokens : [{ text: value, highlight: false }]
-}
-
-function getPostSnippet(post: BlogPostMeta) {
-  const keyword = searchKeyword.value
-  if (!keyword || !post.content) return ''
-  const raw = post.content
-  const lower = raw.toLowerCase()
-  const idx = lower.indexOf(keyword.toLowerCase())
-  if (idx === -1) return ''
-  const start = Math.max(0, idx - 40)
-  const end = Math.min(raw.length, idx + keyword.length + 120)
-  let snippet = raw.slice(start, end).trim()
-  if (start > 0) snippet = `...${snippet}`
-  if (end < raw.length) snippet = `${snippet}...`
-  return snippet
-}
-
-function getPostSummaryText(post: BlogPostMeta) {
-  const keyword = searchKeyword.value
-  const description = post.description ?? ''
-  if (!keyword) return description
-  if (description.toLowerCase().includes(keyword.toLowerCase())) {
-    return description
-  }
-  return getPostSnippet(post) || description
-}
-
 const filteredPosts = computed(() => {
   const keyword = searchQuery.value.trim().toLowerCase()
   if (!keyword) return posts.value ?? []
@@ -479,13 +382,6 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
 }
 
-.highlighted-token {
-  background: #fde68a;
-  color: #92400e;
-  padding: 0 0.1rem;
-  border-radius: 0.15rem;
-}
-
 .lead {
   margin: 0;
   color: #475569;
@@ -600,81 +496,6 @@ onBeforeUnmount(() => {
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-.post-card {
-  position: relative;
-  padding: 1rem 1.05rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #ffffff;
-  margin-bottom: 0.8rem;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-}
-
-.post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-}
-
-.post-title {
-  font-size: 1.08rem;
-  font-weight: 600;
-  color: #0f172a;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.post-title::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-}
-
-.post-title:hover {
-  color: #3b6fc0;
-}
-
-.post-desc {
-  margin: 0.4rem 0 0.5rem;
-  font-size: 0.9rem;
-  color: #475569;
-  line-height: 1.5;
-}
-
-.post-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-  font-size: 0.8rem;
-  color: #64748b;
-}
-
-.post-tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.5rem;
-}
-
-.mini-tag {
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  padding: 0.16rem 0.5rem;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1e3a8a;
-  text-decoration: none;
-  font-size: 0.75rem;
-  border: 1px solid #dbeafe;
-}
-
-.mini-tag:hover {
-  background: #dbeafe;
 }
 
 .state {

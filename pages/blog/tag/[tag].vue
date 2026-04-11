@@ -14,41 +14,11 @@
       v-if="filtered.length"
       class="post-list"
     >
-      <li
+      <BlogPostListCard
         v-for="post in pagedPosts"
         :key="post.urlPath || post._path"
-        class="post-card"
-      >
-        <NuxtLink
-          :to="post.urlPath || '#'"
-          class="post-title"
-        >{{ post.title || '未命名' }}</NuxtLink>
-        <p
-          v-if="post.description"
-          class="post-desc"
-        >
-          {{ post.description }}
-        </p>
-        <div class="post-meta">
-          <time
-            v-if="post.date"
-            :datetime="post.date"
-          >{{ post.date }}</time>
-          <span
-            v-if="post.tags?.length"
-            class="post-tags"
-          >
-            <NuxtLink
-              v-for="t in post.tags"
-              :key="t"
-              :to="`/blog/tag/${encodeURIComponent(t)}`"
-              class="mini-tag"
-            >
-              {{ t }}
-            </NuxtLink>
-          </span>
-        </div>
-      </li>
+        :post="post"
+      />
     </ul>
     <nav
       v-if="filtered.length && totalPages > 1"
@@ -182,82 +152,6 @@ onMounted(() => {
   list-style: none;
   margin: 1.25rem 0 0;
   padding: 0;
-}
-
-.post-card {
-  position: relative;
-  padding: 1rem 1.05rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #ffffff;
-  margin-bottom: 0.8rem;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-}
-
-.post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-}
-
-.post-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #0f172a;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-/* 与 blog 首页一致：标题链接触发整卡点击 */
-.post-title::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-}
-
-.post-title:hover {
-  color: #3b6fc0;
-}
-
-.post-desc {
-  margin: 0.4rem 0 0.5rem;
-  font-size: 0.9rem;
-  color: #475569;
-  line-height: 1.5;
-}
-
-.post-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-  font-size: 0.8rem;
-  color: #64748b;
-}
-
-.post-tags {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.5rem;
-}
-
-.mini-tag {
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  padding: 0.16rem 0.5rem;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1e3a8a;
-  text-decoration: none;
-  font-size: 0.75rem;
-  border: 1px solid #dbeafe;
-}
-
-.mini-tag:hover {
-  background: #dbeafe;
 }
 
 .empty {
