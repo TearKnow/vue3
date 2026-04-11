@@ -594,7 +594,7 @@ onBeforeUnmount(() => {
 }
 
 .post-title:hover {
-  color: #1d4ed8;
+  color: #3b6fc0;
 }
 
 .post-desc {
