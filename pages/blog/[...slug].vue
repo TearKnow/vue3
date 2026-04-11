@@ -7,10 +7,11 @@
       <button
         type="button"
         class="comment-nav-btn"
-        aria-label="跳转到评论"
+        aria-label="Scroll to comments"
         @click="scrollToComments"
       >
         <svg
+          class="comment-nav-icon"
           viewBox="0 0 24 24"
           width="18"
           height="18"
@@ -19,10 +20,18 @@
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
+          aria-hidden="true"
         >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
-        <span>评论</span>
+        <span class="comment-nav-text">
+          <span class="comment-nav-label">Comments</span>
+          <span
+            v-if="commentsCount !== null"
+            class="comment-nav-count"
+            aria-hidden="true"
+          >({{ commentsCount }})</span>
+        </span>
       </button>
       <button
         v-if="tocLinks.length"
@@ -109,7 +118,7 @@
           class="comments"
         >
           <h2 v-show="commentsReady">
-            评论
+            Comments
           </h2>
           <UtterancesComments
             repo="TearKnow/comments"
@@ -206,6 +215,26 @@ const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
 const showToTop = ref(false)
 const commentsReady = ref(false)
+
+/** 与 utteranc.es/client 中 pathname 规则一致（用于 Search API 与 issue 标题匹配） */
+const utterancesPathname = computed(() => {
+  const p = route.path.replace(/\/$/, '') || '/'
+  if (p.length < 2) return 'index'
+  return p.slice(1).replace(/\.\w+$/, '')
+})
+
+const UTTERANCES_REPO = 'TearKnow/comments'
+
+const { data: commentCountPayload } = await useAsyncData(
+  () => `utterances-cc-${utterancesPathname.value}`,
+  () =>
+    $fetch<{ count: number | null }>('/api/utterances-comment-count', {
+      query: { repo: UTTERANCES_REPO, pathname: utterancesPathname.value },
+    }),
+  { watch: [utterancesPathname] },
+)
+
+const commentsCount = computed(() => commentCountPayload.value?.count ?? null)
 
 const { data: post, pending, error, refresh } = await useAsyncData(
   () => `blog-current-post-${currentSlug.value}`,
@@ -417,26 +446,66 @@ watchEffect(() => {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  height: 32px;
   border: 1px solid #dbeafe;
   border-radius: 8px;
   background: #eff6ff;
   color: #1d4ed8;
-  padding: 0 0.75rem;
   flex-shrink: 0;
   margin-left: 0.6rem;
   margin-right: 0.1rem;
   position: relative;
   z-index: 1000;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .comment-nav-btn {
+  min-height: 32px;
+  padding: 5px 12px;
   font-size: 0.92rem;
+  line-height: 1;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.comment-nav-btn svg {
+.comment-nav-btn:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.comment-nav-icon {
   flex-shrink: 0;
+  display: block;
+  width: 18px;
+  height: 18px;
+  transform: translateY(0.5px);
+}
+
+/* 中文与半角括号基线不一致，用 flex 居中对齐整块文案 */
+.comment-nav-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.08rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.comment-nav-label {
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.comment-nav-count {
+  flex-shrink: 0;
+  font-size: inherit;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #64748b;
+}
+
+.comment-nav-btn:hover .comment-nav-count {
+  color: #475569;
 }
 
 .toc-toggle {
@@ -444,6 +513,7 @@ watchEffect(() => {
   justify-content: center;
   gap: 4px;
   width: 32px;
+  height: 32px;
   padding: 0 7px;
 }
 
