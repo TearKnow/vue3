@@ -5,6 +5,26 @@
         <NuxtLink to="/blog">← 全部文章</NuxtLink>
       </p>
       <button
+        type="button"
+        class="comment-nav-btn"
+        aria-label="跳转到评论"
+        @click="scrollToComments"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <span>评论</span>
+      </button>
+      <button
         v-if="tocLinks.length"
         type="button"
         class="toc-toggle"
@@ -84,7 +104,10 @@
           </NuxtLink>
         </section>
 
-        <section class="comments">
+        <section
+          id="comments"
+          class="comments"
+        >
           <h2 v-show="commentsReady">
             评论
           </h2>
@@ -206,6 +229,15 @@ const onScroll = () => {
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const scrollToComments = () => {
+  if (import.meta.client) {
+    const target = document.getElementById('comments')
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 }
 
 watch(tocOpen, (open) => {
@@ -371,22 +403,39 @@ watchEffect(() => {
   text-decoration: underline;
 }
 
+.comment-nav-btn,
 .toc-toggle {
   display: inline-flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 4px;
-  width: 32px;
+  gap: 0.35rem;
   height: 32px;
   border: 1px solid #dbeafe;
   border-radius: 8px;
   background: #eff6ff;
-  padding: 0 7px;
+  color: #1d4ed8;
+  padding: 0 0.75rem;
   flex-shrink: 0;
   margin-left: 0.6rem;
   margin-right: 0.1rem;
   position: relative;
   z-index: 1002;
+}
+
+.comment-nav-btn {
+  font-size: 0.92rem;
+}
+
+.comment-nav-btn svg {
+  flex-shrink: 0;
+}
+
+.toc-toggle {
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 32px;
+  padding: 0 7px;
 }
 
 .toc-toggle .line {
