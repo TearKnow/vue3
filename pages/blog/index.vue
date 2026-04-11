@@ -439,7 +439,7 @@ onBeforeUnmount(() => {
   border: 1px solid #cbd5e1;
   border-radius: 12px;
   padding: 0.8rem 1rem;
-  font-size: 0.96rem;
+  font-size: 16px;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
