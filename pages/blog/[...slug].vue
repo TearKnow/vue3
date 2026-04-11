@@ -222,7 +222,7 @@ const utterancesPathname = computed(() => {
 
 const UTTERANCES_REPO = 'TearKnow/comments'
 
-const { data: commentCountPayload } = await useAsyncData(
+const { data: commentCountPayload } = useAsyncData(
   () => `utterances-cc-${utterancesPathname.value}`,
   () =>
     $fetch<{ count: number | null }>('/api/utterances-comment-count', {
