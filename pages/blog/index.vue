@@ -2,6 +2,9 @@
   <div class="blog-page">
     <header class="blog-header">
       <h1>一网打尽</h1>
+      <p class="blog-affirmation-text">
+        {{ dailyAffirmation }}
+      </p>
     </header>
 
     <div class="search-box">
@@ -184,6 +187,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import { useRouter, useRoute } from '#imports'
+import affirmations from '~/docs/affirmations.json'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
 import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
@@ -246,6 +250,11 @@ const allMonthCount = computed(() => {
 
 const router = useRouter()
 const route = useRoute()
+
+const dailyAffirmation = computed(() => {
+  const day = new Date().getDate()
+  return affirmations[(day - 1) % affirmations.length]
+})
 
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const searchKeyword = computed(() => searchQuery.value.trim())
@@ -352,6 +361,14 @@ onBeforeUnmount(() => {
   margin: 0 0 0.35rem;
   font-size: 1.85rem;
   letter-spacing: 0.01em;
+}
+
+.blog-affirmation-text {
+  margin: 0;
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.75;
+  padding: 0.7rem 0 0;
 }
 
 .search-box {
