@@ -706,7 +706,7 @@ onBeforeUnmount(() => {
 }
 
 .calendar-day.today span {
-  background: linear-gradient(135deg, #818cf8 0%, #8b5cf6 100%);
+  background: #94b8e7;
   width: 22px;
   height: 22px;
   border-radius: 50%;
