@@ -428,6 +428,7 @@ watchEffect(() => {
   margin-right: 0.1rem;
   position: relative;
   z-index: 1000;
+  cursor: pointer;
 }
 
 .comment-nav-btn {
