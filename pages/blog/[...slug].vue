@@ -228,7 +228,7 @@ const { data: commentCountPayload } = await useAsyncData(
     $fetch<{ count: number | null }>('/api/utterances-comment-count', {
       query: { repo: UTTERANCES_REPO, pathname: utterancesPathname.value },
     }),
-  { watch: [utterancesPathname] },
+  { watch: [utterancesPathname], server: false },
 )
 
 const commentsCount = computed(() => commentCountPayload.value?.count ?? null)
