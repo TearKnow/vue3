@@ -14,6 +14,10 @@
         type="search"
         class="search-input"
         placeholder="搜索标题、摘要或标签"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
         @input="onSearchInput"
       >
       <p
