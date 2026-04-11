@@ -698,14 +698,17 @@ onBeforeUnmount(() => {
 
 .calendar-day.today {
   color: #ffffff;
-  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.18);
   border-radius: 9999px;
-  span {
-    background: linear-gradient(135deg, #818cf8 0%, #8b5cf6 100%);
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-  }
+}
+
+.calendar-day.today span {
+  background: linear-gradient(135deg, #818cf8 0%, #8b5cf6 100%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .calendar-day span {
@@ -713,10 +716,6 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.calendar-day:hover {
-  transform: translateY(-1px);
 }
 
 .back-to-top-btn {
