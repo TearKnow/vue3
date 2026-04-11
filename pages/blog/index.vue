@@ -4,6 +4,18 @@
       <h1>一网打尽</h1>
     </header>
 
+    <Transition name="fade">
+      <div
+        v-if="navigating"
+        class="page-loading-overlay"
+      >
+        <div class="loading-panel">
+          <div class="spinner" />
+          <p>正在跳转到文章详情…</p>
+        </div>
+      </div>
+    </Transition>
+
     <div class="search-box">
       <input
         id="blog-search"
@@ -96,6 +108,7 @@
                 <NuxtLink
                   :to="post.urlPath || '#'"
                   class="post-title"
+                  @click="startNavigate"
                 >
                   <span class="highlight-break">
                     <template
@@ -264,9 +277,64 @@ const allMonthCount = computed(() => {
 
 const router = useRouter()
 const route = useRoute()
+const navigating = ref(false)
 
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const searchKeyword = computed(() => searchQuery.value.trim())
+
+function createLoadingOverlay() {
+  if (!import.meta.client) return
+  if (document.getElementById('blog-page-loading-overlay')) return
+
+  const overlay = document.createElement('div')
+  overlay.id = 'blog-page-loading-overlay'
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    inset: '0',
+    zIndex: '2000',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(255, 255, 255, 0.92)',
+    pointerEvents: 'none',
+  })
+
+  const panel = document.createElement('div')
+  Object.assign(panel.style, {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '1rem 1.3rem',
+    borderRadius: '16px',
+    background: '#ffffff',
+    boxShadow: '0 18px 40px rgba(15, 23, 42, 0.14)',
+    pointerEvents: 'auto',
+  })
+
+  const spinner = document.createElement('div')
+  Object.assign(spinner.style, {
+    width: '42px',
+    height: '42px',
+    border: '4px solid #cbd5e1',
+    borderTopColor: '#3b6fc0',
+    borderRadius: '50%',
+    animation: 'blog-page-loading-spin 1s linear infinite',
+  })
+
+  const text = document.createElement('p')
+  text.textContent = '正在跳转到文章详情…'
+  Object.assign(text.style, {
+    margin: '0',
+    color: '#334155',
+    fontSize: '0.96rem',
+  })
+
+  panel.appendChild(spinner)
+  panel.appendChild(text)
+  overlay.appendChild(panel)
+  document.body.appendChild(overlay)
+}
 
 watch(
   () => route.query.q,
@@ -387,6 +455,11 @@ const pageTo = (page: number) => {
 }
 
 const showBackToTop = ref(false)
+
+function startNavigate() {
+  navigating.value = true
+  createLoadingOverlay()
+}
 
 function handleScroll() {
   showBackToTop.value = window.scrollY > 300
@@ -705,6 +778,42 @@ onBeforeUnmount(() => {
   background: #2563eb;
   color: #fff;
   box-shadow: 0 6px 20px rgb(37 99 235 / 30%);
+}
+
+.page-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.loading-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+}
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid #cbd5e1;
+  border-top-color: #3b6fc0;
+  border-radius: 999px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .fade-up-enter-active,

@@ -10,13 +10,26 @@
 </template>
 
 <script setup lang="ts">
+import { watch, onMounted } from 'vue'
+import { useRoute } from '#imports'
+
 useSeoMeta({
   title: 'vue3',
   description: 'vue3，你的选择',
 })
+
+const route = useRoute()
 
 // showSuccessToast('成功文案');
 
 // const {data} = await useFetch('/api/channel')
 // console.log(data.value)
 </script>
+
+<style>
+@keyframes blog-page-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

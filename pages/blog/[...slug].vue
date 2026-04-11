@@ -218,6 +218,18 @@ const { data: post, pending, error, refresh } = await useAsyncData(
   },
 )
 
+function removeLoadingOverlay() {
+  if (!import.meta.client) return
+  const overlay = document.getElementById('blog-page-loading-overlay')
+  if (overlay) overlay.remove()
+}
+
+watch(pending, (value) => {
+  if (!value) {
+    removeLoadingOverlay()
+  }
+})
+
 watch(() => route.path, () => {
   tocOpen.value = false
   refresh()
@@ -286,6 +298,7 @@ onBeforeUnmount(() => {
 })
 
 onMounted(() => {
+  removeLoadingOverlay()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
 })
