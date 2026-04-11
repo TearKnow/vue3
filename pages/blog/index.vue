@@ -97,6 +97,34 @@
             </li>
           </ul>
         </section>
+        <section class="aside-block calendar-block">
+          <div class="calendar-header">
+            <div>
+              <p class="calendar-month">
+                {{ calendarMonthLabel }}
+              </p>
+            </div>
+          </div>
+          <div class="calendar-grid calendar-weekdays">
+            <span
+              v-for="day in weekDays"
+              :key="day"
+              class="calendar-weekday"
+            >
+              {{ day }}
+            </span>
+          </div>
+          <div class="calendar-grid calendar-days">
+            <span
+              v-for="(day, index) in calendarDays"
+              :key="index"
+              class="calendar-day"
+              :class="{ today: day === todayDate }"
+            >
+              <span v-if="day">{{ day }}</span>
+            </span>
+          </div>
+        </section>
       </aside>
 
       <main>
@@ -251,6 +279,32 @@ const allMonthCount = computed(() => {
 const router = useRouter()
 const route = useRoute()
 
+const now = ref(new Date())
+const weekDays = ['日', '一', '二', '三', '四', '五', '六']
+const calendarMonthLabel = computed(() => now.value.toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+}))
+const todayDate = computed(() => now.value.getDate())
+const calendarDays = computed(() => {
+  const year = now.value.getFullYear()
+  const month = now.value.getMonth()
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const days: Array<number | null> = []
+
+  for (let i = 0; i < firstDay; i++) {
+    days.push(null)
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    days.push(day)
+  }
+  while (days.length % 7 !== 0) {
+    days.push(null)
+  }
+  return days
+})
+
 const dailyAffirmation = computed(() => {
   const day = new Date().getDate()
   return affirmations[(day - 1) % affirmations.length]
@@ -333,13 +387,21 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+let clockTimer: number | undefined
+
 onMounted(() => {
   removeBlogNavigationLoadingOverlay()
   window.addEventListener('scroll', handleScroll, { passive: true })
+  clockTimer = window.setInterval(() => {
+    now.value = new Date()
+  }, 1000)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  if (clockTimer) {
+    clearInterval(clockTimer)
+  }
 })
 </script>
 
@@ -559,6 +621,102 @@ onBeforeUnmount(() => {
   color: #94a3b8;
   border-color: #e2e8f0;
   background: #f8fafc;
+}
+
+.calendar-block {
+  padding: 1rem;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #eef2ff 0%, #f8fbff 100%);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.calendar-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0f172a;
+}
+
+.calendar-month {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.calendar-time {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.calendar-date {
+  margin: 0 0 0.8rem;
+  font-size: 0.92rem;
+  color: #334155;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.calendar-days {
+  justify-items: center;
+}
+
+.calendar-day {
+  min-height: 36px;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #1e293b;
+  font-size: 0.88rem;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.calendar-day.today {
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.18);
+  border-radius: 9999px;
+  span {
+    background: linear-gradient(135deg, #818cf8 0%, #8b5cf6 100%);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+  }
+}
+
+.calendar-day span {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-day:hover {
+  transform: translateY(-1px);
 }
 
 .back-to-top-btn {
