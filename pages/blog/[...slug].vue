@@ -427,7 +427,7 @@ watchEffect(() => {
   margin-left: 0.6rem;
   margin-right: 0.1rem;
   position: relative;
-  z-index: 1002;
+  z-index: 1000;
 }
 
 .comment-nav-btn {
@@ -752,7 +752,7 @@ watchEffect(() => {
   background: #dbeafe;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1280px) {
   .blog-article {
     padding-top: 3rem;
   }
