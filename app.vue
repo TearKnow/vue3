@@ -10,15 +10,14 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted } from 'vue'
-import { useRoute } from '#imports'
+import { useBlogNavigationLoading } from '~/composables/useBlogNavigationLoading'
 
 useSeoMeta({
   title: 'vue3',
   description: 'vue3，你的选择',
 })
 
-const route = useRoute()
+useBlogNavigationLoading()
 
 // showSuccessToast('成功文案');
 

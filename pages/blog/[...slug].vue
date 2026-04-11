@@ -198,6 +198,7 @@
 <script setup lang="ts">
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { fetchBlogMetaList, pathToSlug } from '~/composables/useBlogPosts'
+import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
 
 const route = useRoute()
 const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
@@ -218,21 +219,15 @@ const { data: post, pending, error, refresh } = await useAsyncData(
   },
 )
 
-function removeLoadingOverlay() {
-  if (!import.meta.client) return
-  const overlay = document.getElementById('blog-page-loading-overlay')
-  if (overlay) overlay.remove()
-}
-
-watch(pending, (value) => {
-  if (!value) {
-    removeLoadingOverlay()
-  }
-})
-
 watch(() => route.path, () => {
   tocOpen.value = false
   refresh()
+})
+
+watch(pending, (value) => {
+  if (!value) {
+    removeBlogNavigationLoadingOverlay()
+  }
 })
 
 const onScroll = () => {
@@ -298,7 +293,7 @@ onBeforeUnmount(() => {
 })
 
 onMounted(() => {
-  removeLoadingOverlay()
+  removeBlogNavigationLoadingOverlay()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
 })

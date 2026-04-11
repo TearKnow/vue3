@@ -96,7 +96,6 @@
                 <NuxtLink
                   :to="post.urlPath || '#'"
                   class="post-title"
-                  @click="startNavigate"
                 >
                   <span class="highlight-break">
                     <template
@@ -206,6 +205,7 @@ import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import { useRouter, useRoute } from '#imports'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
+import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
 
 useSeoMeta({
   title: '博客',
@@ -268,50 +268,6 @@ const route = useRoute()
 
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const searchKeyword = computed(() => searchQuery.value.trim())
-
-function createLoadingOverlay() {
-  if (!import.meta.client) return
-  if (document.getElementById('blog-page-loading-overlay')) return
-
-  const overlay = document.createElement('div')
-  overlay.id = 'blog-page-loading-overlay'
-  Object.assign(overlay.style, {
-    position: 'fixed',
-    inset: '0',
-    zIndex: '2000',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(255, 255, 255, 0.5)',
-    pointerEvents: 'none',
-  })
-
-  const panel = document.createElement('div')
-  Object.assign(panel.style, {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '1rem',
-    borderRadius: '16px',
-    background: 'rgba(255, 255, 255, 0.82)',
-    boxShadow: '0 18px 40px rgba(15, 23, 42, 0.14)',
-    pointerEvents: 'auto',
-  })
-
-  const spinner = document.createElement('div')
-  Object.assign(spinner.style, {
-    width: '42px',
-    height: '42px',
-    border: '4px solid #cbd5e1',
-    borderTopColor: '#3b6fc0',
-    borderRadius: '50%',
-    animation: 'blog-page-loading-spin 1s linear infinite',
-  })
-
-  panel.appendChild(spinner)
-  overlay.appendChild(panel)
-  document.body.appendChild(overlay)
-}
 
 watch(
   () => route.query.q,
@@ -433,10 +389,6 @@ const pageTo = (page: number) => {
 
 const showBackToTop = ref(false)
 
-function startNavigate() {
-  createLoadingOverlay()
-}
-
 function handleScroll() {
   showBackToTop.value = window.scrollY > 300
 }
@@ -446,6 +398,7 @@ function scrollToTop() {
 }
 
 onMounted(() => {
+  removeBlogNavigationLoadingOverlay()
   window.addEventListener('scroll', handleScroll, { passive: true })
 })
 

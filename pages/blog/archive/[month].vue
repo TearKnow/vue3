@@ -80,6 +80,8 @@
 <script setup lang="ts">
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
+import { onMounted } from 'vue'
+import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
 
 const route = useRoute()
 const monthParam = computed(() => {
@@ -121,6 +123,10 @@ const pageTo = (page: number) => ({
 useSeoMeta({
   title: () => `归档：${monthLabel.value}`,
   description: () => `${monthLabel.value} 的文章列表`,
+})
+
+onMounted(() => {
+  removeBlogNavigationLoadingOverlay()
 })
 </script>
 

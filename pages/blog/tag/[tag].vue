@@ -5,19 +5,42 @@
         <NuxtLink to="/blog">← 全部文章</NuxtLink>
       </p>
       <h1>标签：{{ tagDisplay }}</h1>
-      <p class="lead">共 {{ filtered.length }} 篇</p>
+      <p class="lead">
+        共 {{ filtered.length }} 篇
+      </p>
     </header>
 
-    <ul v-if="filtered.length" class="post-list">
-      <li v-for="post in pagedPosts" :key="post.urlPath || post._path" class="post-card">
-        <NuxtLink :to="post.urlPath || '#'" class="post-title">{{ post.title || '未命名' }}</NuxtLink>
-        <p v-if="post.description" class="post-desc">{{ post.description }}</p>
+    <ul
+      v-if="filtered.length"
+      class="post-list"
+    >
+      <li
+        v-for="post in pagedPosts"
+        :key="post.urlPath || post._path"
+        class="post-card"
+      >
+        <NuxtLink
+          :to="post.urlPath || '#'"
+          class="post-title"
+        >{{ post.title || '未命名' }}</NuxtLink>
+        <p
+          v-if="post.description"
+          class="post-desc"
+        >
+          {{ post.description }}
+        </p>
         <div class="post-meta">
-          <time v-if="post.date" :datetime="post.date">{{ post.date }}</time>
+          <time
+            v-if="post.date"
+            :datetime="post.date"
+          >{{ post.date }}</time>
         </div>
       </li>
     </ul>
-    <nav v-if="filtered.length && totalPages > 1" class="pager">
+    <nav
+      v-if="filtered.length && totalPages > 1"
+      class="pager"
+    >
       <NuxtLink
         class="pager-btn"
         :class="{ disabled: safePage <= 1 }"
@@ -34,13 +57,20 @@
         下一页
       </NuxtLink>
     </nav>
-    <p v-if="!filtered.length" class="empty">该标签下暂无文章。</p>
+    <p
+      v-if="!filtered.length"
+      class="empty"
+    >
+      该标签下暂无文章。
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE } from '~/composables/useBlogPosts'
+import { onMounted } from 'vue'
+import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
 
 const route = useRoute()
 const tagParam = computed(() => {
@@ -64,7 +94,7 @@ const { data: posts } = await useAsyncData<BlogPostMeta[]>('blog-meta-all', () =
 const filtered = computed(() => {
   const t = tagDecoded.value
   if (!t) return []
-  return (posts.value ?? []).filter((p) => (p.tags ?? []).includes(t))
+  return (posts.value ?? []).filter(p => (p.tags ?? []).includes(t))
 })
 
 const currentPage = computed(() => {
@@ -89,6 +119,10 @@ const pageTo = (page: number) => ({
 useSeoMeta({
   title: () => `标签：${tagDisplay.value}`,
   description: () => `标签「${tagDisplay.value}」下的文章`,
+})
+
+onMounted(() => {
+  removeBlogNavigationLoadingOverlay()
 })
 </script>
 
