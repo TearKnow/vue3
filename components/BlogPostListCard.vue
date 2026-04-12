@@ -5,6 +5,13 @@
       class="blog-post-list-card__title"
     >
       <span
+        v-if="post.pinned"
+        class="blog-post-list-card__pinned"
+        title="置顶文章"
+      >
+        📌
+      </span>
+      <span
         v-if="keyword"
         class="highlight-break"
       >
@@ -15,7 +22,9 @@
           <span :class="{ 'blog-post-list-card__hl': token.highlight }">{{ token.text }}</span>
         </template>
       </span>
-      <template v-else>{{ post.title || '未命名' }}</template>
+      <template v-else>
+        {{ post.title || '未命名' }}
+      </template>
     </NuxtLink>
     <p
       v-if="showDesc"
@@ -29,7 +38,9 @@
           <span :class="{ 'blog-post-list-card__hl': token.highlight }">{{ token.text }}</span>
         </template>
       </template>
-      <template v-else>{{ post.description }}</template>
+      <template v-else>
+        {{ post.description }}
+      </template>
     </p>
     <div class="blog-post-list-card__meta">
       <time
@@ -116,6 +127,21 @@ const showDesc = computed(() => {
   color: #0f172a;
   text-decoration: none;
   transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.blog-post-list-card__pinned {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  color: #92400e;
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .blog-post-list-card__title::after {
