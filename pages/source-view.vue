@@ -1,14 +1,22 @@
 <template>
   <div class="source-page">
     <div class="source-header">
-      <NuxtLink class="source-back" to="/">
+      <NuxtLink
+        class="source-back"
+        to="/"
+      >
         返回目录
       </NuxtLink>
       <h2>源码查看</h2>
-      <p class="source-file">{{ currentFile || '未指定文件' }}</p>
+      <p class="source-file">
+        {{ currentFile || '未指定文件' }}
+      </p>
     </div>
 
-    <div v-if="sourceLines.length" class="source-code-shell">
+    <div
+      v-if="sourceLines.length"
+      class="source-code-shell"
+    >
       <div class="source-code-toolbar">
         <span class="source-dot source-dot-red" />
         <span class="source-dot source-dot-yellow" />
@@ -23,11 +31,17 @@
           class="source-line"
         >
           <span class="source-line-number">{{ index + 1 }}</span>
-          <code class="source-line-content" v-html="line" />
+          <code
+            class="source-line-content"
+            v-html="line"
+          />
         </div>
       </div>
     </div>
-    <div v-else class="source-empty">
+    <div
+      v-else
+      class="source-empty"
+    >
       未找到对应源码。
     </div>
   </div>

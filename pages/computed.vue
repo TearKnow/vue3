@@ -19,8 +19,8 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 
-let firstName = ref('zhang')
-let lastName = ref('san')
+const firstName = ref('zhang')
+const lastName = ref('san')
 
 // 这是只读的
 // let quanName = computed(() => {
@@ -28,12 +28,12 @@ let lastName = ref('san')
 // })
 
 // 这是可修改的
-let quanName = computed({
+const quanName = computed({
   get() {
     return firstName.value + '-' + lastName.value
   },
   set(val) {
-    let [f, l] = val.split('-')
+    const [f, l] = val.split('-')
     firstName.value = f
     lastName.value = l
   },

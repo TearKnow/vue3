@@ -2,7 +2,10 @@
   <div class="file-browser-page">
     <div class="file-browser-header">
       <div>
-        <NuxtLink class="browser-back-home" to="/">
+        <NuxtLink
+          class="browser-back-home"
+          to="/"
+        >
           返回首页
         </NuxtLink>
         <h2>项目文件浏览器</h2>
@@ -10,68 +13,137 @@
       </div>
     </div>
 
-    <div ref="layoutRef" class="file-browser-layout">
-      <div class="file-sidebar-wrap" :style="{ width: `${sidebarWidth}px` }">
+    <div
+      ref="layoutRef"
+      class="file-browser-layout"
+    >
+      <div
+        class="file-sidebar-wrap"
+        :style="{ width: `${sidebarWidth}px` }"
+      >
         <aside class="file-sidebar">
-        <div class="file-sidebar-header">
-          <div class="file-sidebar-title">
-            <span>文件树</span>
-            <span class="file-count">{{ visibleFileCount }} / {{ treeTotal }} 个文件</span>
+          <div class="file-sidebar-header">
+            <div class="file-sidebar-title">
+              <span>文件树</span>
+              <span class="file-count">{{ visibleFileCount }} / {{ treeTotal }} 个文件</span>
+            </div>
+            <div class="file-tree-actions">
+              <button
+                type="button"
+                class="locate-file-btn"
+                title="定位当前文件"
+                :disabled="!selectedFile"
+                @click="locateSelectedFile"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="8"
+                  />
+                  <line
+                    x1="12"
+                    y1="2"
+                    x2="12"
+                    y2="6"
+                  />
+                  <line
+                    x1="12"
+                    y1="18"
+                    x2="12"
+                    y2="22"
+                  />
+                  <line
+                    x1="2"
+                    y1="12"
+                    x2="6"
+                    y2="12"
+                  />
+                  <line
+                    x1="18"
+                    y1="12"
+                    x2="22"
+                    y2="12"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                @click="expandAllFolders"
+              >
+                全部展开
+              </button>
+              <button
+                type="button"
+                @click="collapseAllFolders"
+              >
+                全部收起
+              </button>
+            </div>
           </div>
-          <div class="file-tree-actions">
-            <button type="button" class="locate-file-btn" title="定位当前文件" :disabled="!selectedFile" @click="locateSelectedFile">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="8" />
-                <line x1="12" y1="2" x2="12" y2="6" />
-                <line x1="12" y1="18" x2="12" y2="22" />
-                <line x1="2" y1="12" x2="6" y2="12" />
-                <line x1="18" y1="12" x2="22" y2="12" />
-              </svg>
-            </button>
-            <button type="button" @click="expandAllFolders">
-              全部展开
-            </button>
-            <button type="button" @click="collapseAllFolders">
-              全部收起
-            </button>
-          </div>
-        </div>
 
-        <div class="file-search-box">
-          <input
-            v-model.trim="searchKeyword"
-            type="text"
-            class="file-search-input"
-            placeholder="搜索文件或目录"
+          <div class="file-search-box">
+            <input
+              v-model.trim="searchKeyword"
+              type="text"
+              class="file-search-input"
+              placeholder="搜索文件或目录"
+            >
+          </div>
+
+          <div
+            v-if="treePending"
+            class="file-sidebar-empty"
           >
-        </div>
-
-        <div v-if="treePending" class="file-sidebar-empty">
-          正在加载文件树...
-        </div>
-        <div v-else-if="treeErrorText" class="file-sidebar-empty">
-          {{ treeErrorText }}
-        </div>
-        <div v-else-if="!displayTreeItems.length" class="file-sidebar-empty">
-          未找到匹配的文件或目录。
-        </div>
-        <ul v-else class="file-tree-list">
-          <FileTreeNode
-            v-for="item in displayTreeItems"
-            :key="item.path"
-            :node="item"
-            :selected-file="selectedFile"
-            :expand-all="treeExpanded"
-            :search-keyword="searchKeyword"
-            :locate-key="locateKey"
-            @select-file="selectFile"
-          />
-        </ul>
+            正在加载文件树...
+          </div>
+          <div
+            v-else-if="treeErrorText"
+            class="file-sidebar-empty"
+          >
+            {{ treeErrorText }}
+          </div>
+          <div
+            v-else-if="!displayTreeItems.length"
+            class="file-sidebar-empty"
+          >
+            未找到匹配的文件或目录。
+          </div>
+          <ul
+            v-else
+            class="file-tree-list"
+          >
+            <FileTreeNode
+              v-for="item in displayTreeItems"
+              :key="item.path"
+              :node="item"
+              :selected-file="selectedFile"
+              :expand-all="treeExpanded"
+              :search-keyword="searchKeyword"
+              :locate-key="locateKey"
+              @select-file="selectFile"
+            />
+          </ul>
         </aside>
-        <div class="file-sidebar-resizer" @pointerdown="startResize" />
+        <div
+          class="file-sidebar-resizer"
+          @pointerdown="startResize"
+        />
       </div>
 
-      <main ref="contentPanelRef" class="file-content-panel">
+      <main
+        ref="contentPanelRef"
+        class="file-content-panel"
+      >
         <div class="file-content-toolbar">
           <span class="toolbar-dot toolbar-dot-red" />
           <span class="toolbar-dot toolbar-dot-yellow" />
@@ -79,14 +151,26 @@
           <span class="file-current-path">{{ selectedFile || '请选择左侧文件' }}</span>
         </div>
 
-        <div v-if="selectedFile" class="mobile-file-nav">
+        <div
+          v-if="selectedFile"
+          class="mobile-file-nav"
+        >
           <button
             type="button"
             class="mobile-file-nav-btn"
             :disabled="!prevFile"
             @click="goToPrevFile"
           >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ><polyline points="15 18 9 12 15 6" /></svg>
             {{ prevFile ? prevFile.split('/').pop() : '无' }}
           </button>
           <span class="mobile-file-nav-pos">{{ currentFileIndex + 1 }}/{{ flatFileList.length }}</span>
@@ -97,17 +181,35 @@
             @click="goToNextFile"
           >
             {{ nextFile ? nextFile.split('/').pop() : '无' }}
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            ><polyline points="9 18 15 12 9 6" /></svg>
           </button>
         </div>
 
-        <div v-if="contentPending" class="file-empty">
+        <div
+          v-if="contentPending"
+          class="file-empty"
+        >
           正在读取文件内容...
         </div>
-        <div v-else-if="contentErrorText" class="file-empty">
+        <div
+          v-else-if="contentErrorText"
+          class="file-empty"
+        >
           {{ contentErrorText }}
         </div>
-        <div v-else-if="highlightedLines.length" class="file-code-shell">
+        <div
+          v-else-if="highlightedLines.length"
+          class="file-code-shell"
+        >
           <div class="file-code">
             <div
               v-for="(line, index) in highlightedLines"
@@ -115,11 +217,17 @@
               class="file-line"
             >
               <span class="file-line-number">{{ index + 1 }}</span>
-              <code class="file-line-content" v-html="line" />
+              <code
+                class="file-line-content"
+                v-html="line"
+              />
             </div>
           </div>
         </div>
-        <div v-else class="file-empty">
+        <div
+          v-else
+          class="file-empty"
+        >
           点击左侧文件即可查看内容。
         </div>
       </main>
@@ -133,7 +241,16 @@
         title="回到顶部"
         @click="scrollToTop"
       >
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <polyline points="18 15 12 9 6 15" />
         </svg>
       </button>

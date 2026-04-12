@@ -30,7 +30,7 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
 
-let sum = ref(0)
+const sum = ref(0)
 function changeSum() {
   sum.value += 1
 }
@@ -41,7 +41,7 @@ const stopSwatch = watch(sum, (newValue, oldValue) => {
   }
 })
 
-let person = ref({
+const person = ref({
   name: 'zhangsan',
   age: 18,
 })
@@ -66,7 +66,7 @@ watch(person, (newValue, oldValue) => {
 // 情况3. reactive的对象
 
 // 情况4. 监视响应式对象中的某个属性，而且该属性是基本类型的，要写出函数式
-let abc = reactive({
+const abc = reactive({
   name: 'zhangsan',
   car: {
     c1: 'benz',
