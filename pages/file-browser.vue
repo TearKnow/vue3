@@ -93,7 +93,7 @@
 
           <div class="file-search-box">
             <input
-              v-model.trim="searchKeyword"
+              v-model.trim="searchTerm"
               type="text"
               class="file-search-input"
               placeholder="搜索文件或目录"
@@ -128,7 +128,7 @@
               :node="item"
               :selected-file="selectedFile"
               :expand-all="treeExpanded"
-              :search-keyword="searchKeyword"
+              :search-keyword="searchTerm"
               :locate-key="locateKey"
               @select-file="selectFile"
             />
@@ -294,7 +294,7 @@ const showBackToTop = ref(false)
 const contentPanelRef = ref<HTMLElement | null>(null)
 const treeExpanded = ref<boolean | undefined>(undefined)
 const locateKey = ref(0)
-const searchKeyword = ref('')
+const searchTerm = ref('')
 const layoutRef = ref<HTMLElement | null>(null)
 const sidebarWidthCookie = useCookie<string>('file-browser-sidebar-width', {
   default: () => '320',
@@ -420,7 +420,7 @@ function countFiles(nodes: ProjectTreeNode[]): number {
 }
 
 const displayTreeItems = computed(() => {
-  return filterTree(treeItems.value, searchKeyword.value)
+  return filterTree(treeItems.value, searchTerm.value)
 })
 
 const visibleFileCount = computed(() => {
