@@ -112,16 +112,24 @@
 
         <section
           id="comments"
+          ref="commentsSectionRef"
           class="comments"
         >
           <h2 v-show="commentsReady">
             Comments
           </h2>
-          <UtterancesComments
-            repo="TearKnow/comments"
-            issue-term="pathname"
-            @ready="commentsReady = true"
-          />
+          <template v-if="commentsVisible">
+            <UtterancesComments
+              repo="TearKnow/comments"
+              issue-term="pathname"
+              @ready="commentsReady = true"
+            />
+          </template>
+          <template v-else>
+            <div class="comments-loading-placeholder">
+              评论区将在滚动到此处后加载…
+            </div>
+          </template>
         </section>
       </article>
 
@@ -212,6 +220,8 @@ const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
 const showToTop = ref(false)
 const commentsReady = ref(false)
+const commentsVisible = ref(false)
+const commentsSectionRef = ref<HTMLElement | null>(null)
 
 /** 与 utteranc.es/client 中 pathname 规则一致（用于 Search API 与 issue 标题匹配） */
 const utterancesPathname = computed(() => {
@@ -233,24 +243,15 @@ const { data: commentCountPayload } = useAsyncData(
 
 const commentsCount = computed(() => commentCountPayload.value?.count ?? null)
 
-const { data: postNavList } = await useAsyncData<BlogPostMeta[]>('blog-post-nav', () =>
-  fetchBlogMetaList({ includeContent: false }),
+const { data: postNavList, refresh: refreshPostNavList } = await useAsyncData<BlogPostMeta[]>(
+  'blog-post-nav',
+  () => fetchBlogMetaList({ includeContent: false }),
+  { server: false, lazy: true },
 )
-
-const currentPostPath = computed(() => {
-  return postNavList.value?.find(item => item.slug === currentSlug.value)?._path ?? null
-})
 
 const { data: post, pending, error, refresh } = await useAsyncData(
   () => `blog-current-post-${currentSlug.value}`,
   async () => {
-    if (currentPostPath.value) {
-      const exactDoc = await queryContent('/blog')
-        .where({ _path: currentPostPath.value })
-        .findOne()
-      if (exactDoc) return exactDoc
-    }
-
     const docs = await queryContent('/blog').find()
     const matched = (docs as Array<Record<string, unknown>>).find((doc) => {
       const path = typeof doc._path === 'string' ? doc._path : ''
@@ -338,6 +339,18 @@ onMounted(() => {
   removeBlogNavigationLoadingOverlay()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
+  refreshPostNavList()
+
+  if (import.meta.client && commentsSectionRef.value) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        commentsVisible.value = true
+        observer.disconnect()
+      }
+    }, { rootMargin: '200px' })
+
+    observer.observe(commentsSectionRef.value)
+  }
 })
 
 const currentIndex = computed(() => {
@@ -926,6 +939,12 @@ watchEffect(() => {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
+}
+
+.comments-loading-placeholder {
+  padding: 1rem 0;
+  color: #64748b;
+  font-size: 0.95rem;
 }
 
 .comments h2 {
