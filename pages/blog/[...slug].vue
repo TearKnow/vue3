@@ -683,15 +683,15 @@ watchEffect(() => {
 .mobile-toc {
   display: block;
   position: fixed;
-  inset: 0 auto 0 auto;
+  top: 0;
   right: 0;
+  bottom: 0;
   width: min(320px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
-  min-height: 100vh;
-  height: 100svh;
   padding-top: env(safe-area-inset-top, 0);
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  overflow: auto;
+  padding-bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   margin: 0;
