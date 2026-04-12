@@ -84,6 +84,7 @@
 
 .action-group-body {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 14px 16px;
 }
@@ -103,6 +104,15 @@
   font-weight: 600;
   box-shadow: 0 2px 6px rgb(15 23 42 / 6%);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .action-card {
+    flex: 0 0 calc(50% - 10px);
+    width: calc(50% - 10px);
+    min-width: calc(50% - 10px);
+  }
 }
 
 .action-card:hover {
