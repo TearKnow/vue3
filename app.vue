@@ -15,6 +15,12 @@ import { useBlogNavigationLoading } from '~/composables/useBlogNavigationLoading
 useSeoMeta({
   title: 'vue3',
   description: 'vue3，你的选择',
+  meta: [
+    {
+      name: 'viewport',
+      content: 'width=device-width, initial-scale=1, maximum-scale=1',
+    },
+  ],
 })
 
 useBlogNavigationLoading()
