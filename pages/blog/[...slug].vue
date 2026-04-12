@@ -685,11 +685,14 @@ watchEffect(() => {
 .mobile-toc {
   display: block;
   position: fixed;
+  inset: 0 auto 0 auto;
   right: 0;
-  top: env(safe-area-inset-top, 0);
-  bottom: env(safe-area-inset-bottom, 0);
   width: min(320px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
+  min-height: 100vh;
+  height: 100svh;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
   overflow: auto;
   margin: 0;
   z-index: 1001;
@@ -708,6 +711,7 @@ watchEffect(() => {
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
+  padding-top: 22px;
 }
 
 .toc-overlay {
