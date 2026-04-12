@@ -278,6 +278,7 @@ watch(tocOpen, (open) => {
     const html = document.documentElement
     const body = document.body
     if (open) {
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth
       lockedScrollTop.value = window.scrollY || window.pageYOffset || 0
       html.style.overflow = 'hidden'
       body.style.overflow = 'hidden'
@@ -285,7 +286,9 @@ watch(tocOpen, (open) => {
       body.style.top = `-${lockedScrollTop.value}px`
       body.style.left = '0'
       body.style.right = '0'
-      body.style.width = '100%'
+      if (scrollBarWidth > 0) {
+        body.style.paddingRight = `${scrollBarWidth}px`
+      }
       body.style.touchAction = 'none'
     }
     else {
@@ -295,7 +298,7 @@ watch(tocOpen, (open) => {
       body.style.top = ''
       body.style.left = ''
       body.style.right = ''
-      body.style.width = ''
+      body.style.paddingRight = ''
       body.style.touchAction = ''
       window.scrollTo(0, lockedScrollTop.value)
     }
@@ -312,7 +315,7 @@ onBeforeUnmount(() => {
     body.style.top = ''
     body.style.left = ''
     body.style.right = ''
-    body.style.width = ''
+    body.style.paddingRight = ''
     body.style.touchAction = ''
     window.removeEventListener('scroll', onScroll)
   }
@@ -680,24 +683,32 @@ watchEffect(() => {
 }
 
 .mobile-toc {
-  display: none;
+  display: block;
   position: fixed;
-  left: auto;
-  right: var(--toc-toggle-right);
-  top: 3.3rem;
+  right: 0;
+  top: 0;
+  bottom: 0;
   width: min(320px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
-  max-height: 70vh;
+  height: 100vh;
   overflow: auto;
   margin: 0;
   z-index: 1001;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
   box-sizing: border-box;
-  transform: translateX(calc(-1 * (var(--toc-toggle-size) + var(--mobile-toc-gap))));
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.24s ease, opacity 0.24s ease, visibility 0.24s ease;
+  border-radius: 16px 0 0 16px;
+  background: #f8fafc;
+  will-change: transform, opacity;
 }
 
 .mobile-toc.open {
-  display: block;
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
 }
 
 .toc-overlay {
@@ -705,6 +716,8 @@ watchEffect(() => {
   inset: 0;
   background: rgba(15, 23, 42, 0.25);
   z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.24s ease;
 }
 
 .desktop-toc {
