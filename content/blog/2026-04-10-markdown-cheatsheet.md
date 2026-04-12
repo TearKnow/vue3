@@ -200,6 +200,14 @@ draft: false
 
 预览效果：frontmatter 不会显示在正文里，它只用于控制标题、日期、标签、草稿、置顶等元数据。
 
+> 注意：如果 `title` 中包含冒号（例如 `box-sizing: border-box`）或其他特殊字符，应该用双引号包裹整个标题，否则 YAML 解析可能会出错。
+>
+> 例如：
+>
+> ```md
+> title: "CSS 的 box-sizing: border-box 是什么"
+> ```
+
 ## 13. 命名建议
 
 - 文件名：`YYYY-MM-DD-your-slug.md`
