@@ -211,7 +211,7 @@
 
 <script setup lang="ts">
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
-import { fetchBlogMetaList, pathToSlug } from '~/composables/useBlogPosts'
+import { fetchBlogMetaList } from '~/composables/useBlogPosts'
 import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
 
 const route = useRoute()
@@ -255,19 +255,13 @@ const currentPostPath = computed(() => {
 const { data: post, pending, error, refresh } = await useAsyncData(
   () => `blog-current-post-${currentSlug.value}`,
   async () => {
-    if (currentPostPath.value) {
-      const exactDoc = await queryContent('/blog')
-        .where({ _path: currentPostPath.value })
-        .findOne()
-      if (exactDoc) return exactDoc
+    if (!currentPostPath.value) {
+      return null
     }
 
-    const docs = await queryContent('/blog').find()
-    const matched = (docs as Array<Record<string, unknown>>).find((doc) => {
-      const path = typeof doc._path === 'string' ? doc._path : ''
-      return pathToSlug(path) === currentSlug.value
-    })
-    return matched ?? null
+    return await queryContent('/blog')
+      .where({ _path: currentPostPath.value })
+      .findOne()
   },
 )
 

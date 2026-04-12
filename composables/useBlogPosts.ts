@@ -58,8 +58,13 @@ function extractPlainText(value: unknown): string {
 
 export async function fetchBlogMetaList(options: FetchBlogMetaOptions = {}): Promise<BlogPostMeta[]> {
   const { includeDraft = false, includeContent = true } = options
-  const docs = await queryContent('/blog')
-    .find()
+  const query = queryContent('/blog')
+
+  if (!includeContent) {
+    query.only(['_path', 'title', 'description', 'date', 'tags', 'pinned', 'draft'])
+  }
+
+  const docs = await query.find()
 
   const mapped = (docs as Record<string, unknown>[]).map((doc) => {
     const rawContent = includeContent ? extractPlainText((doc as Record<string, unknown>).body) : ''
