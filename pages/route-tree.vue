@@ -164,6 +164,8 @@ const routeTree = computed(() => {
   const paths = router.getRoutes()
     .filter(item => item.path !== route.path)
     .filter(item => item.path !== '/')
+    .filter(item => item.path !== '/blog')
+    .filter(item => item.path !== '/file-browser')
     .filter(item => item.path !== '/source-view')
     .filter(item => !item.path.includes(':'))
     .filter(item => !item.path.startsWith('/_'))
@@ -191,7 +193,7 @@ const RouteTreeNode = defineComponent({
   },
   setup(props) {
     const NuxtLinkComponent = resolveComponent('NuxtLink')
-    const isOpen = ref(props.level < 2)
+    const isOpen = ref(props.level < 1)
 
     watch(
       () => props.expandAll,
