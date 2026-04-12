@@ -686,11 +686,10 @@ watchEffect(() => {
   display: block;
   position: fixed;
   right: 0;
-  top: 0;
-  bottom: 0;
+  top: env(safe-area-inset-top, 0);
+  bottom: env(safe-area-inset-bottom, 0);
   width: min(320px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
-  height: 100vh;
   overflow: auto;
   margin: 0;
   z-index: 1001;
