@@ -243,27 +243,41 @@ const { data: commentCountPayload } = useAsyncData(
 
 const commentsCount = computed(() => commentCountPayload.value?.count ?? null)
 
-const { data: postNavList } = await useAsyncData<BlogPostMeta[]>(
-  'blog-post-nav',
-  () => fetchBlogMetaList({ includeContent: false }),
-)
+const postNavList = ref<BlogPostMeta[] | null>(null)
+const navLoading = ref(false)
 
-const currentPostPath = computed(() => {
-  return postNavList.value?.find(item => item.slug === currentSlug.value)?._path ?? null
+const currentPostPathPattern = computed(() => {
+  const slug = currentSlug.value
+  if (!slug) return null
+  const escapedSlug = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`^/blog/(?:\\d{4}-\\d{2}-\\d{2}-)?${escapedSlug}$`)
 })
 
 const { data: post, pending, error, refresh } = await useAsyncData(
   () => `blog-current-post-${currentSlug.value}`,
   async () => {
-    if (!currentPostPath.value) {
+    if (!currentPostPathPattern.value) {
       return null
     }
 
     return await queryContent('/blog')
-      .where({ _path: currentPostPath.value })
+      .where({ _path: currentPostPathPattern.value })
+      .only(['_path', 'title', 'description', 'date', 'tags', 'body'])
       .findOne()
   },
 )
+
+const loadPostNavList = async () => {
+  if (!import.meta.client || postNavList.value !== null || navLoading.value) return
+  navLoading.value = true
+
+  try {
+    postNavList.value = await fetchBlogMetaList({ includeContent: false })
+  }
+  finally {
+    navLoading.value = false
+  }
+}
 
 watch(() => route.path, () => {
   tocOpen.value = false
@@ -354,6 +368,8 @@ onMounted(() => {
 
     observer.observe(commentsSectionRef.value)
   }
+
+  void loadPostNavList()
 })
 
 const currentIndex = computed(() => {
