@@ -289,7 +289,6 @@ watch(tocOpen, (open) => {
       if (scrollBarWidth > 0) {
         body.style.paddingRight = `${scrollBarWidth}px`
       }
-      body.style.touchAction = 'none'
     }
     else {
       html.style.overflow = ''
@@ -299,7 +298,6 @@ watch(tocOpen, (open) => {
       body.style.left = ''
       body.style.right = ''
       body.style.paddingRight = ''
-      body.style.touchAction = ''
       window.scrollTo(0, lockedScrollTop.value)
     }
   }
@@ -694,6 +692,8 @@ watchEffect(() => {
   padding-top: env(safe-area-inset-top, 0);
   padding-bottom: env(safe-area-inset-bottom, 0);
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   margin: 0;
   z-index: 1001;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
