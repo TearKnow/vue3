@@ -233,9 +233,24 @@ const { data: commentCountPayload } = useAsyncData(
 
 const commentsCount = computed(() => commentCountPayload.value?.count ?? null)
 
+const { data: postNavList } = await useAsyncData<BlogPostMeta[]>('blog-post-nav', () =>
+  fetchBlogMetaList({ includeContent: false }),
+)
+
+const currentPostPath = computed(() => {
+  return postNavList.value?.find(item => item.slug === currentSlug.value)?._path ?? null
+})
+
 const { data: post, pending, error, refresh } = await useAsyncData(
   () => `blog-current-post-${currentSlug.value}`,
   async () => {
+    if (currentPostPath.value) {
+      const exactDoc = await queryContent('/blog')
+        .where({ _path: currentPostPath.value })
+        .findOne()
+      if (exactDoc) return exactDoc
+    }
+
     const docs = await queryContent('/blog').find()
     const matched = (docs as Array<Record<string, unknown>>).find((doc) => {
       const path = typeof doc._path === 'string' ? doc._path : ''
@@ -325,11 +340,9 @@ onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
 })
 
-const { data: postNavList } = await useAsyncData<BlogPostMeta[]>('blog-post-nav', () => fetchBlogMetaList())
-
-const currentIndex = computed(() =>
-  (postNavList.value ?? []).findIndex(item => item.slug === currentSlug.value),
-)
+const currentIndex = computed(() => {
+  return (postNavList.value ?? []).findIndex(item => item.slug === currentSlug.value)
+})
 
 const prevPost = computed(() => {
   const idx = currentIndex.value

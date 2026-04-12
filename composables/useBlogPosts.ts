@@ -40,6 +40,7 @@ export function slugToBlogPath(slug: string) {
 
 interface FetchBlogMetaOptions {
   includeDraft?: boolean
+  includeContent?: boolean
 }
 
 function extractPlainText(value: unknown): string {
@@ -56,12 +57,12 @@ function extractPlainText(value: unknown): string {
 }
 
 export async function fetchBlogMetaList(options: FetchBlogMetaOptions = {}): Promise<BlogPostMeta[]> {
-  const { includeDraft = false } = options
+  const { includeDraft = false, includeContent = true } = options
   const docs = await queryContent('/blog')
     .find()
 
   const mapped = (docs as Record<string, unknown>[]).map((doc) => {
-    const rawContent = extractPlainText((doc as Record<string, unknown>).body)
+    const rawContent = includeContent ? extractPlainText((doc as Record<string, unknown>).body) : ''
     return {
       _path: typeof doc._path === 'string' ? doc._path : undefined,
       slug: typeof doc._path === 'string' ? pathToSlug(doc._path) : undefined,
