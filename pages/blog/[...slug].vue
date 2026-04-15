@@ -120,10 +120,33 @@
           </h2>
           <template v-if="commentsVisible">
             <UtterancesComments
-              repo="TearKnow/comments"
-              issue-term="pathname"
+              v-if="commentsProvider === 'utterances'"
+              :repo="utterancesRepo"
+              :issue-term="utterancesIssueTerm"
+              :theme="utterancesTheme"
               @ready="commentsReady = true"
             />
+            <GiscusComments
+              v-else-if="commentsProvider === 'giscus'"
+              :repo="giscusRepo"
+              :repo-id="giscusRepoId"
+              :category="giscusCategory"
+              :category-id="giscusCategoryId"
+              :mapping="giscusMapping"
+              :strict="giscusStrict"
+              :reactions-enabled="giscusReactionsEnabled"
+              :emit-metadata="giscusEmitMetadata"
+              :input-position="giscusInputPosition"
+              :lang="giscusLang"
+              :theme="giscusTheme"
+              @ready="commentsReady = true"
+            />
+            <div
+              v-else
+              class="comments-loading-placeholder"
+            >
+              未启用评论系统，请检查 comments provider 配置。
+            </div>
           </template>
           <template v-else>
             <div class="comments-loading-placeholder">
@@ -215,6 +238,7 @@ import { fetchBlogMetaList } from '~/composables/useBlogPosts'
 import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
 
 const route = useRoute()
+const runtimeConfig = useRuntimeConfig()
 const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
@@ -230,15 +254,43 @@ const utterancesPathname = computed(() => {
   return p.slice(1).replace(/\.\w+$/, '')
 })
 
-const UTTERANCES_REPO = 'TearKnow/comments'
+const commentsConfig = computed(() => runtimeConfig.public.comments ?? {})
+const commentsProvider = computed<'utterances' | 'giscus' | ''>(() => {
+  const rawProvider = String((commentsConfig.value as any).provider ?? 'utterances').toLowerCase()
+  if (rawProvider === 'giscus') return 'giscus'
+  if (rawProvider === 'utterances') return 'utterances'
+  return ''
+})
+
+const utterancesConfig = computed(() => (commentsConfig.value as any).utterances ?? {})
+const utterancesRepo = computed(() => String(utterancesConfig.value.repo ?? ''))
+const utterancesIssueTerm = computed(() => String(utterancesConfig.value.issueTerm ?? 'pathname'))
+const utterancesTheme = computed(() => String(utterancesConfig.value.theme ?? 'github-light'))
+
+const giscusConfig = computed(() => (commentsConfig.value as any).giscus ?? {})
+const giscusRepo = computed(() => String(giscusConfig.value.repo ?? ''))
+const giscusRepoId = computed(() => String(giscusConfig.value.repoId ?? ''))
+const giscusCategory = computed(() => String(giscusConfig.value.category ?? 'General'))
+const giscusCategoryId = computed(() => String(giscusConfig.value.categoryId ?? ''))
+const giscusMapping = computed(() => String(giscusConfig.value.mapping ?? 'pathname'))
+const giscusStrict = computed(() => String(giscusConfig.value.strict ?? '0'))
+const giscusReactionsEnabled = computed(() => String(giscusConfig.value.reactionsEnabled ?? '1'))
+const giscusEmitMetadata = computed(() => String(giscusConfig.value.emitMetadata ?? '0'))
+const giscusInputPosition = computed(() => String(giscusConfig.value.inputPosition ?? 'top'))
+const giscusLang = computed(() => String(giscusConfig.value.lang ?? 'zh-CN'))
+const giscusTheme = computed(() => String(giscusConfig.value.theme ?? 'light'))
 
 const { data: commentCountPayload } = useAsyncData(
   () => `utterances-cc-${utterancesPathname.value}`,
-  () =>
-    $fetch<{ count: number | null }>('/api/utterances-comment-count', {
-      query: { repo: UTTERANCES_REPO, pathname: utterancesPathname.value },
-    }),
-  { watch: [utterancesPathname], server: false },
+  async () => {
+    if (commentsProvider.value !== 'utterances' || !utterancesRepo.value) {
+      return { count: null as number | null }
+    }
+    return await $fetch<{ count: number | null }>('/api/utterances-comment-count', {
+      query: { repo: utterancesRepo.value, pathname: utterancesPathname.value },
+    })
+  },
+  { watch: [utterancesPathname, commentsProvider, utterancesRepo], server: false },
 )
 
 const commentsCount = computed(() => commentCountPayload.value?.count ?? null)
@@ -281,7 +333,12 @@ const loadPostNavList = async () => {
 
 watch(() => route.path, () => {
   tocOpen.value = false
+  commentsReady.value = false
   refresh()
+})
+
+watch(commentsProvider, () => {
+  commentsReady.value = false
 })
 
 watch(pending, (value) => {

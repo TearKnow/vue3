@@ -19,6 +19,27 @@ export default defineNuxtConfig({
     githubBranch: process.env.GITHUB_BRANCH || 'main',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      comments: {
+        provider: process.env.NUXT_PUBLIC_COMMENT_PROVIDER || 'giscus', // giscus utterances
+        utterances: {
+          repo: process.env.NUXT_PUBLIC_UTTERANCES_REPO || 'TearKnow/comments',
+          issueTerm: process.env.NUXT_PUBLIC_UTTERANCES_ISSUE_TERM || 'pathname',
+          theme: process.env.NUXT_PUBLIC_UTTERANCES_THEME || 'github-light',
+        },
+        giscus: {
+          repo: process.env.NUXT_PUBLIC_GISCUS_REPO || 'TearKnow/comments',
+          repoId: process.env.NUXT_PUBLIC_GISCUS_REPO_ID || 'R_kgDOR-vTnQ',
+          category: process.env.NUXT_PUBLIC_GISCUS_CATEGORY || 'General',
+          categoryId: process.env.NUXT_PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOR-vTnc4C66XP',
+          mapping: process.env.NUXT_PUBLIC_GISCUS_MAPPING || 'pathname',
+          strict: process.env.NUXT_PUBLIC_GISCUS_STRICT || '0',
+          reactionsEnabled: process.env.NUXT_PUBLIC_GISCUS_REACTIONS_ENABLED || '1',
+          emitMetadata: process.env.NUXT_PUBLIC_GISCUS_EMIT_METADATA || '0',
+          inputPosition: process.env.NUXT_PUBLIC_GISCUS_INPUT_POSITION || 'top',
+          lang: process.env.NUXT_PUBLIC_GISCUS_LANG || 'zh-CN',
+          theme: process.env.NUXT_PUBLIC_GISCUS_THEME || 'light',
+        },
+      },
     },
   },
   compatibilityDate: '2024-11-01',
