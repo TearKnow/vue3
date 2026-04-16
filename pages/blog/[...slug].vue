@@ -114,6 +114,7 @@
           id="comments"
           ref="commentsSectionRef"
           class="comments"
+          :class="{ 'comments-loading-state': !commentsReady }"
         >
           <h2 v-show="commentsReady">
             Comments
@@ -423,10 +424,12 @@ const scrollToTop = () => {
 
 const scrollToComments = () => {
   if (import.meta.client) {
-    const target = document.getElementById('comments')
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+    // 点击后立即触发加载，避免滚动到评论区时出现短暂空白。
+    commentsVisible.value = true
+    const target = commentsSectionRef.value ?? document.getElementById('comments')
+    if (!target) return
+    const top = window.scrollY + target.getBoundingClientRect().top - 12
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
   }
 }
 
@@ -1081,6 +1084,10 @@ watchEffect(() => {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
+}
+
+.comments.comments-loading-state {
+  min-height: 220px;
 }
 
 .comments-loading-placeholder {
