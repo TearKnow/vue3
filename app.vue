@@ -1,5 +1,9 @@
 <template>
   <NuxtPage />
+  <BackToTopFab
+    :show="showBackToTop"
+    @click="scrollToTop"
+  />
   <button
     class="quick-entry-fab"
     type="button"
@@ -51,6 +55,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import BackToTopFab from '~/components/BackToTopFab.vue'
 import { useBlogNavigationLoading } from '~/composables/useBlogNavigationLoading'
 import { quickEntryLinks } from '~/constants/quick-entry-links'
 
@@ -62,6 +67,7 @@ useSeoMeta({
 useBlogNavigationLoading()
 
 const showQuickEntry = ref(false)
+const showBackToTop = ref(false)
 
 const quickEntryItems = [
   { label: '首页', to: '/', icon: '🏠', openInNewTab: false },
@@ -80,12 +86,23 @@ const onGlobalKeydown = (event: KeyboardEvent) => {
   }
 }
 
+const onGlobalScroll = () => {
+  showBackToTop.value = window.scrollY > 300
+}
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 onMounted(() => {
   window.addEventListener('keydown', onGlobalKeydown)
+  window.addEventListener('scroll', onGlobalScroll, { passive: true })
+  onGlobalScroll()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onGlobalKeydown)
+  window.removeEventListener('scroll', onGlobalScroll)
 })
 
 // showSuccessToast('成功文案');
@@ -173,7 +190,7 @@ onBeforeUnmount(() => {
 .quick-entry-fab {
   position: fixed;
   right: 24px;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(24px + env(safe-area-inset-bottom));
   z-index: 9998;
   border: 0;
   border-radius: 999px;

@@ -233,28 +233,6 @@
       </main>
     </div>
 
-    <Transition name="fade-up">
-      <button
-        v-if="showBackToTop"
-        type="button"
-        class="back-to-top-btn"
-        title="回到顶部"
-        @click="scrollToTop"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          width="20"
-          height="20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="18 15 12 9 6 15" />
-        </svg>
-      </button>
-    </Transition>
   </div>
 </template>
 
@@ -290,7 +268,6 @@ const {
 const content = ref('')
 const contentPending = ref(false)
 const contentErrorText = ref('')
-const showBackToTop = ref(false)
 const contentPanelRef = ref<HTMLElement | null>(null)
 const treeExpanded = ref<boolean | undefined>(undefined)
 const locateKey = ref(0)
@@ -349,14 +326,6 @@ function handleWindowResize() {
   sidebarWidth.value = clampSidebarWidth(parseSidebarWidth(sidebarWidthCookie.value))
 }
 
-function handleScroll() {
-  showBackToTop.value = window.scrollY > 300
-}
-
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
 function isMobileLayout() {
   return window.innerWidth <= 900
 }
@@ -372,13 +341,11 @@ function scrollToContentPanel() {
 onMounted(() => {
   handleWindowResize()
   window.addEventListener('resize', handleWindowResize)
-  window.addEventListener('scroll', handleScroll, { passive: true })
 })
 
 onBeforeUnmount(() => {
   stopResize()
   window.removeEventListener('resize', handleWindowResize)
-  window.removeEventListener('scroll', handleScroll)
 })
 
 const treeItems = computed(() => treeResponse.value?.items ?? [])
@@ -1055,42 +1022,6 @@ const FileTreeNode = defineComponent({
 
 .file-line-content .token-punctuation {
   color: #d4d4d4;
-}
-
-.back-to-top-btn {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid #dbe3ee;
-  border-radius: 50%;
-  background: #fff;
-  color: #475569;
-  box-shadow: 0 4px 14px rgb(15 23 42 / 12%);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-}
-
-.back-to-top-btn:hover {
-  background: #2563eb;
-  color: #fff;
-  box-shadow: 0 6px 20px rgb(37 99 235 / 30%);
-}
-
-.fade-up-enter-active,
-.fade-up-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.fade-up-enter-from,
-.fade-up-leave-to {
-  opacity: 0;
-  transform: translateY(12px);
 }
 
 .mobile-file-nav {

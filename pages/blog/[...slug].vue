@@ -210,28 +210,6 @@
       找不到这篇文章。
     </p>
 
-    <Transition name="fade-up">
-      <button
-        v-if="showToTop"
-        type="button"
-        class="back-to-top-btn"
-        title="回到顶部"
-        @click="scrollToTop"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          width="20"
-          height="20"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="18 15 12 9 6 15" />
-        </svg>
-      </button>
-    </Transition>
   </div>
 </template>
 
@@ -247,7 +225,6 @@ const requestURL = useRequestURL()
 const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
-const showToTop = ref(false)
 const activeHeadingId = ref('')
 const commentsReady = ref(false)
 const commentsVisible = ref(false)
@@ -462,12 +439,7 @@ watch(pending, (value) => {
 })
 
 const onScroll = () => {
-  showToTop.value = window.scrollY > 300
   updateActiveHeading()
-}
-
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const scrollToComments = () => {
@@ -1198,39 +1170,4 @@ watchEffect(() => {
   color: #b91c1c;
 }
 
-.back-to-top-btn {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid #dbe3ee;
-  border-radius: 50%;
-  background: #fff;
-  color: #475569;
-  box-shadow: 0 4px 14px rgb(15 23 42 / 12%);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-}
-
-.back-to-top-btn:hover {
-  background: #2563eb;
-  color: #fff;
-  box-shadow: 0 6px 20px rgb(37 99 235 / 30%);
-}
-
-.fade-up-enter-active,
-.fade-up-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.fade-up-enter-from,
-.fade-up-leave-to {
-  opacity: 0;
-  transform: translateY(12px);
-}
 </style>
