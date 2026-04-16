@@ -21,7 +21,8 @@ pinned: false
 
 ## Demo 链接
 
-- 站内访问：<a href="/tech/injectionScope" target="_blank" rel="noopener noreferrer">/tech/injectionScope</a>
+> 在线 Demo（新窗口打开）：  
+> <a href="/tech/injectionScope" target="_blank" rel="noopener noreferrer">查看 provide/inject 作用域示例</a>
 
 ## 1. provide 和 inject 是什么
 
