@@ -94,14 +94,16 @@ ScopeProvider(Outer)
 
 这就是“内层覆盖外层、就近生效”。
 
-## 6. 在这个 demo 中，provide 定义和执行在哪
+## 6. 在这个 demo 中，provide/inject 分别在哪执行
 
 分开看会更清楚：
 
 - 定义来源：`useScopedCounter.ts`
-  - 由 `createInjectionState(useScopedCounter)` 生成并导出 `provideScopedCounter`
-- 实际执行：`ScopeProvider.vue`
+  - 由 `createInjectionState(useScopedCounter)` 生成并导出 `provideScopedCounter` 和 `useScopedCounterStore`
+- provide 实际执行：`ScopeProvider.vue`
   - 在组件 setup 中调用 `provideScopedCounter(props.initial, props.mode)`
+- inject 实际执行：`SharedPanel.vue`
+  - 在组件 setup 中调用 `useScopedCounterStore()` 读取 store
 
-所以可以记成一句话：**函数在 composable 中定义，provide 在 Provider 组件实例中执行。**
+所以可以记成一句话：**函数在 `useScopedCounter.ts` 中定义，provide 在 `ScopeProvider.vue` 执行，inject 在 `SharedPanel.vue` 执行。**
 
