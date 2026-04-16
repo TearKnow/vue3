@@ -116,6 +116,7 @@
           class="comments"
           :class="{ 'comments-loading-state': !commentsReady }"
         >
+          <h2>评论区</h2>
           <template v-if="commentsVisible">
             <UtterancesComments
               v-if="commentsProvider === 'utterances'"
