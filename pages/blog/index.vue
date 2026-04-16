@@ -363,12 +363,19 @@ function updateRouteQuery(query: Record<string, string | undefined>) {
   })
 }
 
+let searchDebounceTimer: number | undefined
+
 function onSearchInput() {
-  updateRouteQuery({
-    ...route.query,
-    q: searchQuery.value.trim() || undefined,
-    page: '1',
-  })
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+  searchDebounceTimer = window.setTimeout(() => {
+    updateRouteQuery({
+      ...route.query,
+      q: searchQuery.value.trim() || undefined,
+      page: '1',
+    })
+  }, 260)
 }
 const pageTo = (page: number) => {
   const query: Record<string, string | undefined> = {
@@ -391,20 +398,15 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-let clockTimer: number | undefined
-
 onMounted(() => {
   removeBlogNavigationLoadingOverlay()
   window.addEventListener('scroll', handleScroll, { passive: true })
-  clockTimer = window.setInterval(() => {
-    now.value = new Date()
-  }, 1000)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
-  if (clockTimer) {
-    clearInterval(clockTimer)
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
   }
 })
 </script>
