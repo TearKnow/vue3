@@ -10,6 +10,13 @@ type GiscusDiscussionsResponse = {
 }
 
 export default defineEventHandler(async (event) => {
+  // Vercel/edge CDN 缓存：同 URL（含 query）命中缓存，减少对 giscus API 的重复请求。
+  // 1 分钟强缓存 + 5 分钟陈旧可用（后台再验证）。
+  const cacheControl = 'public, max-age=0, s-maxage=60, stale-while-revalidate=300'
+  setHeader(event, 'Cache-Control', cacheControl)
+  setHeader(event, 'CDN-Cache-Control', cacheControl)
+  setHeader(event, 'Vercel-CDN-Cache-Control', cacheControl)
+
   const query = getQuery(event)
   const repo = String(query.repo ?? '').trim()
   const category = String(query.category ?? 'General').trim() || 'General'
