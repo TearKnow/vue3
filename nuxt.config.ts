@@ -42,7 +42,7 @@ export default defineNuxtConfig({
           strict: process.env.NUXT_PUBLIC_GISCUS_STRICT || '0',
           reactionsEnabled: process.env.NUXT_PUBLIC_GISCUS_REACTIONS_ENABLED || '1',
           emitMetadata: process.env.NUXT_PUBLIC_GISCUS_EMIT_METADATA || '0',
-          inputPosition: process.env.NUXT_PUBLIC_GISCUS_INPUT_POSITION || 'top',
+          inputPosition: process.env.NUXT_PUBLIC_GISCUS_INPUT_POSITION || 'bottom',
           lang: process.env.NUXT_PUBLIC_GISCUS_LANG || 'zh-CN',
           theme: process.env.NUXT_PUBLIC_GISCUS_THEME || 'light',
         },
