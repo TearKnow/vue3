@@ -165,7 +165,10 @@
             :key="item.id"
             :class="`depth-${item.depth}`"
           >
-            <a :href="`#${item.id}`">{{ item.text }}</a>
+            <a
+              :href="`#${item.id}`"
+              :class="{ active: activeHeadingId === item.id }"
+            >{{ item.text }}</a>
           </li>
         </ul>
       </nav>
@@ -186,6 +189,7 @@
         >
           <a
             :href="`#${item.id}`"
+            :class="{ active: activeHeadingId === item.id }"
             @click="tocOpen = false"
           >{{ item.text }}</a>
         </li>
@@ -231,6 +235,7 @@
 </template>
 
 <script setup lang="ts">
+import { nextTick } from 'vue'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { fetchBlogMetaList } from '~/composables/useBlogPosts'
 import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
@@ -242,6 +247,7 @@ const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blo
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
 const showToTop = ref(false)
+const activeHeadingId = ref('')
 const commentsReady = ref(false)
 const commentsVisible = ref(false)
 const commentsSectionRef = ref<HTMLElement | null>(null)
@@ -413,6 +419,7 @@ watch(pending, (value) => {
 
 const onScroll = () => {
   showToTop.value = window.scrollY > 300
+  updateActiveHeading()
 }
 
 const scrollToTop = () => {
@@ -428,6 +435,32 @@ const scrollToComments = () => {
     const top = window.scrollY + target.getBoundingClientRect().top - 12
     window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
   }
+}
+
+const updateActiveHeading = () => {
+  if (!import.meta.client) return
+  const ids = tocLinks.value.map(item => item.id).filter(Boolean)
+  if (!ids.length) {
+    activeHeadingId.value = ''
+    return
+  }
+
+  const threshold = 120
+  let current = ids[0]
+
+  for (const id of ids) {
+    const el = document.getElementById(id)
+    if (!el) continue
+    const top = el.getBoundingClientRect().top
+    if (top - threshold <= 0) {
+      current = id
+    }
+    else {
+      break
+    }
+  }
+
+  activeHeadingId.value = current
 }
 
 watch(tocOpen, (open) => {
@@ -493,6 +526,7 @@ onMounted(() => {
   }
 
   void loadPostNavList()
+  void nextTick(() => updateActiveHeading())
 })
 
 const currentIndex = computed(() => {
@@ -539,6 +573,11 @@ const tocLinks = computed(() => {
   const toc = (post.value?.body as { toc?: { links?: TocLinkNode[] } } | undefined)?.toc?.links
   return flattenTocLinks(toc ?? [])
 })
+
+watch(tocLinks, () => {
+  if (!import.meta.client) return
+  void nextTick(() => updateActiveHeading())
+}, { flush: 'post' })
 
 watchEffect(() => {
   if (!post.value?.title) return
@@ -926,6 +965,13 @@ watchEffect(() => {
   color: #1d4ed8;
   background: #eff6ff;
   border-left-color: #93c5fd;
+}
+
+.toc a.active {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-left-color: #60a5fa;
+  font-weight: 600;
 }
 
 .toc li.depth-0 a {
