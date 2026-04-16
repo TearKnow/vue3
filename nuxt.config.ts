@@ -1,6 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 
+  // Nuxt 3.20+ / Vite 7：dev 首次预转换仍会解析 manifest.js 里死分支中的 import("#app-manifest")，
+  // 触发红色 Pre-transform error（与业务代码无关）。关闭 app manifest 为官方常用规避，见 nuxt/nuxt#30461、#33606。
+  experimental: {
+    appManifest: false,
+  },
+
   modules: ['@vant/nuxt', '@nuxt/content'],
   devtools: { enabled: true }, app: {
     head: {
@@ -13,7 +19,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    githubToken: process.env.GITHUB_TOKEN || '',
+    githubToken: process.env.GITHUB_TOKEN || process.env.NUXT_GITHUB_TOKEN || '',
     githubOwner: process.env.GITHUB_OWNER || 'TearKnow',
     githubRepo: process.env.GITHUB_REPO || 'vue3',
     githubBranch: process.env.GITHUB_BRANCH || 'main',
@@ -31,6 +37,8 @@ export default defineNuxtConfig({
           repoId: process.env.NUXT_PUBLIC_GISCUS_REPO_ID || 'R_kgDOR-vTnQ',
           category: process.env.NUXT_PUBLIC_GISCUS_CATEGORY || 'General',
           categoryId: process.env.NUXT_PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOR-vTnc4C66XP',
+          /** data-mapping 为 number / specific 时与 data-term 一致（Discussion 编号或固定 term） */
+          term: process.env.NUXT_PUBLIC_GISCUS_TERM || '',
           mapping: process.env.NUXT_PUBLIC_GISCUS_MAPPING || 'pathname',
           strict: process.env.NUXT_PUBLIC_GISCUS_STRICT || '0',
           reactionsEnabled: process.env.NUXT_PUBLIC_GISCUS_REACTIONS_ENABLED || '1',

@@ -239,6 +239,7 @@ import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigat
 
 const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
+const requestURL = useRequestURL()
 const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
@@ -247,7 +248,7 @@ const commentsReady = ref(false)
 const commentsVisible = ref(false)
 const commentsSectionRef = ref<HTMLElement | null>(null)
 
-/** 与 utteranc.es/client 中 pathname 规则一致（用于 Search API 与 issue 标题匹配） */
+/** 与 utteranc.es 及 giscus client.js 的 pathname 规则一致（issue / Discussion 标题或检索 term） */
 const utterancesPathname = computed(() => {
   const p = route.path.replace(/\/$/, '') || '/'
   if (p.length < 2) return 'index'
@@ -272,6 +273,7 @@ const giscusRepo = computed(() => String(giscusConfig.value.repo ?? ''))
 const giscusRepoId = computed(() => String(giscusConfig.value.repoId ?? ''))
 const giscusCategory = computed(() => String(giscusConfig.value.category ?? 'General'))
 const giscusCategoryId = computed(() => String(giscusConfig.value.categoryId ?? ''))
+const giscusDataTerm = computed(() => String((giscusConfig.value as { term?: string }).term ?? ''))
 const giscusMapping = computed(() => String(giscusConfig.value.mapping ?? 'pathname'))
 const giscusStrict = computed(() => String(giscusConfig.value.strict ?? '0'))
 const giscusReactionsEnabled = computed(() => String(giscusConfig.value.reactionsEnabled ?? '1'))
@@ -280,17 +282,81 @@ const giscusInputPosition = computed(() => String(giscusConfig.value.inputPositi
 const giscusLang = computed(() => String(giscusConfig.value.lang ?? 'zh-CN'))
 const giscusTheme = computed(() => String(giscusConfig.value.theme ?? 'light'))
 
-const { data: commentCountPayload } = useAsyncData(
-  () => `utterances-cc-${utterancesPathname.value}`,
-  async () => {
-    if (commentsProvider.value !== 'utterances' || !utterancesRepo.value) {
-      return { count: null as number | null }
+/** Giscus 传给后端的 term（与 client.js 的 params.term 一致；number 映射不用 term） */
+const giscusCommentTerm = computed(() => {
+  const m = giscusMapping.value
+  if (m === 'specific')
+    return giscusDataTerm.value
+  if (m === 'number')
+    return ''
+  if (m === 'url') {
+    try {
+      const u = new URL(requestURL.href)
+      u.searchParams.delete('giscus')
+      u.hash = ''
+      return u.toString()
     }
-    return await $fetch<{ count: number | null }>('/api/utterances-comment-count', {
-      query: { repo: utterancesRepo.value, pathname: utterancesPathname.value },
-    })
+    catch {
+      return utterancesPathname.value
+    }
+  }
+  if (m === 'title' && import.meta.client)
+    return document.title.trim() || utterancesPathname.value
+  if (m === 'og:title') {
+    if (import.meta.client) {
+      const el = document.querySelector(`meta[property='og:title']`) as HTMLMetaElement | null
+      const t = el?.content?.trim()
+      if (t)
+        return t
+    }
+    return utterancesPathname.value
+  }
+  return utterancesPathname.value
+})
+
+/** Giscus API 的 number 参数（pathname/url/title 等为 0；mapping=number 时为 data-term） */
+const giscusDiscussionNumber = computed(() => {
+  if (giscusMapping.value === 'number' && giscusDataTerm.value)
+    return giscusDataTerm.value
+  return '0'
+})
+
+const { data: commentCountPayload } = useAsyncData(
+  () => `comment-cc-${commentsProvider.value}-${commentsProvider.value === 'giscus' ? `${giscusDiscussionNumber.value}:${giscusCommentTerm.value}` : utterancesPathname.value}`,
+  async () => {
+    if (commentsProvider.value === 'utterances' && utterancesRepo.value) {
+      return await $fetch<{ count: number | null }>('/api/utterances-comment-count', {
+        query: { repo: utterancesRepo.value, pathname: utterancesPathname.value },
+      })
+    }
+    if (commentsProvider.value === 'giscus' && giscusRepo.value) {
+      return await $fetch<{ count: number | null }>('/api/giscus-comment-count', {
+        query: {
+          repo: giscusRepo.value,
+          term: giscusCommentTerm.value,
+          number: giscusDiscussionNumber.value,
+          category: giscusCategory.value,
+          strict: giscusStrict.value,
+        },
+      })
+    }
+    return { count: null as number | null }
   },
-  { watch: [utterancesPathname, commentsProvider, utterancesRepo], server: false },
+  {
+    watch: [
+      utterancesPathname,
+      giscusCommentTerm,
+      giscusDiscussionNumber,
+      commentsProvider,
+      utterancesRepo,
+      giscusRepo,
+      giscusCategory,
+      giscusStrict,
+      giscusMapping,
+      giscusDataTerm,
+    ],
+    server: false,
+  },
 )
 
 const commentsCount = computed(() => commentCountPayload.value?.count ?? null)
