@@ -177,14 +177,14 @@ onBeforeUnmount(() => {
   z-index: 9998;
   border: 0;
   border-radius: 999px;
-  width: 40px;
-  height: 40px;
+  width: 43px;
+  height: 43px;
   display: grid;
   place-items: center;
   padding: 0;
   background: rgba(15, 23, 42, 0.58);
   color: rgba(255, 255, 255, 0.92);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
   backdrop-filter: blur(2px);
