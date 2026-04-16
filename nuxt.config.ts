@@ -3,9 +3,6 @@ export default defineNuxtConfig({
 
   // Nuxt 3.20+ / Vite 7：dev 首次预转换仍会解析 manifest.js 里死分支中的 import("#app-manifest")，
   // 触发红色 Pre-transform error（与业务代码无关）。关闭 app manifest 为官方常用规避，见 nuxt/nuxt#30461、#33606。
-  experimental: {
-    appManifest: false,
-  },
 
   modules: ['@vant/nuxt', '@nuxt/content'],
   devtools: { enabled: true }, app: {
@@ -27,6 +24,8 @@ export default defineNuxtConfig({
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       comments: {
         provider: process.env.NUXT_PUBLIC_COMMENT_PROVIDER || 'giscus', // giscus utterances
+        /** 为 true 时进入文章详情页即异步挂载评论（仍不阻塞首屏）；为 false 时仅滚动接近评论区再加载 */
+        eagerLoad: true,
         utterances: {
           repo: process.env.NUXT_PUBLIC_UTTERANCES_REPO || 'TearKnow/comments',
           issueTerm: process.env.NUXT_PUBLIC_UTTERANCES_ISSUE_TERM || 'pathname',
@@ -49,6 +48,8 @@ export default defineNuxtConfig({
         },
       },
     },
+  }, experimental: {
+    appManifest: false,
   },
   compatibilityDate: '2024-11-01',
   nitro: {

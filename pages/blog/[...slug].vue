@@ -148,7 +148,7 @@
           </template>
           <template v-else>
             <div class="comments-loading-placeholder">
-              评论区将在滚动到此处后加载…
+              {{ commentsEagerLoad ? '评论区即将加载…' : '评论区将在滚动到此处后加载…' }}
             </div>
           </template>
         </section>
@@ -259,20 +259,50 @@ const utterancesPathname = computed(() => {
   return p.slice(1).replace(/\.\w+$/, '')
 })
 
-const commentsConfig = computed(() => runtimeConfig.public.comments ?? {})
+interface UtterancesPublicConfig {
+  repo?: string
+  issueTerm?: string
+  theme?: string
+}
+
+interface GiscusPublicConfig {
+  repo?: string
+  repoId?: string
+  category?: string
+  categoryId?: string
+  term?: string
+  mapping?: string
+  strict?: string
+  reactionsEnabled?: string
+  emitMetadata?: string
+  inputPosition?: string
+  lang?: string
+  theme?: string
+}
+
+interface CommentsPublicConfig {
+  provider?: string
+  /** 进入详情页即开始加载评论（客户端异步），关闭时仍用 IntersectionObserver 懒加载 */
+  eagerLoad?: boolean
+  utterances?: UtterancesPublicConfig
+  giscus?: GiscusPublicConfig
+}
+
+const commentsConfig = computed<CommentsPublicConfig>(() => runtimeConfig.public.comments ?? {})
+const commentsEagerLoad = computed(() => Boolean(commentsConfig.value.eagerLoad))
 const commentsProvider = computed<'utterances' | 'giscus' | ''>(() => {
-  const rawProvider = String((commentsConfig.value as any).provider ?? 'utterances').toLowerCase()
+  const rawProvider = String(commentsConfig.value.provider ?? 'utterances').toLowerCase()
   if (rawProvider === 'giscus') return 'giscus'
   if (rawProvider === 'utterances') return 'utterances'
   return ''
 })
 
-const utterancesConfig = computed(() => (commentsConfig.value as any).utterances ?? {})
+const utterancesConfig = computed<UtterancesPublicConfig>(() => commentsConfig.value.utterances ?? {})
 const utterancesRepo = computed(() => String(utterancesConfig.value.repo ?? ''))
 const utterancesIssueTerm = computed(() => String(utterancesConfig.value.issueTerm ?? 'pathname'))
 const utterancesTheme = computed(() => String(utterancesConfig.value.theme ?? 'github-light'))
 
-const giscusConfig = computed(() => (commentsConfig.value as any).giscus ?? {})
+const giscusConfig = computed<GiscusPublicConfig>(() => commentsConfig.value.giscus ?? {})
 const giscusRepo = computed(() => String(giscusConfig.value.repo ?? ''))
 const giscusRepoId = computed(() => String(giscusConfig.value.repoId ?? ''))
 const giscusCategory = computed(() => String(giscusConfig.value.category ?? 'General'))
@@ -401,10 +431,23 @@ const loadPostNavList = async () => {
   }
 }
 
+/** 详情页客户端异步挂载评论区（不阻塞首屏）；用于 eagerLoad 与路由切换 */
+function scheduleCommentsMount() {
+  if (!import.meta.client || !commentsEagerLoad.value)
+    return
+  void nextTick(() => {
+    requestAnimationFrame(() => {
+      commentsVisible.value = true
+    })
+  })
+}
+
 watch(() => route.path, () => {
   tocOpen.value = false
   commentsReady.value = false
+  commentsVisible.value = false
   refresh()
+  scheduleCommentsMount()
 })
 
 watch(commentsProvider, () => {
@@ -513,6 +556,8 @@ onMounted(() => {
   removeBlogNavigationLoadingOverlay()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
+
+  scheduleCommentsMount()
 
   if (import.meta.client && commentsSectionRef.value) {
     const observer = new IntersectionObserver((entries) => {
