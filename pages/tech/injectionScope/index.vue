@@ -2,6 +2,12 @@
   <main class="wrap">
     <h2>Provide / Inject Scope Demo</h2>
     <p>点击每个区域的 +1，它们互不影响，<b>不会串起来</b>。</p>
+    <p class="blog-link">
+      相关文章：
+      <NuxtLink to="/blog/2026-04-16-vue-provide-inject-nearest-ancestor">
+        Vue provide/inject 与最近祖先取值
+      </NuxtLink>
+    </p>
 
     <ScopeProvider mode="product-detail" :initial="100">
       <section class="area detail">
@@ -68,6 +74,11 @@ import SharedPanel from './SharedPanel.vue'
 .area {
   padding: 12px;
   border-radius: 8px;
+}
+
+.blog-link {
+  margin: -8px 0 0;
+  font-size: 14px;
 }
 
 .tips {
