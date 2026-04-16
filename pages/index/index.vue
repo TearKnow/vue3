@@ -3,7 +3,7 @@
     <div class="page-header">
       <h2>首页快捷入口</h2>
     </div>
-    <p>这里是常用快捷入口，点击即可打开相应页面。</p>
+    <p>这里是常用快捷入口，点击即可打开相应页面。<b>任何位置按ctrl+z打开快捷入口。</b></p>
 
     <div class="action-panels">
       <div class="action-group">
@@ -12,35 +12,26 @@
         </h3>
         <div class="action-group-body">
           <NuxtLink
-            class="action-card card-blog"
-            to="/blog"
+            v-for="item in quickEntryLinks"
+            :key="item.to"
+            class="action-card"
+            :class="item.cardClass"
+            :to="item.to"
+            :target="item.openInNewTab ? '_blank' : undefined"
+            :rel="item.openInNewTab ? 'noopener noreferrer' : undefined"
           >
-            <span class="action-icon">✍</span>
-            <span class="action-label">博客</span>
-          </NuxtLink>
-          <NuxtLink
-            class="action-card card-browser"
-            to="/file-browser"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span class="action-icon">📂</span>
-            <span class="action-label">文件浏览器</span>
-          </NuxtLink>
-          <NuxtLink
-            class="action-card card-route-tree"
-            to="/route-tree"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span class="action-icon">🧭</span>
-            <span class="action-label">页面目录</span>
+            <span class="action-icon">{{ item.icon }}</span>
+            <span class="action-label">{{ item.label }}</span>
           </NuxtLink>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { quickEntryLinks } from '~/constants/quick-entry-links'
+</script>
 
 <style>
 .page-nav {
