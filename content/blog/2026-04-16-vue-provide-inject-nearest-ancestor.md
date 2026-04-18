@@ -80,7 +80,7 @@ export const [provideScopedCounter, useScopedCounterStore] =
 
 如果出现嵌套结构：
 
-```text
+```vue
 ScopeProvider(Outer)
 ├─ SharedPanel-A
 └─ ScopeProvider(Inner)
