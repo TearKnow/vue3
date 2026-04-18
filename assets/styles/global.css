@@ -1,0 +1,68 @@
+/* 全局样式 */
+
+/* Demo 块样式 */
+.demo-block {
+  margin-bottom: 40px;
+  padding: 20px;
+  border: 1px solid #999999;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* Demo 块 hover 效果 */
+.demo-block:hover {
+  box-shadow: 0 4px 8px rgba(30, 144, 255, 0.2);
+  background-color: #c7dcf3;
+  cursor: pointer;
+}
+
+/* 内容块样式 */
+div:not(.demo-block) {
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+/* 标题样式 */
+h2 {
+  color: #333;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+h3 {
+  color: #555;
+  margin: 20px 0 15px;
+}
+
+/* 按钮样式 */
+button {
+  margin-right: 10px;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* 列表样式 */
+ul {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+li {
+  margin-bottom: 8px;
+}
+
+/* 对比部分特殊样式 */
+.comparison {
+  background-color: #f0f8ff;
+  border-left: 4px solid #1e90ff;
+}

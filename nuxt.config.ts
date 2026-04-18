@@ -14,7 +14,7 @@ export default defineNuxtConfig({
         },
       ],
     },
-  },
+  }, css: ['~/assets/styles/global.css'],
   runtimeConfig: {
     githubToken: process.env.GITHUB_TOKEN || process.env.NUXT_GITHUB_TOKEN || '',
     githubOwner: process.env.GITHUB_OWNER || 'TearKnow',
