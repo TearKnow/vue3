@@ -56,7 +56,7 @@
         <h3>区别：</h3>
         <ul>
           <li>ref 创建的变量必须使用 .value（可以使用 volar 插件自动添加 .value）</li>
-          <li>reactive 重新分配一个新对象，会失去响应式（可以使用 Object.assign 去整体替换）</li>
+          <li>reactive 重新分配一个新对象，会失去响应式（可以使用 Object.assign 去整体替换），见下面demo</li>
         </ul>
 
         <h3>使用原则：</h3>
@@ -65,6 +65,25 @@
           <li>若需要一个响应式对象，层级不深，ref、reactive 都可以</li>
           <li>若需要一个响应式对象，且层级较深，推荐使用 reactive</li>
         </ul>
+      </div>
+    </div>
+
+    <div class="demo-block">
+      <h2>reactive 重新分配对象的问题与解决方案</h2>
+      <div>
+        <p>原始对象：name: {{ reactiveObj.name }}, age: {{ reactiveObj.age }}</p>
+        <button @click="reassignDirectly">
+          直接重新分配对象（会失去响应式）
+        </button>
+        <button @click="reassignWithObjectAssign">
+          使用 Object.assign 重新分配（保持响应式）
+        </button>
+        <p
+          v-if="showWarning"
+          style="color: red; margin-top: 10px;"
+        >
+          警告：直接重新分配对象后，reactive 失去了响应式！
+        </p>
       </div>
     </div>
   </div>
@@ -100,5 +119,32 @@ const changeAge2 = () => {
 }
 const changeName2 = () => {
   state2.value.name2 += ' Ref2'
+}
+
+// reactive 重新分配对象的问题与解决方案
+let reactiveObj = reactive({
+  name: 'Initial',
+  age: 20,
+})
+const showWarning = ref(false)
+// 直接重新分配对象（会失去响应式）
+const reassignDirectly = () => {
+  showWarning.value = true
+  // 直接重新分配对象，会失去响应式
+  reactiveObj = {
+    name: 'New Object',
+    age: 3000,
+  }
+  console.log('直接重新分配后，reactiveObj 已失去响应式')
+}
+// 使用 Object.assign 重新分配（保持响应式）
+const reassignWithObjectAssign = () => {
+  // 使用 Object.assign 保持响应式
+  Object.assign(reactiveObj, {
+    name: 'Updated Object',
+    age: 30,
+  })
+  showWarning.value = false
+  console.log('使用 Object.assign 后，reactiveObj 保持响应式')
 }
 </script>
