@@ -831,7 +831,8 @@ watchEffect(() => {
   word-break: break-word;
 }
 
-.article-body :deep(pre) {
+/* 无 Shiki 时的普通围栏代码块 */
+.article-body :deep(pre:not(.shiki)) {
   margin: 1rem 0;
   padding: 0.85rem 1rem;
   border-radius: 10px;
@@ -841,6 +842,56 @@ watchEffect(() => {
   max-width: 100%;
   font-size: 0.85rem;
   border: 1px solid #0f172a;
+}
+
+/* Shiki：与 github-dark 协调的底栏，行号 + 可标注行高亮（fence meta: {2,4-6}） */
+.article-body :deep(pre.shiki) {
+  margin: 1rem 0;
+  padding: 0.85rem 0.75rem 0.85rem 0;
+  border-radius: 10px;
+  background: #020617;
+  overflow-x: auto;
+  max-width: 100%;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  border: 1px solid #0f172a;
+}
+
+.article-body :deep(pre.shiki code) {
+  display: block;
+  counter-reset: line;
+  padding: 0 0.85rem 0 0;
+  font-size: inherit;
+  background: transparent !important;
+}
+
+.article-body :deep(pre.shiki code .line) {
+  position: relative;
+  display: block;
+  min-height: 1.55em;
+  padding-left: 3.15rem;
+  padding-right: 0.35rem;
+}
+
+.article-body :deep(pre.shiki code .line::before) {
+  counter-increment: line;
+  content: counter(line);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2.35rem;
+  text-align: right;
+  padding-right: 0.65rem;
+  box-sizing: border-box;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  border-right: 1px solid #1e293b;
+  pointer-events: none;
+}
+
+.article-body :deep(pre.shiki code .line.highlight) {
+  background: rgb(30 58 138 / 0.35);
 }
 
 .article-body :deep(code) {
