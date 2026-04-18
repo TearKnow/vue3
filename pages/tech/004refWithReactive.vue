@@ -73,10 +73,10 @@
       <div>
         <p>原始对象：name: {{ reactiveObj.name }}, age: {{ reactiveObj.age }}</p>
         <button @click="reassignDirectly">
-          直接重新分配对象（会失去响应式）
+          直接重新分配对象（会失去响应式）- 刷新页面后点，而且不能有showWarning赋值，不然会生效，搞不懂
         </button>
         <button @click="reassignWithObjectAssign">
-          使用 Object.assign 重新分配（保持响应式）
+          使用 Object.assign 重新分配（保持响应式）- 刷新页面后点
         </button>
         <p
           v-if="showWarning"
@@ -129,22 +129,19 @@ let reactiveObj = reactive({
 const showWarning = ref(false)
 // 直接重新分配对象（会失去响应式）
 const reassignDirectly = () => {
-  showWarning.value = true
-  // 直接重新分配对象，会失去响应式
-  reactiveObj = {
-    name: 'New Object',
-    age: 3000,
-  }
-  console.log('直接重新分配后，reactiveObj 已失去响应式')
+  reactiveObj = reactive({
+    name: 'Wrong Object',
+    age: 322,
+  })
+  console.log('failed')
 }
 // 使用 Object.assign 重新分配（保持响应式）
 const reassignWithObjectAssign = () => {
   // 使用 Object.assign 保持响应式
   Object.assign(reactiveObj, {
     name: 'Updated Object',
-    age: 30,
+    age: 300000,
   })
-  showWarning.value = false
-  console.log('使用 Object.assign 后，reactiveObj 保持响应式')
+  console.log('success')
 }
 </script>
