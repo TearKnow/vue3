@@ -62,11 +62,12 @@ const stopSwatch = watch(sum, (newValue, oldValue) => {
   }
 })
 
+// immediate: true 立即执行一次回调函数，监听的值会被当做 newValue 传入回调函数，oldValue 则是 undefined
 watch(
   person,
   (newValue, oldValue) => {
     console.log('person 变了', oldValue, 'to', newValue)
   },
-  { deep: true },
+  { deep: true, immediate: true },
 )
 </script>
