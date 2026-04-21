@@ -205,8 +205,6 @@ onBeforeUnmount(() => {
   font-weight: 500;
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
   backdrop-filter: blur(2px);
-  transform: translateZ(0);
-  will-change: transform;
 }
 
 .quick-entry-fab:active {
@@ -216,14 +214,6 @@ onBeforeUnmount(() => {
 @media (min-width: 900px) {
   .quick-entry-fab {
     display: none;
-  }
-}
-
-/* iOS 底部滚动时，backdrop-filter + fixed 更容易抖动卡顿 */
-@media (hover: none) and (pointer: coarse) {
-  .quick-entry-fab {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
 </style>

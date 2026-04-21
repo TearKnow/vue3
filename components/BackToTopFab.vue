@@ -54,8 +54,6 @@ defineEmits<{
   box-shadow: 0 4px 14px rgb(15 23 42 / 12%);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  transform: translateZ(0);
-  will-change: transform;
 }
 
 .back-to-top-btn:hover {
