@@ -230,6 +230,7 @@ const commentsReady = ref(false)
 const commentsVisible = ref(false)
 const commentsSectionRef = ref<HTMLElement | null>(null)
 let scrollRafId = 0
+const copyFeedbackTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>()
 
 /** 与 utteranc.es 及 giscus client.js 的 pathname 规则一致（issue / Discussion 标题或检索 term） */
 const utterancesPathname = computed(() => {
@@ -462,6 +463,51 @@ const scrollToComments = () => {
   }
 }
 
+const enhanceCodeBlocks = () => {
+  if (!import.meta.client) return
+  const blocks = document.querySelectorAll('.article-body pre')
+  blocks.forEach((pre) => {
+    if (pre.querySelector('.code-copy-btn')) return
+    const codeEl = pre.querySelector('code')
+    if (!codeEl) return
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'code-copy-btn'
+    button.setAttribute('aria-label', '复制代码')
+    button.setAttribute('title', '复制代码')
+    button.innerHTML = `
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    `
+    button.addEventListener('click', async () => {
+      const restoreLabel = () => {
+        button.setAttribute('aria-label', '复制代码')
+        button.setAttribute('title', '复制代码')
+      }
+      const prevTimer = copyFeedbackTimers.get(button)
+      if (prevTimer) {
+        clearTimeout(prevTimer)
+      }
+      try {
+        await navigator.clipboard.writeText(codeEl.textContent ?? '')
+        button.setAttribute('aria-label', '复制成功')
+        button.setAttribute('title', '已复制')
+        const timerId = setTimeout(restoreLabel, 1200)
+        copyFeedbackTimers.set(button, timerId)
+      }
+      catch {
+        button.setAttribute('aria-label', '复制失败')
+        button.setAttribute('title', '复制失败')
+        const timerId = setTimeout(restoreLabel, 1200)
+        copyFeedbackTimers.set(button, timerId)
+      }
+    })
+    pre.appendChild(button)
+  })
+}
+
 const updateActiveHeading = () => {
   if (!import.meta.client) return
   if (!tocHeadingElements.value.length) {
@@ -565,6 +611,7 @@ onMounted(() => {
   void nextTick(() => {
     refreshTocHeadingElements()
     updateActiveHeading()
+    enhanceCodeBlocks()
   })
 })
 
@@ -620,6 +667,17 @@ watch(tocLinks, () => {
     updateActiveHeading()
   })
 }, { flush: 'post' })
+
+watch(
+  () => post.value?._path,
+  () => {
+    if (!import.meta.client) return
+    void nextTick(() => {
+      enhanceCodeBlocks()
+    })
+  },
+  { flush: 'post' },
+)
 
 watchEffect(() => {
   if (!post.value?.title) return
@@ -1127,6 +1185,45 @@ watchEffect(() => {
 
 .neighbor:hover {
   background: #dbeafe;
+}
+
+.article-body :deep(pre) {
+  position: relative;
+}
+
+.article-body :deep(.code-copy-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background: rgb(15 23 42 / 0.88);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.article-body :deep(.code-copy-btn:hover) {
+  background: rgb(30 41 59 / 0.95);
+  border-color: #64748b;
+}
+
+.article-body :deep(.code-copy-btn:focus-visible) {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+}
+
+.article-body :deep(.code-copy-btn svg) {
+  display: block;
 }
 
 @media (max-width: 1280px) {
