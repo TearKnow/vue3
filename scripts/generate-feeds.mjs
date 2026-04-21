@@ -1,18 +1,17 @@
-import { readdir, readFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { extname, join } from 'node:path'
 
-function stripDatePrefix(name: string) {
+function stripDatePrefix(name) {
   return name.replace(/^\d{4}-\d{2}-\d{2}-/, '')
 }
 
-function pathToSlug(path?: string) {
-  if (!path) return ''
+function pathToSlug(path = '') {
   const last = path.split('/').filter(Boolean).pop() || ''
   return stripDatePrefix(last)
 }
 
-function xmlEscape(value: string) {
-  return value
+function xmlEscape(value) {
+  return String(value)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
@@ -20,11 +19,11 @@ function xmlEscape(value: string) {
     .replaceAll('\'', '&apos;')
 }
 
-function parseFrontMatter(raw: string) {
+function parseFrontMatter(raw) {
   const matched = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)
   if (!matched) return {}
   const lines = matched[1].split(/\r?\n/)
-  const meta: Record<string, string> = {}
+  const meta = {}
   let i = 0
   while (i < lines.length) {
     const line = lines[i]
@@ -41,7 +40,7 @@ function parseFrontMatter(raw: string) {
     }
 
     if (!value && i + 1 < lines.length && lines[i + 1].trim().startsWith('- ')) {
-      const items: string[] = []
+      const items = []
       i += 1
       while (i < lines.length && lines[i].trim().startsWith('- ')) {
         items.push(lines[i].trim().slice(2).trim().replace(/^["']|["']$/g, ''))
@@ -57,18 +56,14 @@ function parseFrontMatter(raw: string) {
   return meta
 }
 
-export default defineEventHandler(async (event) => {
-  const runtimeConfig = useRuntimeConfig(event)
-  const siteUrl = String(runtimeConfig.public.siteUrl || 'http://localhost:3000').replace(/\/$/, '')
-
+async function loadPosts() {
   const blogDir = join(process.cwd(), 'content', 'blog')
   const files = await readdir(blogDir)
   const posts = await Promise.all(
     files
       .filter(file => extname(file).toLowerCase() === '.md')
       .map(async (file) => {
-        const filePath = join(blogDir, file)
-        const raw = await readFile(filePath, 'utf-8')
+        const raw = await readFile(join(blogDir, file), 'utf-8')
         const meta = parseFrontMatter(raw)
         return {
           path: `/blog/${file.replace(/\.md$/i, '')}`,
@@ -80,22 +75,53 @@ export default defineEventHandler(async (event) => {
         }
       }),
   )
-  const visiblePosts = posts
-    .filter(p => !p.draft)
+
+  return posts
+    .filter(post => !post.draft)
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
-      return b.date.localeCompare(a.date)
+      return (b.date || '').localeCompare(a.date || '')
     })
+}
 
-  const items = visiblePosts.map((post) => {
+function buildRssXml(siteUrl, posts) {
+  const items = posts.map((post) => {
     const slug = pathToSlug(post.path)
     const url = `${siteUrl}/blog/${slug}`
     const pubDate = post.date ? new Date(post.date).toUTCString() : new Date().toUTCString()
     return `<item><title>${xmlEscape(post.title)}</title><link>${xmlEscape(url)}</link><guid>${xmlEscape(url)}</guid><pubDate>${xmlEscape(pubDate)}</pubDate><description>${xmlEscape(post.description)}</description></item>`
   }).join('')
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Blog RSS</title><link>${xmlEscape(`${siteUrl}/blog`)}</link><description>Blog feed</description>${items}</channel></rss>`
+  return `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Blog RSS</title><link>${xmlEscape(`${siteUrl}/blog`)}</link><description>Blog feed</description>${items}</channel></rss>`
+}
 
-  setHeader(event, 'content-type', 'application/xml; charset=utf-8')
-  return xml
-})
+function buildSitemapXml(siteUrl, posts) {
+  const staticUrls = [
+    `<url><loc>${siteUrl}</loc></url>`,
+    `<url><loc>${siteUrl}/blog</loc></url>`,
+    `<url><loc>${siteUrl}/rss.xml</loc></url>`,
+  ]
+
+  const blogUrls = posts.map((post) => {
+    const slug = pathToSlug(post.path)
+    const loc = `${siteUrl}/blog/${slug}`
+    const lastmod = post.date ? `<lastmod>${post.date}</lastmod>` : ''
+    return `<url><loc>${loc}</loc>${lastmod}</url>`
+  })
+
+  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${[...staticUrls, ...blogUrls].join('')}</urlset>`
+}
+
+async function main() {
+  const siteUrl = String(process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const posts = await loadPosts()
+  const publicDir = join(process.cwd(), 'public')
+  await mkdir(publicDir, { recursive: true })
+
+  await writeFile(join(publicDir, 'rss.xml'), buildRssXml(siteUrl, posts), 'utf-8')
+  await writeFile(join(publicDir, 'sitemap.xml'), buildSitemapXml(siteUrl, posts), 'utf-8')
+
+  console.log(`Generated rss.xml and sitemap.xml for ${siteUrl}`)
+}
+
+await main()
