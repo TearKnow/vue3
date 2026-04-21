@@ -112,3 +112,8 @@
   background-color: #f0f8ff;
   border-left: 4px solid #1e90ff;
 }
+
+.demo-block .demo-tip {
+  color: red;
+  font-weight: bold;
+}
