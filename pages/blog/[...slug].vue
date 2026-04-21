@@ -1,5 +1,10 @@
 <template>
   <div class="blog-article">
+    <div
+      class="reading-progress"
+      :style="{ transform: `scaleX(${readingProgress})` }"
+      aria-hidden="true"
+    />
     <div class="top-bar">
       <p class="back">
         <NuxtLink to="/blog">← 全部文章</NuxtLink>
@@ -226,6 +231,7 @@ const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
 const activeHeadingId = ref('')
 const tocHeadingElements = ref<Array<{ id: string, el: HTMLElement }>>([])
+const readingProgress = ref(0)
 const commentsReady = ref(false)
 const commentsVisible = ref(false)
 const commentsSectionRef = ref<HTMLElement | null>(null)
@@ -426,9 +432,11 @@ watch(() => route.path, () => {
   tocOpen.value = false
   commentsReady.value = false
   commentsVisible.value = false
+  readingProgress.value = 0
   refresh()
   scheduleCommentsMount()
   void nextTick(() => {
+    updateReadingProgress()
     refreshTocHeadingElements()
     updateActiveHeading()
   })
@@ -448,8 +456,23 @@ const onScroll = () => {
   if (!import.meta.client || scrollRafId) return
   scrollRafId = window.requestAnimationFrame(() => {
     scrollRafId = 0
+    updateReadingProgress()
     updateActiveHeading()
   })
+}
+
+const updateReadingProgress = () => {
+  if (!import.meta.client) return
+  const articleEl = document.querySelector('.blog-article article') as HTMLElement | null
+  if (!articleEl) {
+    readingProgress.value = 0
+    return
+  }
+  const articleTop = window.scrollY + articleEl.getBoundingClientRect().top
+  const maxScrollable = Math.max(1, articleEl.offsetHeight - window.innerHeight)
+  const current = window.scrollY - articleTop
+  const progress = current / maxScrollable
+  readingProgress.value = Math.min(1, Math.max(0, progress))
 }
 
 const scrollToComments = () => {
@@ -591,6 +614,7 @@ onBeforeUnmount(() => {
 onMounted(() => {
   removeBlogNavigationLoadingOverlay()
   refreshTocHeadingElements()
+  updateReadingProgress()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
 
@@ -609,6 +633,7 @@ onMounted(() => {
 
   void loadPostNavList()
   void nextTick(() => {
+    updateReadingProgress()
     refreshTocHeadingElements()
     updateActiveHeading()
     enhanceCodeBlocks()
@@ -663,6 +688,7 @@ const tocLinks = computed(() => {
 watch(tocLinks, () => {
   if (!import.meta.client) return
   void nextTick(() => {
+    updateReadingProgress()
     refreshTocHeadingElements()
     updateActiveHeading()
   })
@@ -673,6 +699,7 @@ watch(
   () => {
     if (!import.meta.client) return
     void nextTick(() => {
+      updateReadingProgress()
       enhanceCodeBlocks()
     })
   },
@@ -705,6 +732,19 @@ watchEffect(() => {
   --toc-toggle-right: calc(env(safe-area-inset-right, 0px) + 12px);
   --toc-toggle-size: 32px;
   --mobile-toc-gap: 10px;
+}
+
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #2563eb 0%, #06b6d4 100%);
+  box-shadow: 0 1px 8px rgb(37 99 235 / 0.3);
+  z-index: 1200;
+  pointer-events: none;
 }
 
 .blog-article article {
