@@ -385,9 +385,9 @@ onBeforeUnmount(() => {
 
 .blog-header {
   padding: 1.2rem 1.25rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 14px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--blog-slate-50) 0%, var(--blog-slate-100) 100%);
 }
 
 .blog-header h1 {
@@ -398,7 +398,7 @@ onBeforeUnmount(() => {
 
 .blog-affirmation-text {
   margin: 0;
-  color: #334155;
+  color: var(--blog-slate-700);
   font-size: 1rem;
   line-height: 1.75;
   padding: 0.7rem 0 0;
@@ -413,7 +413,7 @@ onBeforeUnmount(() => {
 .search-input {
   width: 100%;
   min-height: 46px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--blog-slate-300);
   border-radius: 12px;
   padding: 0.8rem 1rem;
   font-size: 16px;
@@ -422,19 +422,19 @@ onBeforeUnmount(() => {
 }
 
 .search-input:focus {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+  border-color: var(--blog-blue-400);
+  box-shadow: 0 0 0 4px var(--blog-blue-200-rgb);
 }
 
 .search-info {
   margin: 0;
-  color: #475569;
+  color: var(--blog-slate-600);
   font-size: 0.9rem;
 }
 
 .lead {
   margin: 0;
-  color: #475569;
+  color: var(--blog-slate-600);
   font-size: 0.96rem;
 }
 
@@ -473,10 +473,10 @@ onBeforeUnmount(() => {
 
 .aside-block {
   padding: 0.9rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+  background: var(--blog-white);
+  box-shadow: 0 8px 18px var(--blog-shadow-xs);
 }
 
 .aside-block h2 {
@@ -484,7 +484,7 @@ onBeforeUnmount(() => {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .section-header {
@@ -496,7 +496,7 @@ onBeforeUnmount(() => {
 
 .total-count {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--blog-slate-500);
   font-weight: normal;
   text-transform: none;
   letter-spacing: normal;
@@ -520,26 +520,26 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   gap: 0.35rem;
-  color: #1e293b;
+  color: var(--blog-slate-800);
   text-decoration: none;
   font-size: 0.88rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 8px;
   padding: 0.38rem 0.5rem;
-  background: #f8fafc;
+  background: var(--blog-slate-50);
   transition: all 0.2s ease;
 }
 
 .tag-link:hover,
 .archive-link:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+  background: var(--blog-blue-50);
+  border-color: var(--blog-blue-200);
+  color: var(--blog-blue-700);
 }
 
 .count {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .post-list {
@@ -549,12 +549,12 @@ onBeforeUnmount(() => {
 }
 
 .state {
-  color: #64748b;
+  color: var(--blog-slate-500);
   font-size: 0.95rem;
 }
 
 .state.error {
-  color: #b91c1c;
+  color: var(--blog-danger-700);
 }
 
 .pager {
@@ -567,7 +567,7 @@ onBeforeUnmount(() => {
 
 .pager-info {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--blog-slate-600);
   min-width: 112px;
   text-align: center;
 }
@@ -575,30 +575,30 @@ onBeforeUnmount(() => {
 .pager-btn {
   font-size: 0.84rem;
   text-decoration: none;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
+  color: var(--blog-blue-700);
+  border: 1px solid var(--blog-blue-200);
+  background: var(--blog-blue-50);
   padding: 0.35rem 0.75rem;
   border-radius: 9px;
   transition: all 0.2s ease;
 }
 
 .pager-btn:hover {
-  background: #dbeafe;
+  background: var(--blog-blue-100);
 }
 
 .pager-btn.disabled {
   pointer-events: none;
-  color: #94a3b8;
-  border-color: #e2e8f0;
-  background: #f8fafc;
+  color: var(--blog-slate-400);
+  border-color: var(--blog-slate-200);
+  background: var(--blog-slate-50);
 }
 
 .calendar-block {
   padding: 1rem;
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--blog-blue-100);
   border-radius: 16px;
-  background: linear-gradient(180deg, #eef2ff 0%, #f8fbff 100%);
+  background: linear-gradient(180deg, var(--blog-calendar-bg-start) 0%, var(--blog-calendar-bg-end) 100%);
 }
 
 .calendar-header {
@@ -614,27 +614,27 @@ onBeforeUnmount(() => {
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #0f172a;
+  color: var(--blog-slate-900);
 }
 
 .calendar-month {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  color: #1e3a8a;
+  color: var(--blog-blue-800);
 }
 
 .calendar-time {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #2563eb;
+  color: var(--blog-blue-600);
 }
 
 .calendar-date {
   margin: 0 0 0.8rem;
   font-size: 0.92rem;
-  color: #334155;
+  color: var(--blog-slate-700);
 }
 
 .calendar-grid {
@@ -646,7 +646,7 @@ onBeforeUnmount(() => {
 .calendar-weekday {
   text-align: center;
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .calendar-days {
@@ -662,18 +662,18 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  color: #1e293b;
+  color: var(--blog-slate-800);
   font-size: 0.88rem;
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .calendar-day.today {
-  color: #ffffff;
+  color: var(--blog-white);
   border-radius: 9999px;
 }
 
 .calendar-day.today span {
-  background: #94b8e7;
+  background: var(--blog-calendar-today-bg);
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -696,7 +696,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--blog-overlay-light);
 }
 
 .loading-panel {
@@ -706,15 +706,15 @@ onBeforeUnmount(() => {
   gap: 0.75rem;
   padding: 1.2rem 1.4rem;
   border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+  background: var(--blog-white);
+  box-shadow: 0 18px 40px var(--blog-shadow-md);
 }
 
 .spinner {
   width: 42px;
   height: 42px;
-  border: 4px solid #cbd5e1;
-  border-top-color: #3b6fc0;
+  border: 4px solid var(--blog-slate-300);
+  border-top-color: var(--blog-link);
   border-radius: 999px;
   animation: spin 1s linear infinite;
 }

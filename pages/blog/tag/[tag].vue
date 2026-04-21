@@ -118,9 +118,9 @@ onMounted(() => {
 
 .blog-header {
   padding: 1.15rem 1.2rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 14px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--blog-slate-50) 0%, var(--blog-slate-100) 100%);
 }
 
 .back {
@@ -129,7 +129,7 @@ onMounted(() => {
 }
 
 .back a {
-  color: #64748b;
+  color: var(--blog-slate-500);
   text-decoration: none;
 }
 
@@ -144,7 +144,7 @@ onMounted(() => {
 
 .lead {
   margin: 0;
-  color: #475569;
+  color: var(--blog-slate-600);
   font-size: 0.9rem;
 }
 
@@ -156,7 +156,7 @@ onMounted(() => {
 
 .empty {
   margin-top: 1.25rem;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .pager {
@@ -169,7 +169,7 @@ onMounted(() => {
 
 .pager-info {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--blog-slate-600);
   min-width: 112px;
   text-align: center;
 }
@@ -177,22 +177,22 @@ onMounted(() => {
 .pager-btn {
   font-size: 0.84rem;
   text-decoration: none;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
+  color: var(--blog-blue-700);
+  border: 1px solid var(--blog-blue-200);
+  background: var(--blog-blue-50);
   padding: 0.35rem 0.75rem;
   border-radius: 9px;
   transition: all 0.2s ease;
 }
 
 .pager-btn:hover {
-  background: #dbeafe;
+  background: var(--blog-blue-100);
 }
 
 .pager-btn.disabled {
   pointer-events: none;
-  color: #94a3b8;
-  border-color: #e2e8f0;
-  background: #f8fafc;
+  color: var(--blog-slate-400);
+  border-color: var(--blog-slate-200);
+  background: var(--blog-slate-50);
 }
 </style>

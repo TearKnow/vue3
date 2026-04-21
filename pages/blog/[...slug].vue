@@ -741,17 +741,17 @@ watchEffect(() => {
   width: 100%;
   height: 3px;
   transform-origin: left center;
-  background: linear-gradient(90deg, #2563eb 0%, #06b6d4 100%);
-  box-shadow: 0 1px 8px rgb(37 99 235 / 0.3);
+  background: linear-gradient(90deg, var(--blog-blue-600) 0%, var(--blog-cyan-500) 100%);
+  box-shadow: 0 1px 8px var(--blog-shadow-brand);
   z-index: 1200;
   pointer-events: none;
 }
 
 .blog-article article {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--blog-white);
+  border: 1px solid var(--blog-slate-200);
   border-radius: 16px;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 14px 30px var(--blog-shadow-xs-plus);
   padding: 1.4rem 1.2rem;
   min-width: 0;
 }
@@ -777,7 +777,7 @@ watchEffect(() => {
 }
 
 .back a {
-  color: #64748b;
+  color: var(--blog-slate-500);
   text-decoration: none;
 }
 
@@ -791,10 +791,10 @@ watchEffect(() => {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--blog-blue-100);
   border-radius: 8px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--blog-blue-50);
+  color: var(--blog-blue-700);
   flex-shrink: 0;
   margin-left: 0.6rem;
   margin-right: 0.1rem;
@@ -813,9 +813,9 @@ watchEffect(() => {
 }
 
 .comment-nav-btn:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  border-color: var(--blog-slate-300);
+  background: var(--blog-slate-50);
+  box-shadow: 0 1px 2px var(--blog-shadow-sm);
 }
 
 .comment-nav-icon {
@@ -832,11 +832,11 @@ watchEffect(() => {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .comment-nav-btn:hover .comment-nav-count {
-  color: #475569;
+  color: var(--blog-slate-600);
 }
 
 .toc-toggle {
@@ -852,7 +852,7 @@ watchEffect(() => {
   display: block;
   height: 2px;
   width: 100%;
-  background: #1e3a8a;
+  background: var(--blog-blue-800);
 }
 
 .article-head h1 {
@@ -860,12 +860,12 @@ watchEffect(() => {
   font-size: 1.95rem;
   line-height: 1.25;
   letter-spacing: 0.01em;
-  color: #0f172a;
+  color: var(--blog-slate-900);
 }
 
 .article-desc {
   margin: 0 0 0.75rem;
-  color: #475569;
+  color: var(--blog-slate-600);
   font-size: 1rem;
   line-height: 1.55;
 }
@@ -876,7 +876,7 @@ watchEffect(() => {
   align-items: center;
   gap: 0.5rem 0.75rem;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--blog-slate-500);
   margin-bottom: 1.5rem;
 }
 
@@ -890,46 +890,46 @@ watchEffect(() => {
   display: inline-block;
   padding: 0.16rem 0.5rem;
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1e3a8a;
+  background: var(--blog-blue-50);
+  color: var(--blog-blue-800);
   text-decoration: none;
   font-size: 0.75rem;
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--blog-blue-100);
 }
 
 .mini-tag:hover {
-  background: #dbeafe;
+  background: var(--blog-blue-100);
 }
 
 .article-body :deep(h2) {
   margin: 1.5rem 0 0.5rem;
   font-size: 1.25rem;
-  color: #0f172a;
+  color: var(--blog-slate-900);
 }
 
 .article-body :deep(h3) {
   margin: 1.25rem 0 0.4rem;
   font-size: 1rem;
-  color: #1e293b;
+  color: var(--blog-slate-800);
 }
 
 .article-body :deep(p) {
   margin: 0.65rem 0;
   line-height: 1.65;
-  color: #1e293b;
+  color: var(--blog-slate-800);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .article-body :deep(strong) {
-  color: #334155;
+  color: var(--blog-slate-700);
   font-weight: 600;
 }
 
 .article-body :deep(a) {
-  color: #3b6fc0;
+  color: var(--blog-link);
   text-decoration: underline;
-  text-decoration-color: #a8c4e0;
+  text-decoration-color: var(--blog-link-underline);
   text-underline-offset: 2px;
   transition: color 0.18s ease, text-decoration-color 0.18s ease;
   overflow-wrap: anywhere;
@@ -937,12 +937,12 @@ watchEffect(() => {
 }
 
 .article-body :deep(a:hover) {
-  color: #2b5aa0;
-  text-decoration-color: #6a9fd8;
+  color: var(--blog-link-hover);
+  text-decoration-color: var(--blog-link-underline-hover);
 }
 
 .article-body :deep(a:visited) {
-  color: #3b6fc0;
+  color: var(--blog-link);
 }
 
 .article-body :deep(ul),
@@ -958,12 +958,12 @@ watchEffect(() => {
   margin: 1rem 0;
   padding: 0.85rem 1rem;
   border-radius: 10px;
-  background: #020617;
-  color: #e2e8f0;
+  background: var(--blog-slate-950);
+  color: var(--blog-slate-200);
   overflow-x: auto;
   max-width: 100%;
   font-size: 0.85rem;
-  border: 1px solid #0f172a;
+  border: 1px solid var(--blog-slate-900);
 }
 
 /* Shiki：与 github-dark 协调的底栏，行号 + 可标注行高亮（fence meta: {2,4-6}） */
@@ -971,12 +971,12 @@ watchEffect(() => {
   margin: 1rem 0;
   padding: 0.85rem 0.75rem 0.85rem 0;
   border-radius: 10px;
-  background: #020617;
+  background: var(--blog-slate-950);
   overflow-x: auto;
   max-width: 100%;
   font-size: 0.85rem;
   line-height: 1.55;
-  border: 1px solid #0f172a;
+  border: 1px solid var(--blog-slate-900);
 }
 
 .article-body :deep(pre.shiki code) {
@@ -1005,15 +1005,15 @@ watchEffect(() => {
   text-align: right;
   padding-right: 0.65rem;
   box-sizing: border-box;
-  color: #64748b;
+  color: var(--blog-slate-500);
   font-variant-numeric: tabular-nums;
   user-select: none;
-  border-right: 1px solid #1e293b;
+  border-right: 1px solid var(--blog-slate-800);
   pointer-events: none;
 }
 
 .article-body :deep(pre.shiki code .line.highlight) {
-  background: rgb(30 58 138 / 0.35);
+  background: var(--blog-code-line-highlight);
 }
 
 .article-body :deep(code) {
@@ -1024,17 +1024,17 @@ watchEffect(() => {
 .article-body :deep(li code) {
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
-  background: #f1f5f9;
+  background: var(--blog-slate-100);
   font-size: 0.88em;
 }
 
 .article-body :deep(blockquote) {
   margin: 1rem 0;
   padding: 0.45rem 0.8rem;
-  border-left: 4px solid #93c5fd;
-  background: #f8fafc;
+  border-left: 4px solid var(--blog-blue-300);
+  background: var(--blog-slate-50);
   border-radius: 6px;
-  color: #475569;
+  color: var(--blog-slate-600);
 }
 
 .article-body :deep(img) {
@@ -1055,23 +1055,23 @@ watchEffect(() => {
 
 .article-body :deep(table th),
 .article-body :deep(table td) {
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--blog-slate-300);
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
 
 .article-body :deep(table th) {
-  background: #f1f5f9;
+  background: var(--blog-slate-100);
   font-weight: 600;
-  color: #0f172a;
+  color: var(--blog-slate-900);
 }
 
 .toc {
   margin: 0 0 1.25rem;
   padding: 0.8rem 0.9rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 10px;
-  background: #f8fafc;
+  background: var(--blog-slate-50);
   max-height: calc(100vh - 2rem);
   overflow: auto;
   position: sticky;
@@ -1094,14 +1094,14 @@ watchEffect(() => {
   overscroll-behavior: contain;
   margin: 0;
   z-index: 1001;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 18px 40px var(--blog-shadow-lg);
   box-sizing: border-box;
   transform: translateX(100%);
   opacity: 0;
   visibility: hidden;
   transition: transform 0.24s ease, opacity 0.24s ease, visibility 0.24s ease;
   border-radius: 16px 0 0 16px;
-  background: #f8fafc;
+  background: var(--blog-slate-50);
   will-change: transform, opacity;
 }
 
@@ -1115,7 +1115,7 @@ watchEffect(() => {
 .toc-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.25);
+  background: var(--blog-overlay-dark);
   z-index: 1000;
   opacity: 1;
   transition: opacity 0.24s ease;
@@ -1142,7 +1142,7 @@ watchEffect(() => {
 }
 
 .toc a {
-  color: #334155;
+  color: var(--blog-slate-700);
   text-decoration: none;
   font-size: 0.86rem;
   display: block;
@@ -1153,15 +1153,15 @@ watchEffect(() => {
 }
 
 .toc a:hover {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-left-color: #93c5fd;
+  color: var(--blog-blue-700);
+  background: var(--blog-blue-50);
+  border-left-color: var(--blog-blue-300);
 }
 
 .toc a.active {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-left-color: #60a5fa;
+  color: var(--blog-blue-700);
+  background: var(--blog-blue-50);
+  border-left-color: var(--blog-blue-400);
   font-weight: 600;
 }
 
@@ -1180,7 +1180,7 @@ watchEffect(() => {
   top: 0.3rem;
   bottom: 0.3rem;
   width: 1px;
-  background: #cbd5e1;
+  background: var(--blog-slate-300);
 }
 
 .toc li.depth-2 {
@@ -1194,7 +1194,7 @@ watchEffect(() => {
   top: 0.3rem;
   bottom: 0.3rem;
   width: 1px;
-  background: #e2e8f0;
+  background: var(--blog-slate-200);
 }
 
 .neighbors {
@@ -1208,9 +1208,9 @@ watchEffect(() => {
 .neighbor {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #dbeafe;
-  background: #eff6ff;
-  color: #1e3a8a;
+  border: 1px solid var(--blog-blue-100);
+  background: var(--blog-blue-50);
+  color: var(--blog-blue-800);
   text-decoration: none;
   border-radius: 10px;
   padding: 0.42rem 0.7rem;
@@ -1224,7 +1224,7 @@ watchEffect(() => {
 }
 
 .neighbor:hover {
-  background: #dbeafe;
+  background: var(--blog-blue-100);
 }
 
 .article-body :deep(pre) {
@@ -1239,10 +1239,10 @@ watchEffect(() => {
   top: 8px;
   right: 8px;
   z-index: 2;
-  border: 1px solid #475569;
+  border: 1px solid var(--blog-slate-600);
   border-radius: 6px;
-  background: rgb(15 23 42 / 0.88);
-  color: #e2e8f0;
+  background: var(--blog-code-btn-bg);
+  color: var(--blog-slate-200);
   font-size: 0.72rem;
   line-height: 1;
   width: 28px;
@@ -1253,12 +1253,12 @@ watchEffect(() => {
 }
 
 .article-body :deep(.code-copy-btn:hover) {
-  background: rgb(30 41 59 / 0.95);
-  border-color: #64748b;
+  background: var(--blog-code-btn-bg-hover);
+  border-color: var(--blog-slate-500);
 }
 
 .article-body :deep(.code-copy-btn:focus-visible) {
-  outline: 2px solid #93c5fd;
+  outline: 2px solid var(--blog-blue-300);
   outline-offset: 1px;
 }
 
@@ -1356,7 +1356,7 @@ watchEffect(() => {
 .comments {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--blog-slate-200);
 }
 
 .comments.comments-loading-state {
@@ -1365,7 +1365,7 @@ watchEffect(() => {
 
 .comments-loading-placeholder {
   padding: 1rem 0;
-  color: #64748b;
+  color: var(--blog-slate-500);
   font-size: 0.95rem;
 }
 
@@ -1375,10 +1375,10 @@ watchEffect(() => {
 }
 
 .state {
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .state.error {
-  color: #b91c1c;
+  color: var(--blog-danger-700);
 }
 </style>

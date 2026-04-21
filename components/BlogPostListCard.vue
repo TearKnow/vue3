@@ -106,9 +106,9 @@ const showDesc = computed(() => {
 .blog-post-list-card {
   position: relative;
   padding: 1rem 1.05rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--blog-white);
   margin-bottom: 0.8rem;
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -124,7 +124,7 @@ const showDesc = computed(() => {
 .blog-post-list-card__title {
   font-size: 1.08rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--blog-slate-900);
   text-decoration: none;
   transition: color 0.2s ease;
   display: inline-flex;
@@ -139,7 +139,7 @@ const showDesc = computed(() => {
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 999px;
-  color: #92400e;
+  color: var(--blog-warn-800);
   font-size: 0.95rem;
   line-height: 1;
 }
@@ -152,13 +152,13 @@ const showDesc = computed(() => {
 }
 
 .blog-post-list-card__title:hover {
-  color: #3b6fc0;
+  color: var(--blog-link);
 }
 
 .blog-post-list-card__desc {
   margin: 0.4rem 0 0.5rem;
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--blog-slate-600);
   line-height: 1.5;
 }
 
@@ -168,7 +168,7 @@ const showDesc = computed(() => {
   align-items: center;
   gap: 0.5rem 0.75rem;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .blog-post-list-card__tags {
@@ -183,20 +183,20 @@ const showDesc = computed(() => {
   display: inline-block;
   padding: 0.16rem 0.5rem;
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1e3a8a;
+  background: var(--blog-blue-50);
+  color: var(--blog-blue-800);
   text-decoration: none;
   font-size: 0.75rem;
-  border: 1px solid #dbeafe;
+  border: 1px solid var(--blog-blue-100);
 }
 
 .blog-post-list-card__tag:hover {
-  background: #dbeafe;
+  background: var(--blog-blue-100);
 }
 
 .blog-post-list-card__hl {
-  background: #fde68a;
-  color: #92400e;
+  background: var(--blog-highlight-bg);
+  color: var(--blog-warn-800);
   padding: 0 0.1rem;
   border-radius: 0.15rem;
 }
