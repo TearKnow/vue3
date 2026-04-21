@@ -209,7 +209,6 @@
     >
       找不到这篇文章。
     </p>
-
   </div>
 </template>
 
@@ -226,9 +225,11 @@ const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blo
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
 const activeHeadingId = ref('')
+const tocHeadingElements = ref<Array<{ id: string, el: HTMLElement }>>([])
 const commentsReady = ref(false)
 const commentsVisible = ref(false)
 const commentsSectionRef = ref<HTMLElement | null>(null)
+let scrollRafId = 0
 
 /** 与 utteranc.es 及 giscus client.js 的 pathname 规则一致（issue / Discussion 标题或检索 term） */
 const utterancesPathname = computed(() => {
@@ -426,6 +427,10 @@ watch(() => route.path, () => {
   commentsVisible.value = false
   refresh()
   scheduleCommentsMount()
+  void nextTick(() => {
+    refreshTocHeadingElements()
+    updateActiveHeading()
+  })
 })
 
 watch(commentsProvider, () => {
@@ -439,7 +444,11 @@ watch(pending, (value) => {
 })
 
 const onScroll = () => {
-  updateActiveHeading()
+  if (!import.meta.client || scrollRafId) return
+  scrollRafId = window.requestAnimationFrame(() => {
+    scrollRafId = 0
+    updateActiveHeading()
+  })
 }
 
 const scrollToComments = () => {
@@ -455,21 +464,18 @@ const scrollToComments = () => {
 
 const updateActiveHeading = () => {
   if (!import.meta.client) return
-  const ids = tocLinks.value.map(item => item.id).filter(Boolean)
-  if (!ids.length) {
+  if (!tocHeadingElements.value.length) {
     activeHeadingId.value = ''
     return
   }
 
   const threshold = 120
-  let current = ids[0]
+  let current = tocHeadingElements.value[0]?.id ?? ''
 
-  for (const id of ids) {
-    const el = document.getElementById(id)
-    if (!el) continue
-    const top = el.getBoundingClientRect().top
+  for (const item of tocHeadingElements.value) {
+    const top = item.el.getBoundingClientRect().top
     if (top - threshold <= 0) {
-      current = id
+      current = item.id
     }
     else {
       break
@@ -477,6 +483,13 @@ const updateActiveHeading = () => {
   }
 
   activeHeadingId.value = current
+}
+
+const refreshTocHeadingElements = () => {
+  if (!import.meta.client) return
+  tocHeadingElements.value = tocLinks.value
+    .map(item => ({ id: item.id, el: document.getElementById(item.id) as HTMLElement | null }))
+    .filter((item): item is { id: string, el: HTMLElement } => Boolean(item.el))
 }
 
 watch(tocOpen, (open) => {
@@ -521,12 +534,17 @@ onBeforeUnmount(() => {
     body.style.right = ''
     body.style.paddingRight = ''
     body.style.touchAction = ''
+    if (scrollRafId) {
+      window.cancelAnimationFrame(scrollRafId)
+      scrollRafId = 0
+    }
     window.removeEventListener('scroll', onScroll)
   }
 })
 
 onMounted(() => {
   removeBlogNavigationLoadingOverlay()
+  refreshTocHeadingElements()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
 
@@ -544,7 +562,10 @@ onMounted(() => {
   }
 
   void loadPostNavList()
-  void nextTick(() => updateActiveHeading())
+  void nextTick(() => {
+    refreshTocHeadingElements()
+    updateActiveHeading()
+  })
 })
 
 const currentIndex = computed(() => {
@@ -594,7 +615,10 @@ const tocLinks = computed(() => {
 
 watch(tocLinks, () => {
   if (!import.meta.client) return
-  void nextTick(() => updateActiveHeading())
+  void nextTick(() => {
+    refreshTocHeadingElements()
+    updateActiveHeading()
+  })
 }, { flush: 'post' })
 
 watchEffect(() => {
@@ -1220,5 +1244,4 @@ watchEffect(() => {
 .state.error {
   color: #b91c1c;
 }
-
 </style>

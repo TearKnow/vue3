@@ -190,7 +190,6 @@
         </p>
       </main>
     </div>
-
   </div>
 </template>
 
@@ -725,5 +724,4 @@ onBeforeUnmount(() => {
     transform: rotate(360deg);
   }
 }
-
 </style>
