@@ -1,0 +1,17 @@
+---
+description: CSS 规范：统一使用变量，禁止硬编码色值
+globs: **/*.{vue,css,scss,sass,less}
+alwaysApply: false
+---
+
+# CSS 变量规范
+
+- 所有颜色必须使用 CSS 变量（`var(--xxx)`），禁止直接写 `#hex`、`rgb()`、`rgba()`。
+- 新增样式前，优先复用已有变量；没有时先在全局变量文件中新增，再引用。
+- 阴影、遮罩等颜色相关值也优先变量化，避免重复硬编码。
+- 修改样式时，若触及附近已有硬编码颜色，应顺手替换为变量。
+
+## 示例
+
+- `color: #64748b;` -> `color: var(--blog-slate-500);`
+- `background: rgba(15, 23, 42, 0.25);` -> `background: var(--blog-overlay-dark);`
