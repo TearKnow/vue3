@@ -78,3 +78,6 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 ### self
 #### 安装pnpm
 npm install pnpm -g
+
+
+todo：随机一篇文章，做出有种抽奖的感觉，抽到了后每天固定，别换。
