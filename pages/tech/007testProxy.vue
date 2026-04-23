@@ -2,8 +2,8 @@
 // 使用 useFetch 请求
 // 这里的 '/api/user' 实际上会被转发到 'https://external-api.com/user'
 // 使用TUN模式，虚拟网卡翻墙是可以请求api的 ！！！！！
-const { data, pending, error, refresh } = await useFetch('/api/jjshouse/v2/common/nav/header', {
-  onRequest({ request, options }) {
+const { data, pending, error } = await useFetch('/api/jjshouse/v2/common/nav/header', {
+  onRequest({ request }) {
     console.log('正在请求:', request)
   },
   onResponseError({ response }) {

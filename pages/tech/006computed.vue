@@ -17,17 +17,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const firstName = ref('zhang')
 const lastName = ref('san')
 
-// 这是只读的
-// let quanName = computed(() => {
-//     return firstName.value + ' ' + lastName.value
-// })
-
-// 这是可修改的
 const quanName = computed({
   get() {
     return firstName.value + '-' + lastName.value
@@ -43,7 +37,3 @@ function changeFullName() {
   quanName.value = 'li-si'
 }
 </script>
-
-<style scoped>
-
-</style>
