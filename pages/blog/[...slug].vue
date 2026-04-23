@@ -490,8 +490,21 @@ const enhanceCodeBlocks = () => {
   if (!import.meta.client) return
   const blocks = document.querySelectorAll('.article-body pre')
   blocks.forEach((pre) => {
+    if (!pre.querySelector(':scope > .code-scroll')) {
+      const nodes = [...pre.childNodes].filter(
+        n => !(n instanceof HTMLElement && n.classList.contains('code-copy-btn')),
+      )
+      if (nodes.length) {
+        const scroll = document.createElement('div')
+        scroll.className = 'code-scroll'
+        for (const node of nodes) {
+          scroll.appendChild(node)
+        }
+        pre.insertBefore(scroll, pre.firstChild)
+      }
+    }
     if (pre.querySelector('.code-copy-btn')) return
-    const codeEl = pre.querySelector('code')
+    const codeEl = pre.querySelector('.code-scroll code')
     if (!codeEl) return
     const button = document.createElement('button')
     button.type = 'button'
@@ -953,6 +966,13 @@ watchEffect(() => {
   word-break: break-word;
 }
 
+/* 横向滚动只在 .code-scroll 内，复制按钮留在 pre 上避免随滚动漂移 */
+.article-body :deep(pre .code-scroll) {
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+
 /* 无 Shiki 时的普通围栏代码块 */
 .article-body :deep(pre:not(.shiki)) {
   margin: 1rem 0;
@@ -960,7 +980,7 @@ watchEffect(() => {
   border-radius: 10px;
   background: var(--blog-slate-950);
   color: var(--blog-slate-200);
-  overflow-x: auto;
+  overflow-x: visible;
   max-width: 100%;
   font-size: 0.85rem;
   border: 1px solid var(--blog-slate-900);
@@ -972,7 +992,7 @@ watchEffect(() => {
   padding: 0.85rem 0.75rem 0.85rem 0;
   border-radius: 10px;
   background: var(--blog-slate-950);
-  overflow-x: auto;
+  overflow-x: visible;
   max-width: 100%;
   font-size: 0.85rem;
   line-height: 1.55;
