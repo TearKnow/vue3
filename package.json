@@ -15,8 +15,8 @@
     "@vant/nuxt": "^1.0.7",
     "@vueuse/core": "^14.2.1",
     "nuxt": "^3.15.0",
-    "vue": "latest",
-    "vue-router": "latest"
+    "vue": "3.5.32",
+    "vue-router": "5.0.4"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^1.15.2",
