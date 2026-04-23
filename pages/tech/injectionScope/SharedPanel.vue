@@ -1,10 +1,21 @@
 <template>
   <div class="panel">
-    <div class="title">{{ title }}</div>
-    <div class="line">mode: {{ store.mode }}</div>
-    <div class="line">count: {{ store.count }}</div>
-    <div class="line">label: {{ store.label }}</div>
-    <button class="btn" @click="store.inc">
+    <div class="title">
+      {{ title }}
+    </div>
+    <div class="line">
+      mode: {{ store.mode }}
+    </div>
+    <div class="line">
+      count: {{ store.count }}
+    </div>
+    <div class="line">
+      label: {{ store.label }}
+    </div>
+    <button
+      class="btn"
+      @click="store.inc"
+    >
       +1
     </button>
   </div>

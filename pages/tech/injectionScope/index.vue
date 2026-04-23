@@ -1,7 +1,9 @@
 <template>
   <main class="wrap">
     <h2>Provide / Inject Scope Demo</h2>
-    <p>点击每个区域的 +1，它们互不影响，<b>不会串起来</b>。</p>
+    <p>
+      点击每个区域的 +1，它们互不影响，<b>不会串起来</b>。
+    </p>
     <p class="blog-link">
       相关文章：
       <NuxtLink to="/blog/2026-04-16-vue-provide-inject-nearest-ancestor">
@@ -9,7 +11,10 @@
       </NuxtLink>
     </p>
 
-    <ScopeProvider mode="product-detail" :initial="100">
+    <ScopeProvider
+      mode="product-detail"
+      :initial="100"
+    >
       <section class="area detail">
         <h3>Detail Area</h3>
         <SharedPanel title="Detail store panel" />
@@ -17,7 +22,10 @@
       </section>
     </ScopeProvider>
 
-    <ScopeProvider mode="quick-purchase" :initial="0">
+    <ScopeProvider
+      mode="quick-purchase"
+      :initial="0"
+    >
       <section class="area quick">
         <h3>Quick Purchase Area</h3>
         <SharedPanel title="Quick store panel" />
@@ -25,7 +33,9 @@
     </ScopeProvider>
 
     <div class="tips">
-      <p class="tips-title">结论与解释</p>
+      <p class="tips-title">
+        结论与解释
+      </p>
       <p>
         <b>provide</b> 可以理解为“向后代组件提供一份共享数据”；<b>inject</b> 可以理解为“后代组件按 key 取这份数据”。
         它们用于跨层级传值，避免一层层 props 透传。
@@ -49,7 +59,9 @@
         所以规则是：同一个 ScopeProvider 下的多个 SharedPanel 会共享同一份 store；
         不同 ScopeProvider 下的 SharedPanel 互不影响；如果出现嵌套 ScopeProvider，内层会覆盖外层（因为更近）。
       </p>
-      <p class="tips-example-title">例子（伪结构）：</p>
+      <p class="tips-example-title">
+        例子（伪结构）：
+      </p>
       <pre class="tips-code">ScopeProvider(Outer)
 ├─ SharedPanel-A   // 读取 Outer
 └─ ScopeProvider(Inner)
