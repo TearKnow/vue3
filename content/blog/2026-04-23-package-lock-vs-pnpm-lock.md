@@ -3,7 +3,6 @@ title: "npm 项目与 pnpm 项目该保留哪个锁文件？"
 description: "记录一次依赖管理小坑：为什么项目能跑但编辑器飘红，以及最后怎么把包管理方式收敛到 pnpm。"
 date: 2026-04-23
 tags:
-  - 工程化
   - npm
   - pnpm
 draft: false
