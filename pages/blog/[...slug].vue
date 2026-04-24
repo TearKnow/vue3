@@ -528,12 +528,14 @@ const enhanceCodeBlocks = () => {
       }
       try {
         await navigator.clipboard.writeText(codeEl.textContent ?? '')
+        showToast('已复制')
         button.setAttribute('aria-label', '复制成功')
         button.setAttribute('title', '已复制')
         const timerId = setTimeout(restoreLabel, 1200)
         copyFeedbackTimers.set(button, timerId)
       }
       catch {
+        showToast('复制失败')
         button.setAttribute('aria-label', '复制失败')
         button.setAttribute('title', '复制失败')
         const timerId = setTimeout(restoreLabel, 1200)
