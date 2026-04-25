@@ -169,6 +169,9 @@ onBeforeUnmount(() => {
   .quick-entry-desc-desktop {
     display: none;
   }
+  .quick-entry-header{
+    padding-bottom: 10px;
+  }
 }
 
 .quick-entry-theme-btn {
@@ -253,5 +256,4 @@ onBeforeUnmount(() => {
     display: none;
   }
 }
-
 </style>
