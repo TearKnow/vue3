@@ -290,7 +290,7 @@ const RouteTreeNode = defineComponent({
 .tree-toolbar-label {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .tree-toolbar-actions {
@@ -319,7 +319,7 @@ const RouteTreeNode = defineComponent({
   top: 17px;
   width: 10px;
   height: 1px;
-  background: #d7dde6;
+  background: var(--blog-slate-200);
 }
 
 .route-folder::after,
@@ -330,7 +330,7 @@ const RouteTreeNode = defineComponent({
   top: -8px;
   bottom: -8px;
   width: 1px;
-  background: #d7dde6;
+  background: var(--blog-slate-200);
 }
 
 .page-nav > .route-tree-list > .route-folder,
@@ -372,8 +372,8 @@ const RouteTreeNode = defineComponent({
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--blog-slate-200);
+  color: var(--blog-slate-600);
   font-weight: 700;
   line-height: 1;
   flex: 0 0 auto;
@@ -383,8 +383,8 @@ const RouteTreeNode = defineComponent({
   display: inline-block;
   padding: 5px 10px;
   border-radius: 8px;
-  background: #fef3c7;
-  color: #7c5800;
+  background: var(--blog-highlight-bg);
+  color: var(--blog-warn-800);
   font-weight: 600;
   line-height: 1.2;
   font-size: 14px;
@@ -408,25 +408,18 @@ const RouteTreeNode = defineComponent({
   top: 12px;
   width: 10px;
   height: 1px;
-  background: #d7dde6;
+  background: var(--blog-slate-200);
 }
 
 .route-file a,
 .route-folder-link a {
   display: inline-block;
-  color: #2563eb;
+  color: var(--blog-blue-600);
   text-decoration: none;
-  line-height: 1.6;
-}
-
-.route-file-text {
-  display: inline-block;
-  line-height: 1.6;
 }
 
 .route-file-text-disabled {
-  color: #94a3b8;
-  text-decoration: line-through;
+  color: var(--blog-slate-400);
   cursor: not-allowed;
 }
 
@@ -447,18 +440,18 @@ const RouteTreeNode = defineComponent({
 
 .tree-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgb(15 23 42 / 10%);
+  box-shadow: 0 3px 8px var(--blog-shadow-sm);
 }
 
 .btn-expand {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1e40af;
+  background: var(--blog-blue-50);
+  border-color: var(--blog-blue-200);
+  color: var(--blog-blue-800);
 }
 
 .btn-collapse {
-  background: #fef3c7;
+  background: var(--blog-highlight-bg);
   border-color: #f5c96a;
-  color: #92400e;
+  color: var(--blog-warn-800);
 }
 </style>

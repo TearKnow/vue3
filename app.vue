@@ -24,8 +24,16 @@
       aria-label="快捷入口"
       @click.stop
     >
-      <div class="quick-entry-title">
-        快捷入口
+      <div class="quick-entry-header">
+        <span class="quick-entry-title">快捷入口</span>
+        <button
+          class="quick-entry-theme-btn"
+          type="button"
+          :aria-label="themeIsDark ? '切换到亮色模式' : '切换到暗色模式'"
+          @click="toggleTheme(); showQuickEntry = false"
+        >
+          <span>{{ themeIsDark ? '☀️' : '🌙' }}</span>
+        </button>
       </div>
       <p class="quick-entry-desc quick-entry-desc-desktop">
         按 <code>Ctrl + Z</code> 打开，按 <code>Esc</code> 关闭
@@ -58,6 +66,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import BackToTopFab from '~/components/BackToTopFab.vue'
 import { useBlogNavigationLoading } from '~/composables/useBlogNavigationLoading'
 import { quickEntryLinks } from '~/constants/quick-entry-links'
+import { useTheme } from '~/composables/useTheme'
 
 useSeoMeta({
   title: 'vue3',
@@ -65,6 +74,8 @@ useSeoMeta({
 })
 
 useBlogNavigationLoading()
+
+const { isDark: themeIsDark, init: initTheme, toggle: toggleTheme } = useTheme()
 
 const showQuickEntry = ref(false)
 const showBackToTop = ref(false)
@@ -95,6 +106,7 @@ const scrollToTop = () => {
 }
 
 onMounted(() => {
+  initTheme()
   window.addEventListener('keydown', onGlobalKeydown)
   window.addEventListener('scroll', onGlobalScroll, { passive: true })
   onGlobalScroll()
@@ -131,29 +143,54 @@ onBeforeUnmount(() => {
   width: min(92vw, 360px);
   border-radius: 12px;
   padding: 16px;
-  background: #fff;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+  background: var(--blog-white);
+  box-shadow: 0 12px 36px var(--blog-shadow-lg);
+}
+
+.quick-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .quick-entry-title {
   font-size: 18px;
   font-weight: 700;
+  color: var(--blog-slate-900);
 }
 
 .quick-entry-desc {
   margin: 8px 0 14px;
-  color: #5b6572;
+  color: var(--blog-slate-600);
   font-size: 14px;
 }
 
 @media (max-width: 899px) {
-  .quick-entry-title {
-    margin-bottom: 10px;
-  }
-
   .quick-entry-desc-desktop {
     display: none;
   }
+}
+
+.quick-entry-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 8px;
+  background: var(--blog-slate-50);
+  color: var(--blog-slate-700);
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.quick-entry-theme-btn:hover {
+  background: var(--blog-blue-50);
+  border-color: var(--blog-blue-200);
 }
 
 .quick-entry-link {
@@ -164,18 +201,18 @@ onBeforeUnmount(() => {
   gap: 8px;
   box-sizing: border-box;
   text-decoration: none;
-  border: 1px solid #dfe6ef;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 8px;
   padding: 10px 12px;
-  background: #f8fbff;
-  color: #1f2d3d;
+  background: var(--blog-slate-50);
+  color: var(--blog-slate-800);
   font-size: 14px;
   cursor: pointer;
 }
 
 .quick-entry-link:hover {
-  border-color: #c0d5ff;
-  background: #f0f7ff;
+  border-color: var(--blog-blue-200);
+  background: var(--blog-blue-50);
 }
 
 .quick-entry-link-icon {
@@ -216,4 +253,5 @@ onBeforeUnmount(() => {
     display: none;
   }
 }
+
 </style>

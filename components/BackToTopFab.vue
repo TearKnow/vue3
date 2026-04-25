@@ -47,19 +47,19 @@ defineEmits<{
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 50%;
-  background: #fff;
-  color: #475569;
-  box-shadow: 0 4px 14px rgb(15 23 42 / 12%);
+  background: var(--blog-white);
+  color: var(--blog-slate-600);
+  box-shadow: 0 4px 14px var(--blog-shadow-sm);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .back-to-top-btn:hover {
-  background: #2563eb;
+  background: var(--blog-blue-600);
   color: #fff;
-  box-shadow: 0 6px 20px rgb(37 99 235 / 30%);
+  box-shadow: 0 6px 20px var(--blog-shadow-brand);
 }
 
 .fade-up-enter-active,

@@ -167,6 +167,12 @@ watch(
   font-size: 0.92rem;
 }
 
+html.dark .giscus-hint {
+  border-color: #7f1d1d;
+  background: #1a0a0a;
+  color: #fca5a5;
+}
+
 .giscus-embed.hidden {
   height: 0;
   overflow: hidden;
@@ -174,7 +180,7 @@ watch(
 
 .giscus-loading {
   padding: 1rem 0;
-  color: #64748b;
+  color: var(--blog-slate-500);
   font-size: 0.95rem;
 }
 </style>

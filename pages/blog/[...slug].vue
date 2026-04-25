@@ -222,11 +222,13 @@ import { nextTick } from 'vue'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { fetchBlogMetaList } from '~/composables/useBlogPosts'
 import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
+import { useTheme } from '~/composables/useTheme'
 
 const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
 const requestURL = useRequestURL()
 const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
+const { isDark: isDarkMode } = useTheme()
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)
 const activeHeadingId = ref('')
@@ -286,7 +288,9 @@ const commentsProvider = computed<'utterances' | 'giscus' | ''>(() => {
 const utterancesConfig = computed<UtterancesPublicConfig>(() => commentsConfig.value.utterances ?? {})
 const utterancesRepo = computed(() => String(utterancesConfig.value.repo ?? ''))
 const utterancesIssueTerm = computed(() => String(utterancesConfig.value.issueTerm ?? 'pathname'))
-const utterancesTheme = computed(() => String(utterancesConfig.value.theme ?? 'github-light'))
+const utterancesTheme = computed(() => {
+  return isDarkMode.value ? 'github-dark' : (utterancesConfig.value.theme ?? 'github-light')
+})
 
 const giscusConfig = computed<GiscusPublicConfig>(() => commentsConfig.value.giscus ?? {})
 const giscusRepo = computed(() => String(giscusConfig.value.repo ?? ''))
@@ -300,7 +304,9 @@ const giscusReactionsEnabled = computed(() => String(giscusConfig.value.reaction
 const giscusEmitMetadata = computed(() => String(giscusConfig.value.emitMetadata ?? '0'))
 const giscusInputPosition = computed(() => String(giscusConfig.value.inputPosition ?? 'top'))
 const giscusLang = computed(() => String(giscusConfig.value.lang ?? 'zh-CN'))
-const giscusTheme = computed(() => String(giscusConfig.value.theme ?? 'light'))
+const giscusTheme = computed(() => {
+  return isDarkMode.value ? 'dark' : (giscusConfig.value.theme ?? 'light')
+})
 
 /** Giscus 传给后端的 term（与 client.js 的 params.term 一致；number 映射不用 term） */
 const giscusCommentTerm = computed(() => {
@@ -980,7 +986,7 @@ watchEffect(() => {
   margin: 1rem 0;
   padding: 0.85rem 1rem;
   border-radius: 10px;
-  background: var(--blog-slate-950);
+  background: var(--blog-code-bg);
   color: var(--blog-slate-200);
   overflow-x: visible;
   max-width: 100%;
@@ -993,7 +999,7 @@ watchEffect(() => {
   margin: 1rem 0;
   padding: 0.85rem 0.75rem 0.85rem 0;
   border-radius: 10px;
-  background: var(--blog-slate-950);
+  background: var(--blog-code-bg);
   overflow-x: visible;
   max-width: 100%;
   font-size: 0.85rem;
