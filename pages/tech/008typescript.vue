@@ -8,7 +8,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import type { Person, Employee } from '@/interface/person'
 
 const person: Person = {
