@@ -63,6 +63,7 @@ defineEmits<{
 }
 
 .back-to-top-btn:active {
+  background: var(--blog-slate-400);
   transform: scale(0.96);
 }
 
