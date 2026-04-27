@@ -152,6 +152,7 @@
               <span
                 v-if="dayCell.hasPost"
                 class="calendar-day-dot"
+                :class="dotLevelClass(dayCell.postCount)"
               />
             </span>
           </div>
@@ -355,6 +356,13 @@ function shiftCalendarMonth(offset: number) {
     viewMonth.value.getMonth() + offset,
     1,
   )
+}
+
+function dotLevelClass(postCount: number) {
+  if (postCount >= 4) return 'dot-level-4'
+  if (postCount === 3) return 'dot-level-3'
+  if (postCount === 2) return 'dot-level-2'
+  return 'dot-level-1'
 }
 
 const dailyAffirmation = computed(() => {
@@ -815,8 +823,24 @@ onBeforeUnmount(() => {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--blog-blue-700);
+  background: var(--blog-blue-300);
   transform: translateX(-50%);
+}
+
+.calendar-day-dot.dot-level-1 {
+  background: var(--blog-blue-400);
+}
+
+.calendar-day-dot.dot-level-2 {
+  background: var(--blog-blue-600);
+}
+
+.calendar-day-dot.dot-level-3 {
+  background: var(--blog-blue-700);
+}
+
+.calendar-day-dot.dot-level-4 {
+  background: var(--blog-blue-800);
 }
 
 .page-loading-overlay {
