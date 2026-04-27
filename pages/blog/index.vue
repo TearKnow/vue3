@@ -166,6 +166,7 @@
               :key="index"
               class="calendar-day"
               :class="{ today: dayCell.isToday }"
+              @click="onCalendarDayClick(dayCell, index)"
             >
               <span
                 v-if="dayCell.day"
@@ -174,6 +175,14 @@
                 :aria-label="dayCell.hasPost ? `${dayCell.postCount} 篇文章` : undefined"
               >
                 {{ dayCell.day }}
+              </span>
+              <span
+                v-if="activeCalendarTipIndex === index"
+                class="calendar-day-tip"
+                role="status"
+                aria-live="polite"
+              >
+                {{ activeCalendarTipText }}
               </span>
               <span
                 v-if="dayCell.hasPost"
@@ -326,6 +335,16 @@ const todayYear = today.getFullYear()
 const todayMonth = today.getMonth()
 const todayDate = today.getDate()
 
+interface CalendarDayCell {
+  day: number | null
+  hasPost: boolean
+  postCount: number
+  isToday: boolean
+}
+const activeCalendarTipIndex = ref<number | null>(null)
+const activeCalendarTipText = ref('')
+let calendarTipTimer: ReturnType<typeof setTimeout> | undefined
+
 const postDateCountMap = computed(() => {
   const map = new Map<string, number>()
   for (const p of posts.value ?? []) {
@@ -345,7 +364,7 @@ const calendarDays = computed(() => {
   const month = viewMonth.value.getMonth()
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const days: Array<{ day: number | null, hasPost: boolean, postCount: number, isToday: boolean }> = []
+  const days: CalendarDayCell[] = []
 
   for (let i = 0; i < firstDay; i++) {
     days.push({
@@ -389,6 +408,35 @@ function dotLevelClass(postCount: number) {
   if (postCount === 3) return 'dot-level-3'
   if (postCount === 2) return 'dot-level-2'
   return 'dot-level-1'
+}
+
+function clearCalendarTip() {
+  if (calendarTipTimer) {
+    clearTimeout(calendarTipTimer)
+    calendarTipTimer = undefined
+  }
+  activeCalendarTipIndex.value = null
+  activeCalendarTipText.value = ''
+}
+
+function onCalendarDayClick(dayCell: CalendarDayCell, index: number) {
+  if (!import.meta.client) return
+  if (!window.matchMedia('(max-width: 719px)').matches) {
+    clearCalendarTip()
+    return
+  }
+  if (!dayCell.day || !dayCell.hasPost) {
+    clearCalendarTip()
+    return
+  }
+  activeCalendarTipIndex.value = index
+  activeCalendarTipText.value = `${dayCell.postCount} 篇文章`
+  if (calendarTipTimer) {
+    clearTimeout(calendarTipTimer)
+  }
+  calendarTipTimer = setTimeout(() => {
+    clearCalendarTip()
+  }, 1500)
 }
 
 const dailyAffirmation = computed(() => {
@@ -478,6 +526,7 @@ onBeforeUnmount(() => {
   if (searchDebounceTimer) {
     clearTimeout(searchDebounceTimer)
   }
+  clearCalendarTip()
 })
 </script>
 
@@ -838,6 +887,35 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.calendar-day-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 1px);
+  transform: translateX(-50%);
+  z-index: 3;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: gray;
+  color: var(--blog-white);
+  font-size: 0.7rem;
+  line-height: 1.25;
+  box-shadow: 0 10px 24px gray;
+}
+
+.calendar-day-tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--blog-shadow-lg);
 }
 
 .calendar-day-dot {
