@@ -103,11 +103,27 @@
         </section>
         <section class="aside-block calendar-block">
           <div class="calendar-header">
-            <div>
+            <button
+              type="button"
+              class="calendar-nav-btn"
+              aria-label="查看上个月"
+              @click="shiftCalendarMonth(-1)"
+            >
+              <span aria-hidden="true">‹</span>
+            </button>
+            <div class="calendar-header-center">
               <p class="calendar-month">
                 {{ calendarMonthLabel }}
               </p>
             </div>
+            <button
+              type="button"
+              class="calendar-nav-btn"
+              aria-label="查看下个月"
+              @click="shiftCalendarMonth(1)"
+            >
+              <span aria-hidden="true">›</span>
+            </button>
           </div>
           <div class="calendar-grid calendar-weekdays">
             <span
@@ -120,12 +136,23 @@
           </div>
           <div class="calendar-grid calendar-days">
             <span
-              v-for="(day, index) in calendarDays"
+              v-for="(dayCell, index) in calendarDays"
               :key="index"
               class="calendar-day"
-              :class="{ today: day === todayDate }"
+              :class="{ today: dayCell.isToday }"
             >
-              <span v-if="day">{{ day }}</span>
+              <span
+                v-if="dayCell.day"
+                class="calendar-day-number"
+                :title="dayCell.hasPost ? `${dayCell.postCount} 篇文章` : undefined"
+                :aria-label="dayCell.hasPost ? `${dayCell.postCount} 篇文章` : undefined"
+              >
+                {{ dayCell.day }}
+              </span>
+              <span
+                v-if="dayCell.hasPost"
+                class="calendar-day-dot"
+              />
             </span>
           </div>
         </section>
@@ -260,31 +287,75 @@ const allMonthCount = computed(() => {
 const router = useRouter()
 const route = useRoute()
 
-const now = ref(new Date())
+const today = new Date()
+const viewMonth = ref(new Date(today.getFullYear(), today.getMonth(), 1))
 const weekDays = ['日', '一', '二', '三', '四', '五', '六']
-const calendarMonthLabel = computed(() => now.value.toLocaleDateString('zh-CN', {
+const calendarMonthLabel = computed(() => viewMonth.value.toLocaleDateString('zh-CN', {
   year: 'numeric',
   month: 'long',
 }))
-const todayDate = computed(() => now.value.getDate())
+
+const todayYear = today.getFullYear()
+const todayMonth = today.getMonth()
+const todayDate = today.getDate()
+
+const postDateCountMap = computed(() => {
+  const map = new Map<string, number>()
+  for (const p of posts.value ?? []) {
+    const date = p.date
+    if (!date || date.length < 10) continue
+    const key = date.slice(0, 10)
+    map.set(key, (map.get(key) ?? 0) + 1)
+  }
+  return map
+})
+
+const formatDateKey = (year: number, month: number, day: number) =>
+  `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+
 const calendarDays = computed(() => {
-  const year = now.value.getFullYear()
-  const month = now.value.getMonth()
+  const year = viewMonth.value.getFullYear()
+  const month = viewMonth.value.getMonth()
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const days: Array<number | null> = []
+  const days: Array<{ day: number | null, hasPost: boolean, postCount: number, isToday: boolean }> = []
 
   for (let i = 0; i < firstDay; i++) {
-    days.push(null)
+    days.push({
+      day: null,
+      hasPost: false,
+      postCount: 0,
+      isToday: false,
+    })
   }
   for (let day = 1; day <= daysInMonth; day++) {
-    days.push(day)
+    const dayKey = formatDateKey(year, month, day)
+    const postCount = postDateCountMap.value.get(dayKey) ?? 0
+    days.push({
+      day,
+      hasPost: postCount > 0,
+      postCount,
+      isToday: year === todayYear && month === todayMonth && day === todayDate,
+    })
   }
   while (days.length % 7 !== 0) {
-    days.push(null)
+    days.push({
+      day: null,
+      hasPost: false,
+      postCount: 0,
+      isToday: false,
+    })
   }
   return days
 })
+
+function shiftCalendarMonth(offset: number) {
+  viewMonth.value = new Date(
+    viewMonth.value.getFullYear(),
+    viewMonth.value.getMonth() + offset,
+    1,
+  )
+}
 
 const dailyAffirmation = computed(() => {
   const day = new Date().getDate()
@@ -610,9 +681,14 @@ onBeforeUnmount(() => {
 .calendar-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.8rem;
+}
+
+.calendar-header-center {
+  flex: 1;
+  text-align: center;
 }
 
 .calendar-title {
@@ -628,6 +704,39 @@ onBeforeUnmount(() => {
   font-size: 1rem;
   font-weight: 700;
   color: var(--blog-blue-800);
+}
+
+.calendar-nav-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--blog-blue-200);
+  border-radius: 9999px;
+  background: var(--blog-white);
+  color: var(--blog-blue-700);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.calendar-nav-btn > span {
+  display: inline-block;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.calendar-nav-btn:hover {
+  background: var(--blog-blue-50);
+  transform: translateY(-1px);
+}
+
+.calendar-nav-btn:focus-visible {
+  outline: 2px solid var(--blog-blue-300);
+  outline-offset: 1px;
 }
 
 .calendar-time {
@@ -670,6 +779,7 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   color: var(--blog-slate-800);
   font-size: 0.88rem;
+  position: relative;
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
@@ -678,21 +788,35 @@ onBeforeUnmount(() => {
   border-radius: 9999px;
 }
 
-.calendar-day.today span {
+.calendar-day.today .calendar-day-number {
   background: var(--blog-calendar-today-bg);
-  width: 22px;
-  height: 22px;
+  inline-size: 24px;
+  block-size: 24px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.calendar-day .calendar-day-number {
+  width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.calendar-day span {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.calendar-day-dot {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blog-blue-700);
+  transform: translateX(-50%);
 }
 
 .page-loading-overlay {
