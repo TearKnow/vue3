@@ -53,13 +53,24 @@ defineEmits<{
   color: #475569;
   box-shadow: 0 4px 14px rgb(15 23 42 / 12%);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
 .back-to-top-btn:hover {
-  background: #2563eb;
-  color: #fff;
-  box-shadow: 0 6px 20px rgb(37 99 235 / 30%);
+  color: #334155;
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 16%);
+}
+
+.back-to-top-btn:active {
+  transform: scale(0.96);
+}
+
+.back-to-top-btn svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: block;
 }
 
 .fade-up-enter-active,

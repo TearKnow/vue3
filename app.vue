@@ -118,6 +118,10 @@ onBeforeUnmount(() => {
   }
 }
 
+body {
+  margin: 0;
+}
+
 .quick-entry-mask {
   position: fixed;
   inset: 0;

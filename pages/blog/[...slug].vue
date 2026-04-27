@@ -9,44 +9,46 @@
       <p class="back">
         <NuxtLink to="/blog">← 全部文章</NuxtLink>
       </p>
-      <button
-        type="button"
-        class="comment-nav-btn"
-        aria-label="Scroll to comments"
-        @click="scrollToComments"
-      >
-        <svg
-          class="comment-nav-icon"
-          viewBox="0 0 24 24"
-          width="18"
-          height="18"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+      <div class="top-actions">
+        <button
+          type="button"
+          class="comment-nav-btn"
+          aria-label="Scroll to comments"
+          @click="scrollToComments"
         >
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-        <span
-          v-if="commentsCount !== null"
-          class="comment-nav-count"
-          aria-hidden="true"
-        >({{ commentsCount }})</span>
-      </button>
-      <button
-        v-if="tocLinks.length"
-        type="button"
-        class="toc-toggle"
-        :aria-expanded="tocOpen ? 'true' : 'false'"
-        aria-controls="mobile-toc"
-        @click="tocOpen = !tocOpen"
-      >
-        <span class="line" />
-        <span class="line" />
-        <span class="line" />
-      </button>
+          <svg
+            class="comment-nav-icon"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span
+            v-if="commentsCount !== null"
+            class="comment-nav-count"
+            aria-hidden="true"
+          >({{ commentsCount }})</span>
+        </button>
+        <button
+          v-if="tocLinks.length"
+          type="button"
+          class="toc-toggle"
+          :aria-expanded="tocOpen ? 'true' : 'false'"
+          aria-controls="mobile-toc"
+          @click="tocOpen = !tocOpen"
+        >
+          <span class="line" />
+          <span class="line" />
+          <span class="line" />
+        </button>
+      </div>
     </div>
 
     <div
@@ -782,19 +784,39 @@ watchEffect(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
+  gap: 0.65rem;
+}
+
+.top-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+  margin-left: auto;
 }
 
 .top-bar .back {
   margin: 0;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .back a {
-  color: var(--blog-slate-500);
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 0;
+  color: var(--blog-slate-600);
   text-decoration: none;
+  box-sizing: border-box;
+  line-height: 1;
 }
 
 .back a:hover {
+  color: var(--blog-slate-800);
   text-decoration: underline;
 }
 
@@ -804,31 +826,31 @@ watchEffect(() => {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  border: 1px solid var(--blog-blue-100);
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: var(--blog-blue-50);
-  color: var(--blog-blue-700);
+  background: var(--blog-white);
+  color: var(--blog-slate-700);
   flex-shrink: 0;
-  margin-left: 0.6rem;
-  margin-right: 0.1rem;
   position: relative;
-  z-index: 1000;
+  z-index: 2;
   cursor: pointer;
   box-sizing: border-box;
 }
 
 .comment-nav-btn {
-  min-height: 32px;
-  padding: 5px 12px;
+  border-color: var(--blog-slate-200);
+  min-height: 36px;
+  padding: 6px 12px;
   font-size: 0.92rem;
   line-height: 1;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .comment-nav-btn:hover {
-  border-color: var(--blog-slate-300);
+  border-color: var(--blog-blue-200);
   background: var(--blog-slate-50);
-  box-shadow: 0 1px 2px var(--blog-shadow-sm);
+  color: var(--blog-blue-700);
+  box-shadow: none;
 }
 
 .comment-nav-icon {
@@ -849,15 +871,15 @@ watchEffect(() => {
 }
 
 .comment-nav-btn:hover .comment-nav-count {
-  color: var(--blog-slate-600);
+  color: var(--blog-blue-700);
 }
 
 .toc-toggle {
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0 7px;
 }
 
@@ -865,7 +887,7 @@ watchEffect(() => {
   display: block;
   height: 2px;
   width: 100%;
-  background: var(--blog-blue-800);
+  background: var(--blog-slate-700);
 }
 
 .article-head h1 {
@@ -1288,14 +1310,35 @@ watchEffect(() => {
 
 @media (max-width: 1280px) {
   .blog-article {
-    padding-top: 3rem;
+    padding-top: 0.75rem;
+  }
+
+  .top-bar {
+    position: relative;
+    margin: 0 0 0.45rem;
+    padding: calc(env(safe-area-inset-top, 0px) + 6px) 0.7rem 6px;
+    background: transparent;
+  }
+
+  .top-bar .back {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .back a {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .blog-article article {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 
   .toc-toggle {
-    position: fixed;
-    right: var(--toc-toggle-right);
-    top: calc(env(safe-area-inset-top, 0px) + 12px);
-    margin: 0;
+    position: static;
   }
 
   .neighbors {
@@ -1320,6 +1363,11 @@ watchEffect(() => {
   .top-bar {
     max-width: 820px;
     margin: 0 auto 1rem;
+  }
+
+  .back a {
+    min-height: 32px;
+    padding: 0;
   }
 
   .article-shell {
