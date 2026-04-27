@@ -109,7 +109,20 @@
               aria-label="查看上个月"
               @click="shiftCalendarMonth(-1)"
             >
-              <span aria-hidden="true">‹</span>
+              <svg
+                class="calendar-nav-icon"
+                viewBox="0 0 12 12"
+                aria-hidden="true"
+              >
+                <path
+                  d="M7.5 2.5L4 6l3.5 3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </button>
             <div class="calendar-header-center">
               <p class="calendar-month">
@@ -122,7 +135,20 @@
               aria-label="查看下个月"
               @click="shiftCalendarMonth(1)"
             >
-              <span aria-hidden="true">›</span>
+              <svg
+                class="calendar-nav-icon"
+                viewBox="0 0 12 12"
+                aria-hidden="true"
+              >
+                <path
+                  d="M4.5 2.5L8 6l-3.5 3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </button>
           </div>
           <div class="calendar-grid calendar-weekdays">
@@ -718,33 +744,31 @@ onBeforeUnmount(() => {
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--blog-blue-200);
-  border-radius: 9999px;
-  background: var(--blog-white);
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: var(--blog-blue-700);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  line-height: 1;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.calendar-nav-btn > span {
-  display: inline-block;
-  line-height: 1;
-  transform: translateY(-1px);
+.calendar-nav-icon {
+  width: 12px;
+  height: 12px;
+  display: block;
 }
 
 .calendar-nav-btn:hover {
-  background: var(--blog-blue-50);
+  color: var(--blog-blue-800);
   transform: translateY(-1px);
 }
 
 .calendar-nav-btn:focus-visible {
   outline: 2px solid var(--blog-blue-300);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
 .calendar-time {
