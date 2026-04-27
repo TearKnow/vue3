@@ -54,10 +54,10 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
 }
 
 .action-group {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgb(15 23 42 / 5%);
+  background: var(--blog-white);
+  box-shadow: 0 4px 12px var(--blog-shadow-xs);
   overflow: hidden;
 }
 
@@ -68,9 +68,9 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--blog-slate-500);
+  background: var(--blog-slate-50);
+  border-bottom: 1px solid var(--blog-slate-200);
 }
 
 .action-group-body {
@@ -93,7 +93,7 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
   text-decoration: none;
   font-size: inherit;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgb(15 23 42 / 6%);
+  box-shadow: 0 2px 6px var(--blog-shadow-xs);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   box-sizing: border-box;
 }
@@ -108,7 +108,7 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
 
 .action-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgb(15 23 42 / 10%);
+  box-shadow: 0 6px 16px var(--blog-shadow-sm);
 }
 
 .action-icon {
@@ -137,5 +137,23 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
   background: linear-gradient(180deg, #fee2e2 0%, #fecaca 100%);
   border-color: #fca5a5;
   color: #991b1b;
+}
+
+html.dark .card-blog {
+  background: linear-gradient(180deg, #064e3b 0%, #065f46 100%);
+  border-color: #059669;
+  color: #a7f3d0;
+}
+
+html.dark .card-browser {
+  background: linear-gradient(180deg, #2e1065 0%, #3b0764 100%);
+  border-color: #7c3aed;
+  color: #ddd6fe;
+}
+
+html.dark .card-route-tree {
+  background: linear-gradient(180deg, #450a0a 0%, #5c1010 100%);
+  border-color: #b91c1c;
+  color: #fecaca;
 }
 </style>

@@ -103,23 +103,23 @@ watch(() => props.theme, loadScript)
   align-items: center;
   gap: 1.2rem;
   padding: 2rem 1.5rem;
-  background: #f8fafc;
-  border: 1px dashed #e2e8f0;
+  background: var(--blog-slate-50);
+  border: 1px dashed var(--blog-slate-200);
   border-radius: 12px;
 }
 
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
+  border: 3px solid var(--blog-slate-200);
+  border-top-color: var(--blog-blue-600);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .loading-label {
   margin: 0;
-  color: #64748b;
+  color: var(--blog-slate-500);
   font-size: 0.9rem;
 }
 
@@ -134,7 +134,7 @@ watch(() => props.theme, loadScript)
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: var(--blog-slate-200);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -149,7 +149,7 @@ watch(() => props.theme, loadScript)
 .skeleton-line {
   height: 0.75rem;
   border-radius: 6px;
-  background: #e2e8f0;
+  background: var(--blog-slate-200);
   animation: pulse 1.5s ease-in-out infinite;
 }
 

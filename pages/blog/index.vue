@@ -418,7 +418,13 @@ onBeforeUnmount(() => {
   padding: 0.8rem 1rem;
   font-size: 16px;
   outline: none;
+  background: var(--blog-white);
+  color: var(--blog-slate-800);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: var(--blog-slate-400);
 }
 
 .search-input:focus {

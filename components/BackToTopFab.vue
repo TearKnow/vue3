@@ -47,11 +47,11 @@ defineEmits<{
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 50%;
-  background: #fff;
-  color: #475569;
-  box-shadow: 0 4px 14px rgb(15 23 42 / 12%);
+  background: var(--blog-white);
+  color: var(--blog-slate-600);
+  box-shadow: 0 4px 14px var(--blog-shadow-sm);
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }

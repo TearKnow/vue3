@@ -19,6 +19,12 @@ export default defineNuxtConfig({
           content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
         },
       ],
+      script: [
+        {
+          children: "try{var t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')}catch(e){}",
+          tagPosition: 'head',
+        },
+      ],
     },
   }, css: ['~/assets/styles/global.css'],
   runtimeConfig: {

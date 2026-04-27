@@ -643,7 +643,7 @@ const FileTreeNode = defineComponent({
 .file-browser-page {
   min-height: 100vh;
   padding: 24px;
-  background: #f8fafc;
+  background: var(--blog-slate-50);
 }
 
 .file-browser-header {
@@ -657,7 +657,7 @@ const FileTreeNode = defineComponent({
 .browser-back-home {
   display: inline-block;
   margin-bottom: 12px;
-  color: #2563eb;
+  color: var(--blog-blue-600);
   text-decoration: none;
   font-weight: 600;
 }
@@ -668,7 +668,7 @@ const FileTreeNode = defineComponent({
 
 .file-browser-header p {
   margin: 0;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .file-browser-layout {
@@ -690,10 +690,10 @@ const FileTreeNode = defineComponent({
 
 .file-sidebar,
 .file-content-panel {
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+  background: var(--blog-white);
+  box-shadow: 0 8px 24px var(--blog-shadow-sm);
   box-sizing: border-box;
 }
 
@@ -720,7 +720,7 @@ const FileTreeNode = defineComponent({
 }
 
 .file-sidebar-resizer:hover {
-  background: rgb(51 65 85 / 16%);
+  background: var(--blog-overlay-dark);
 }
 
 .file-sidebar-header {
@@ -735,7 +735,7 @@ const FileTreeNode = defineComponent({
   display: flex;
   flex-direction: column;
   gap: 4px;
-  color: #475569;
+  color: var(--blog-slate-600);
   font-weight: 600;
 }
 
@@ -748,16 +748,16 @@ const FileTreeNode = defineComponent({
 
 .file-tree-actions button {
   padding: 4px 10px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 8px;
-  background: #f8fafc;
-  color: #475569;
+  background: var(--blog-slate-50);
+  color: var(--blog-slate-600);
   cursor: pointer;
   font-size: 12px;
 }
 
 .file-tree-actions button:hover:not(:disabled) {
-  background: #eef2f7;
+  background: var(--blog-slate-100);
 }
 
 .file-tree-actions button:disabled {
@@ -785,21 +785,21 @@ const FileTreeNode = defineComponent({
 .file-search-input {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 10px;
-  background: #fff;
-  color: #334155;
+  background: var(--blog-white);
+  color: var(--blog-slate-700);
   outline: none;
   box-sizing: border-box;
 }
 
 .file-search-input:focus {
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 3px rgb(147 197 253 / 20%);
+  border-color: var(--blog-blue-300);
+  box-shadow: 0 0 0 3px var(--blog-blue-200-rgb);
 }
 
 .file-count {
-  color: #94a3b8;
+  color: var(--blog-slate-400);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -807,7 +807,7 @@ const FileTreeNode = defineComponent({
 .file-sidebar-empty,
 .file-empty {
   padding: 16px;
-  color: #64748b;
+  color: var(--blog-slate-500);
 }
 
 .file-tree-list {
@@ -835,7 +835,7 @@ const FileTreeNode = defineComponent({
   top: 16px;
   width: 10px;
   height: 1px;
-  background: #cbd5e1;
+  background: var(--blog-slate-300);
 }
 
 .browser-folder-item::after,
@@ -846,7 +846,7 @@ const FileTreeNode = defineComponent({
   top: -6px;
   bottom: -6px;
   width: 1px;
-  background: #cbd5e1;
+  background: var(--blog-slate-300);
 }
 
 .file-tree-list > .browser-folder-item:last-child::after,
@@ -876,8 +876,8 @@ const FileTreeNode = defineComponent({
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--blog-slate-200);
+  color: var(--blog-slate-600);
   font-weight: 700;
   line-height: 1;
   flex: 0 0 auto;
@@ -887,8 +887,8 @@ const FileTreeNode = defineComponent({
   display: inline-block;
   padding: 5px 10px;
   border-radius: 8px;
-  background: #fef3c7;
-  color: #7c5800;
+  background: var(--blog-highlight-bg);
+  color: var(--blog-warn-800);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -901,7 +901,7 @@ const FileTreeNode = defineComponent({
   border: none;
   background: transparent;
   padding: 4px 0;
-  color: #2563eb;
+  color: var(--blog-blue-600);
   cursor: pointer;
   text-align: left;
   max-width: 100%;
@@ -909,7 +909,7 @@ const FileTreeNode = defineComponent({
 }
 
 .browser-file-button.is-active {
-  color: #1d4ed8;
+  color: var(--blog-blue-700);
   font-weight: 700;
 }
 
@@ -920,7 +920,7 @@ const FileTreeNode = defineComponent({
   display: flex;
   flex-direction: column;
   overflow: visible;
-  background: #0f172a;
+  background: var(--blog-code-bg);
 }
 
 .file-content-toolbar {
@@ -928,8 +928,8 @@ const FileTreeNode = defineComponent({
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
-  border-bottom: 1px solid #1e293b;
-  background: #111827;
+  border-bottom: 1px solid var(--blog-code-line-highlight);
+  background: var(--blog-code-bg);
 }
 
 .toolbar-dot {
@@ -980,7 +980,7 @@ const FileTreeNode = defineComponent({
   color: #64748b;
   text-align: right;
   user-select: none;
-  border-right: 1px solid #1e293b;
+  border-right: 1px solid var(--blog-code-line-highlight);
 }
 
 .file-line-content {
@@ -1051,8 +1051,8 @@ const FileTreeNode = defineComponent({
     align-items: center;
     justify-content: space-between;
     padding: 0;
-    border-bottom: 1px solid #1e293b;
-    background: #111827;
+    border-bottom: 1px solid var(--blog-code-line-highlight);
+    background: var(--blog-code-bg);
   }
 
   .mobile-file-nav-btn {
@@ -1062,7 +1062,7 @@ const FileTreeNode = defineComponent({
     padding: 8px 12px;
     border: none;
     background: none;
-    color: #93c5fd;
+    color: var(--blog-blue-300);
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
@@ -1076,16 +1076,16 @@ const FileTreeNode = defineComponent({
   }
 
   .mobile-file-nav-btn:active:not(:disabled) {
-    background: rgb(37 99 235 / 15%);
+    background: var(--blog-blue-200-rgb);
   }
 
   .mobile-file-nav-btn:disabled {
-    color: #334155;
+    color: var(--blog-slate-700);
     cursor: not-allowed;
   }
 
   .mobile-file-nav-pos {
-    color: #64748b;
+    color: var(--blog-slate-500);
     font-size: 12px;
     flex-shrink: 0;
   }

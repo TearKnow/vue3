@@ -1,4 +1,9 @@
 /* 全局样式 */
+html {
+  background: var(--blog-white);
+  color: var(--blog-slate-800);
+}
+
 :root {
   --blog-white: #ffffff;
   --blog-slate-950: #020617;
@@ -40,9 +45,97 @@
   --blog-code-btn-bg: rgb(15 23 42 / 0.88);
   --blog-code-btn-bg-hover: rgb(30 41 59 / 0.95);
   --blog-code-line-highlight: rgb(30 58 138 / 0.35);
+  --blog-code-bg: #020617;
   --blog-danger-700: #b91c1c;
   --blog-link: #3b6fc0;
   --blog-link-hover: #2b5aa0;
+}
+
+/* 暗色模式 */
+html.dark {
+  --blog-white: #0b1120;
+  --blog-slate-950: #f1f5f9;
+  --blog-slate-900: #e2e8f0;
+  --blog-slate-800: #cbd5e1;
+  --blog-slate-700: #94a3b8;
+  --blog-slate-600: #64748b;
+  --blog-slate-500: #475569;
+  --blog-slate-400: #334155;
+  --blog-slate-300: #1e293b;
+  --blog-slate-200: #1e293b;
+  --blog-slate-100: #0f172a;
+  --blog-slate-50: #020617;
+  --blog-blue-800: #93c5fd;
+  --blog-blue-700: #60a5fa;
+  --blog-blue-600: #3b82f6;
+  --blog-blue-400: #2563eb;
+  --blog-blue-300: #1d4ed8;
+  --blog-blue-200: #1e3a8a;
+  --blog-blue-100: #1e3a8a;
+  --blog-blue-50: #172554;
+  --blog-cyan-500: #22d3ee;
+  --blog-calendar-bg-start: #0b1120;
+  --blog-calendar-bg-end: #0f172a;
+  --blog-calendar-today-bg: #3b82f6;
+  --blog-link-underline: #334155;
+  --blog-link-underline-hover: #3b82f6;
+  --blog-highlight-bg: #92400e;
+  --blog-warn-800: #fde68a;
+  --blog-blue-200-rgb: rgb(59 130 246 / 0.2);
+  --blog-overlay-light: rgb(0 0 0 / 0.85);
+  --blog-overlay-dark: rgb(0 0 0 / 0.5);
+  --blog-shadow-xs: rgb(0 0 0 / 0.25);
+  --blog-shadow-xs-plus: rgb(0 0 0 / 0.3);
+  --blog-shadow-sm: rgb(0 0 0 / 0.35);
+  --blog-shadow-md: rgb(0 0 0 / 0.45);
+  --blog-shadow-lg: rgb(0 0 0 / 0.6);
+  --blog-shadow-brand: rgb(59 130 246 / 0.35);
+  --blog-code-bg: #0b1120;
+  --blog-code-btn-bg: rgb(0 0 0 / 0.5);
+  --blog-code-btn-bg-hover: rgb(30 41 59 / 0.7);
+  --blog-code-line-highlight: rgb(59 130 246 / 0.2);
+  --blog-danger-700: #f87171;
+  --blog-link: #60a5fa;
+  --blog-link-hover: #93c5fd;
+}
+
+html.dark .demo-block {
+  border-color: #334155;
+}
+
+html.dark .demo-block:hover {
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  background-color: #0f172a;
+}
+
+html.dark .demo-block div {
+  color: #cbd5e1;
+}
+
+html.dark .demo-block h2 {
+  color: #e2e8f0;
+  border-bottom-color: #334155;
+}
+
+html.dark .demo-block h3 {
+  color: #94a3b8;
+}
+
+html.dark .demo-block button {
+  background-color: #2563eb;
+}
+
+html.dark .demo-block button:hover {
+  background-color: #1d4ed8;
+}
+
+html.dark .demo-block .comparison {
+  background-color: #0f172a;
+  border-left-color: #3b82f6;
+}
+
+html.dark .demo-block .demo-tip {
+  color: #f87171;
 }
 
 /* Demo 块样式 */
