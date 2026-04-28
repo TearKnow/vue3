@@ -274,7 +274,7 @@ useSeoMeta({
 })
 
 const { data: posts, pending, error } = await useAsyncData<BlogPostMeta[]>('blog-meta-all', () =>
-  fetchBlogMetaList(),
+  fetchBlogMetaList({ includeContent: false }),
 )
 
 const errorMessage = computed(() => {
@@ -450,6 +450,7 @@ const dailyAffirmation = computed(() => {
 
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const searchKeyword = computed(() => searchQuery.value.trim())
+const normalizedSearchKeyword = computed(() => searchKeyword.value.toLowerCase())
 
 watch(
   () => route.query.q,
@@ -459,20 +460,52 @@ watch(
 )
 
 const filteredPosts = computed(() => {
-  const keyword = searchQuery.value.trim().toLowerCase()
+  const keyword = normalizedSearchKeyword.value
   if (!keyword) return posts.value ?? []
+
+  const contentMatchPathSet = new Set(contentSearchMatchedPaths.value)
+  const contentSnippetMap = contentSearchSnippetMap.value
 
   return (posts.value ?? []).filter((post) => {
     const title = post.title?.toLowerCase() ?? ''
     const description = post.description?.toLowerCase() ?? ''
     const tags = (post.tags ?? []).join(' ').toLowerCase()
-    const content = post.content?.toLowerCase() ?? ''
     return title.includes(keyword)
       || description.includes(keyword)
       || tags.includes(keyword)
-      || content.includes(keyword)
+      || (post._path ? contentMatchPathSet.has(post._path) : false)
+  }).map((post) => {
+    const path = post._path || ''
+    const snippet = path ? contentSnippetMap[path] : ''
+    if (!snippet) return post
+    return {
+      ...post,
+      content: snippet,
+    }
   })
 })
+
+const { data: contentSearchResult } = await useAsyncData<{ matchedPaths: string[], snippets: Record<string, string> }>(
+  'blog-content-search',
+  async () => {
+    const keyword = normalizedSearchKeyword.value
+    if (!keyword) {
+      return { matchedPaths: [], snippets: {} }
+    }
+    return await $fetch('/api/blog-search', {
+      query: {
+        q: keyword,
+      },
+    })
+  },
+  {
+    default: () => ({ matchedPaths: [], snippets: {} }),
+    watch: [normalizedSearchKeyword],
+  },
+)
+
+const contentSearchMatchedPaths = computed(() => contentSearchResult.value?.matchedPaths ?? [])
+const contentSearchSnippetMap = computed(() => contentSearchResult.value?.snippets ?? {})
 
 const currentPage = computed(() => {
   const raw = route.query.page
