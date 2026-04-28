@@ -4,7 +4,6 @@
       <p class="back">
         <NuxtLink
           to="/blog"
-          no-prefetch
         >← 全部文章</NuxtLink>
       </p>
       <h1>标签：{{ tagDisplay }}</h1>
@@ -31,7 +30,6 @@
         class="pager-btn"
         :class="{ disabled: safePage <= 1 }"
         :to="pageTo(Math.max(1, safePage - 1))"
-        no-prefetch
       >
         上一页
       </NuxtLink>
@@ -40,7 +38,6 @@
         class="pager-btn"
         :class="{ disabled: safePage >= totalPages }"
         :to="pageTo(Math.min(totalPages, safePage + 1))"
-        no-prefetch
       >
         下一页
       </NuxtLink>

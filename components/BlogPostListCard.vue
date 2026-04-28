@@ -2,7 +2,6 @@
   <li class="blog-post-list-card">
     <NuxtLink
       :to="post.urlPath || '#'"
-      no-prefetch
       class="blog-post-list-card__title"
     >
       <span
@@ -56,7 +55,6 @@
           v-for="t in post.tags"
           :key="t"
           :to="`/blog/tag/${encodeURIComponent(t)}`"
-          no-prefetch
           class="blog-post-list-card__tag"
         >
           {{ t }}

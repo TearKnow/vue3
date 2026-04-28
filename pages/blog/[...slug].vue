@@ -9,7 +9,6 @@
       <p class="back">
         <NuxtLink
           to="/blog"
-          no-prefetch
         >← 全部文章</NuxtLink>
       </p>
       <div class="top-actions">
@@ -86,7 +85,6 @@
                 v-for="t in articleTags"
                 :key="t"
                 :to="`/blog/tag/${encodeURIComponent(t)}`"
-                no-prefetch
                 class="mini-tag"
               >
                 {{ t }}
@@ -108,7 +106,6 @@
           <NuxtLink
             v-if="prevPost?.urlPath"
             :to="prevPost.urlPath"
-            no-prefetch
             class="neighbor prev"
           >
             ← 上一篇：{{ prevPost.title || '未命名' }}
@@ -116,7 +113,6 @@
           <NuxtLink
             v-if="nextPost?.urlPath"
             :to="nextPost.urlPath"
-            no-prefetch
             class="neighbor next"
           >
             下一篇：{{ nextPost.title || '未命名' }} →
