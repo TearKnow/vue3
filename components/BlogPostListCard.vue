@@ -110,15 +110,14 @@ const showDesc = computed(() => {
   border-radius: 12px;
   background: var(--blog-white);
   margin-bottom: 0.8rem;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 22px var(--blog-shadow-xs);
+  transition: box-shadow 0.2s ease;
   cursor: pointer;
   list-style: none;
 }
 
 .blog-post-list-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 16px 32px var(--blog-shadow-md);
 }
 
 .blog-post-list-card__title {
