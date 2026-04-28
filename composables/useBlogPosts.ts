@@ -11,7 +11,7 @@ export interface BlogPostMeta {
   draft?: boolean
 }
 
-export const BLOG_PAGE_SIZE = 8
+export const BLOG_PAGE_SIZE = 20
 
 export function monthKeyFromDate(date?: string) {
   if (!date || date.length < 7) return ''
