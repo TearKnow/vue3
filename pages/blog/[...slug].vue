@@ -542,14 +542,16 @@ const enhanceCodeBlocks = () => {
       }
       try {
         await navigator.clipboard.writeText(codeEl.textContent ?? '')
-        showToast('已复制')
+        // 临时关闭 Vant Toast，避免详情页加载 Vant 全局 reset 后影响返回博客首页的样式。
+        // showToast('已复制')
         button.setAttribute('aria-label', '复制成功')
         button.setAttribute('title', '已复制')
         const timerId = setTimeout(restoreLabel, 1200)
         copyFeedbackTimers.set(button, timerId)
       }
       catch {
-        showToast('复制失败')
+        // 临时关闭 Vant Toast，避免详情页加载 Vant 全局 reset 后影响返回博客首页的样式。
+        // showToast('复制失败')
         button.setAttribute('aria-label', '复制失败')
         button.setAttribute('title', '复制失败')
         const timerId = setTimeout(restoreLabel, 1200)
