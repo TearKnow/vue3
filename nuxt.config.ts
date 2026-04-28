@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   // 触发红色 Pre-transform error（与业务代码无关）。关闭 app manifest 为官方常用规避，见 nuxt/nuxt#30461、#33606。
 
   modules: ['@vant/nuxt', '@nuxt/content'],
-  /** 博客等 Markdown 代码块：Shiki 语法高亮（详情页 ContentRenderer） */
+  /** 博客等 Markdown 代码块：Shiki 语法高亮（ 详情页 ContentRenderer）  */
   content: {
     highlight: {
       theme: 'github-dark',
