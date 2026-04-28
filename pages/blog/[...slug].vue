@@ -9,6 +9,7 @@
       <p class="back">
         <NuxtLink
           to="/blog"
+          no-prefetch
         >← 全部文章</NuxtLink>
       </p>
       <div class="top-actions">
@@ -85,6 +86,7 @@
                 v-for="t in articleTags"
                 :key="t"
                 :to="`/blog/tag/${encodeURIComponent(t)}`"
+                no-prefetch
                 class="mini-tag"
               >
                 {{ t }}
