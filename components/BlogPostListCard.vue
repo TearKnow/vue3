@@ -112,14 +112,19 @@ const showDesc = computed(() => {
   border-radius: 12px;
   background: var(--blog-white);
   margin-bottom: 0.8rem;
-  box-shadow: 0 10px 22px var(--blog-shadow-xs);
+  box-shadow:
+    0 2px 8px var(--blog-shadow-xs),
+    0 0 1px var(--blog-shadow-xs-plus);
   transition: box-shadow 0.2s ease;
   cursor: pointer;
   list-style: none;
 }
 
 .blog-post-list-card:hover {
-  box-shadow: 0 16px 32px var(--blog-shadow-md);
+  box-shadow:
+    0 0 0 1px var(--blog-slate-200),
+    0 0 24px var(--blog-shadow-md),
+    0 4px 12px var(--blog-shadow-sm);
 }
 
 .blog-post-list-card__title {

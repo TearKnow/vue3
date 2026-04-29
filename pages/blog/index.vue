@@ -327,17 +327,14 @@ const allMonthCount = computed(() => {
 const router = useRouter()
 const route = useRoute()
 
-const today = new Date()
-const viewMonth = ref(new Date(today.getFullYear(), today.getMonth(), 1))
+/** 日历「今天」必须用用户本机时区；SSR 里 `new Date()` 常是 UTC，会差一天 */
+const localToday = ref<{ year: number, month: number, date: number } | null>(null)
+const viewMonth = ref(new Date())
 const weekDays = ['日', '一', '二', '三', '四', '五', '六']
 const calendarMonthLabel = computed(() => viewMonth.value.toLocaleDateString('zh-CN', {
   year: 'numeric',
   month: 'long',
 }))
-
-const todayYear = today.getFullYear()
-const todayMonth = today.getMonth()
-const todayDate = today.getDate()
 
 interface CalendarDayCell {
   day: number | null
@@ -378,6 +375,7 @@ const calendarDays = computed(() => {
       isToday: false,
     })
   }
+  const t = localToday.value
   for (let day = 1; day <= daysInMonth; day++) {
     const dayKey = formatDateKey(year, month, day)
     const postCount = postDateCountMap.value.get(dayKey) ?? 0
@@ -385,7 +383,7 @@ const calendarDays = computed(() => {
       day,
       hasPost: postCount > 0,
       postCount,
-      isToday: year === todayYear && month === todayMonth && day === todayDate,
+      isToday: t != null && year === t.year && month === t.month && day === t.date,
     })
   }
   while (days.length % 7 !== 0) {
@@ -556,6 +554,13 @@ const pageTo = (page: number) => {
 }
 
 onMounted(() => {
+  const n = new Date()
+  localToday.value = {
+    year: n.getFullYear(),
+    month: n.getMonth(),
+    date: n.getDate(),
+  }
+  viewMonth.value = new Date(n.getFullYear(), n.getMonth(), 1)
   removeBlogNavigationLoadingOverlay()
 })
 
