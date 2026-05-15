@@ -843,7 +843,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .calendar-nav-icon {
@@ -854,7 +854,6 @@ onBeforeUnmount(() => {
 
 .calendar-nav-btn:hover {
   color: var(--blog-blue-800);
-  transform: translateY(-1px);
 }
 
 .calendar-nav-btn:focus-visible {
