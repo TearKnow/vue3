@@ -801,6 +801,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--blog-blue-100);
   border-radius: 16px;
   background: linear-gradient(180deg, var(--blog-calendar-bg-start) 0%, var(--blog-calendar-bg-end) 100%);
+  container-type: inline-size;
 }
 
 .calendar-header {
@@ -888,6 +889,7 @@ onBeforeUnmount(() => {
 
 .calendar-days {
   justify-items: center;
+  min-height: calc(6 * max(36px, (100cqw - 2.4rem) / 7) + 2rem);
 }
 
 .calendar-day {
