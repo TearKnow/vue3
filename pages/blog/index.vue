@@ -130,6 +130,13 @@
               <p class="calendar-month">
                 {{ calendarMonthLabel }}
               </p>
+              <button
+                v-if="!isCurrentMonth"
+                type="button"
+                class="calendar-today-icon"
+                aria-label="回到本月"
+                @click="jumpToCurrentMonth"
+              />
             </div>
             <button
               type="button"
@@ -336,6 +343,12 @@ const calendarMonthLabel = computed(() => viewMonth.value.toLocaleDateString('zh
   month: 'long',
 }))
 
+const isCurrentMonth = computed(() => {
+  const t = localToday.value
+  if (!t) return true
+  return viewMonth.value.getFullYear() === t.year && viewMonth.value.getMonth() === t.month
+})
+
 interface CalendarDayCell {
   day: number | null
   hasPost: boolean
@@ -403,6 +416,13 @@ function shiftCalendarMonth(offset: number) {
     viewMonth.value.getMonth() + offset,
     1,
   )
+}
+
+function jumpToCurrentMonth() {
+  const t = localToday.value
+  if (t) {
+    viewMonth.value = new Date(t.year, t.month, 1)
+  }
 }
 
 function dotLevelClass(postCount: number) {
@@ -814,7 +834,10 @@ onBeforeUnmount(() => {
 
 .calendar-header-center {
   flex: 1;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .calendar-title {
@@ -860,6 +883,36 @@ onBeforeUnmount(() => {
 .calendar-nav-btn:focus-visible {
   outline: 2px solid var(--blog-blue-300);
   outline-offset: 2px;
+}
+
+.calendar-today-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 1.5px solid var(--blog-blue-400);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+
+.calendar-today-icon::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--blog-blue-400);
+  transition: background-color 0.2s ease;
+}
+
+.calendar-today-icon:hover {
+  border-color: var(--blog-blue-600);
+}
+
+.calendar-today-icon:hover::after {
+  background: var(--blog-blue-600);
 }
 
 .calendar-time {
@@ -913,7 +966,6 @@ onBeforeUnmount(() => {
 }
 
 .calendar-day.today .calendar-day-number {
-  padding-bottom: 0;
   background: var(--blog-calendar-today-bg);
   inline-size: 24px;
   block-size: 24px;
@@ -973,7 +1025,7 @@ onBeforeUnmount(() => {
   transform: translateX(-50%);
 }
 
-.calendar-day .calendar-day-number {
+.calendar-day:has(.calendar-day-dot) .calendar-day-number {
   padding-bottom: 6px;
 }
 
