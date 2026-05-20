@@ -797,7 +797,7 @@ onBeforeUnmount(() => {
 }
 
 .calendar-block {
-  padding: 1rem;
+  padding: 0.75rem;
   border: 1px solid var(--blog-blue-100);
   border-radius: 16px;
   background: linear-gradient(180deg, var(--blog-calendar-bg-start) 0%, var(--blog-calendar-bg-end) 100%);
@@ -809,7 +809,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
 }
 
 .calendar-header-center {
@@ -878,7 +878,7 @@ onBeforeUnmount(() => {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.4rem;
+  gap: 0.25rem;
 }
 
 .calendar-weekday {
@@ -889,11 +889,11 @@ onBeforeUnmount(() => {
 
 .calendar-days {
   justify-items: center;
-  min-height: calc(6 * max(36px, (100cqw - 2.4rem) / 7) + 2rem);
+  min-height: calc(6 * max(30px, (100cqw - 1.5rem) / 7) + 1.25rem);
 }
 
 .calendar-day {
-  min-height: 36px;
+  min-height: 30px;
   aspect-ratio: 1 / 1;
   width: 100%;
   max-width: 40px;
@@ -913,6 +913,7 @@ onBeforeUnmount(() => {
 }
 
 .calendar-day.today .calendar-day-number {
+  padding-bottom: 0;
   background: var(--blog-calendar-today-bg);
   inline-size: 24px;
   block-size: 24px;
@@ -963,13 +964,17 @@ onBeforeUnmount(() => {
 
 .calendar-day-dot {
   position: absolute;
-  bottom: 6px;
+  bottom: 2px;
   left: 50%;
   width: 4px;
   height: 4px;
   border-radius: 50%;
   background: var(--blog-blue-300);
   transform: translateX(-50%);
+}
+
+.calendar-day .calendar-day-number {
+  padding-bottom: 6px;
 }
 
 .calendar-day-dot.dot-level-1 {
