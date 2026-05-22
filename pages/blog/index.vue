@@ -896,6 +896,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   position: relative;
   transition: border-color 0.2s ease;
+  top: 1px;
 }
 
 .calendar-today-icon::after {
