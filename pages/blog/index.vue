@@ -1026,7 +1026,8 @@ onBeforeUnmount(() => {
   transform: translateX(-50%);
 }
 
-.calendar-day:has(.calendar-day-dot) .calendar-day-number {
+/* 有文章的日子给数字留底距放圆点；今天已是固定圆角背景，再加 padding 会把圆撑成椭圆 */
+.calendar-day:has(.calendar-day-dot):not(.today) .calendar-day-number {
   padding-bottom: 6px;
 }
 
