@@ -24,7 +24,8 @@
       "Bash(git ls-files *)",
       "Bash(npm view *)",
       "Bash(python3 -c \"import sys,json; vs=json.load\\(sys.stdin\\); print\\([v for v in vs if v.startswith\\('14'\\)]\\)\")",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(python3 -m json.tool)"
     ]
   }
 }
