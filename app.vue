@@ -1,5 +1,7 @@
 <template>
-  <NuxtPage />
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
   <BackToTopFab
     :show="showBackToTop"
     @click="scrollToTop"

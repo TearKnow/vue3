@@ -156,4 +156,16 @@ html.dark .card-route-tree {
   border-color: #b91c1c;
   color: #fecaca;
 }
+
+.card-wiki {
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+html.dark .card-wiki {
+  background: linear-gradient(180deg, #78350f 0%, #92400e 100%);
+  border-color: #b45309;
+  color: #fde68a;
+}
 </style>

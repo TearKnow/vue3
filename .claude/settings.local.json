@@ -10,7 +10,21 @@
       "Bash(curl -s -o /dev/null -w \" %{http_code}\" http://localhost:3001/blog/tag/test)",
       "Bash(pnpm build *)",
       "Bash(curl -s http://localhost:3000/blog/)",
-      "Bash(kill %1)"
+      "Bash(kill %1)",
+      "Bash(git checkout *)",
+      "Bash(pnpm add *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git fetch *)",
+      "Bash(pnpm why *)",
+      "Bash(pnpm ls *)",
+      "Bash(node -e \"console.log\\(require\\('markdown-it/package.json'\\).version\\)\")",
+      "Bash(node -e \"console.log\\(require\\('@types/markdown-it/package.json'\\).version\\)\")",
+      "Bash(node *)",
+      "Bash(git ls-files *)",
+      "Bash(npm view *)",
+      "Bash(python3 -c \"import sys,json; vs=json.load\\(sys.stdin\\); print\\([v for v in vs if v.startswith\\('14'\\)]\\)\")",
+      "Bash(curl *)"
     ]
   }
 }

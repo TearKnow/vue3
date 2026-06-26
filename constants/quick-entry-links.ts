@@ -14,6 +14,12 @@ export const quickEntryLinks: QuickEntryLinkItem[] = [
     cardClass: 'card-blog',
   },
   {
+    label: 'Wiki',
+    to: '/wiki',
+    icon: '📚',
+    cardClass: 'card-wiki',
+  },
+  {
     label: '文件浏览器',
     to: '/file-browser',
     icon: '📂',
