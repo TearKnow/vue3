@@ -1,23 +1,20 @@
 <template>
   <div>
     <div
-      class="wiki-tree-row"
-      :class="{
-        active: isNodeActive,
-        'wiki-tree-row--folder': isFolderOnly,
-      }"
+      v-if="isFolderOnly"
+      class="wiki-tree-row wiki-tree-row--folder"
+      :class="{ 'wiki-tree-row--expanded': expanded }"
+      role="button"
+      :tabindex="0"
+      :aria-expanded="expanded"
+      @click="toggle"
+      @keydown.enter.prevent="toggle"
+      @keydown.space.prevent="toggle"
     >
-      <button
-        type="button"
+      <span
         class="wiki-tree-toggle"
-        :class="{
-          invisible: !hasChildren,
-          'wiki-tree-toggle--expanded': expanded,
-        }"
-        :tabindex="hasChildren ? 0 : -1"
-        :aria-label="expanded ? '收起' : '展开'"
-        :aria-hidden="!hasChildren"
-        @click.stop="toggle"
+        :class="{ 'wiki-tree-toggle--expanded': expanded }"
+        aria-hidden="true"
       >
         <svg
           class="wiki-tree-chevron"
@@ -29,29 +26,67 @@
           stroke-width="1.75"
           stroke-linecap="round"
           stroke-linejoin="round"
-          aria-hidden="true"
         >
           <path d="M6 4l4 4-4 4" />
         </svg>
-      </button>
+      </span>
+      <span class="wiki-tree-folder">
+        {{ node.title || node.name }}
+      </span>
+    </div>
 
+    <NuxtLink
+      v-else-if="node.isPage"
+      :to="node.urlPath"
+      no-prefetch
+      class="wiki-tree-row"
+      :class="{ active: isNodeActive }"
+      @click="$emit('navigate')"
+    >
+      <span class="wiki-tree-toggle invisible" aria-hidden="true" />
+      <span class="wiki-tree-link">
+        {{ node.title || node.name }}
+      </span>
+    </NuxtLink>
+
+    <div
+      v-else-if="hasChildren"
+      class="wiki-tree-row wiki-tree-row--folder"
+      :class="{ 'wiki-tree-row--expanded': expanded }"
+      role="button"
+      :tabindex="0"
+      :aria-expanded="expanded"
+      @click="toggle"
+      @keydown.enter.prevent="toggle"
+      @keydown.space.prevent="toggle"
+    >
+      <span
+        class="wiki-tree-toggle"
+        :class="{ 'wiki-tree-toggle--expanded': expanded }"
+        aria-hidden="true"
+      >
+        <svg
+          class="wiki-tree-chevron"
+          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 4l4 4-4 4" />
+        </svg>
+      </span>
       <NuxtLink
-        v-if="node.isPage"
         :to="node.urlPath"
         no-prefetch
         class="wiki-tree-link"
-        @click="$emit('navigate')"
+        @click.stop="$emit('navigate')"
       >
         {{ node.title || node.name }}
       </NuxtLink>
-      <button
-        v-else
-        type="button"
-        class="wiki-tree-folder"
-        @click="toggle"
-      >
-        {{ node.title || node.name }}
-      </button>
     </div>
 
     <div
@@ -83,7 +118,7 @@ const props = defineProps<{
   depth?: number
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   navigate: []
 }>()
 
@@ -113,14 +148,21 @@ function toggle() {
   display: flex;
   align-items: center;
   gap: 4px;
+  width: calc(100% - 20px);
   min-height: 32px;
   margin: 2px 10px;
   padding: 4px 8px 4px 10px;
+  border: 0;
+  cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   font-size: 13px;
   line-height: 1.35;
   border-radius: 8px;
   border-left: 3px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+  box-sizing: border-box;
 }
 
 .wiki-tree-row:hover {
@@ -140,26 +182,20 @@ function toggle() {
   font-weight: 600;
 }
 
+.wiki-tree-row--folder:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blog-blue-200);
+}
+
 .wiki-tree-toggle {
   width: 20px;
   height: 20px;
   flex: 0 0 20px;
-  padding: 0;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--blog-slate-500);
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: var(--blog-slate-500);
   user-select: none;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.wiki-tree-toggle:hover:not(.invisible) {
-  background: var(--blog-slate-100);
-  color: var(--blog-slate-700);
 }
 
 .wiki-tree-toggle.invisible {
@@ -180,8 +216,10 @@ function toggle() {
 .wiki-tree-link,
 .wiki-tree-folder {
   flex: 1;
+  align-self: stretch;
   min-width: 0;
-  display: block;
+  display: flex;
+  align-items: center;
   padding: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -196,36 +234,20 @@ function toggle() {
 }
 
 .wiki-tree-link:focus,
-.wiki-tree-folder:focus,
-.wiki-tree-toggle:focus {
+.wiki-tree-row:focus {
   outline: none;
 }
 
-.wiki-tree-toggle:focus-visible {
-  box-shadow: 0 0 0 2px var(--blog-blue-200);
-}
-
-.wiki-tree-folder:focus-visible,
-.wiki-tree-link:focus-visible {
-  outline: none;
-}
-
-.wiki-tree-row:focus-within:has(:focus-visible) {
-  box-shadow: 0 0 0 2px var(--blog-blue-200);
-}
-
-.wiki-tree-row.active:focus-within:has(:focus-visible) {
+.wiki-tree-row.active:focus-visible,
+.wiki-tree-row:focus-visible:has(.wiki-tree-link) {
   box-shadow: 0 4px 14px var(--blog-shadow-xs), 0 0 0 2px var(--blog-blue-200);
 }
 
 .wiki-tree-folder {
-  border: 0;
-  background: transparent;
   font-family: inherit;
   font-size: inherit;
   line-height: 20px;
   color: var(--blog-slate-600);
-  cursor: pointer;
 }
 
 .wiki-tree-children-wrap {

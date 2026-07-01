@@ -30,20 +30,16 @@
       <!-- 目录树 -->
       <nav class="wiki-tree">
         <!-- 根页面（首页） -->
-        <div
+        <NuxtLink
+          to="/wiki"
+          no-prefetch
           class="wiki-tree-row"
           :class="{ active: route.path === '/wiki' }"
+          @click="sidebarOpen = false"
         >
           <span class="wiki-tree-toggle invisible" aria-hidden="true" />
-          <NuxtLink
-            to="/wiki"
-            no-prefetch
-            class="wiki-tree-link"
-            @click="sidebarOpen = false"
-          >
-            首页
-          </NuxtLink>
-        </div>
+          <span class="wiki-tree-link">首页</span>
+        </NuxtLink>
 
         <!-- 子节点 -->
         <WikiTreeItem
@@ -105,6 +101,7 @@ import {
   fetchWikiOrderFile,
   filterWikiPages,
 } from '~/composables/useWikiTree'
+import type { WikiPageMeta } from '~/composables/useWikiTree'
 import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 const route = useRoute()
@@ -116,10 +113,16 @@ const { data: wikiPages } = await useAsyncData('wiki-tree', () =>
 
 const { data: wikiOrder } = await useAsyncData('wiki-order', fetchWikiOrderFile)
 
-const tree = computed(() => buildWikiTree(
-  filterWikiPages(wikiPages.value || []),
-  wikiOrder.value || { groups: {} },
-))
+const tree = computed(() => {
+  const pages: WikiPageMeta[] = filterWikiPages(wikiPages.value || []).map(page => ({
+    _path: page._path,
+    title: typeof page.title === 'string' ? page.title : undefined,
+    date: typeof page.date === 'string' ? page.date : undefined,
+    order: typeof page.order === 'number' ? page.order : undefined,
+  }))
+
+  return buildWikiTree(pages, wikiOrder.value || { groups: {} })
+})
 
 // ── 新建页面 ──
 const showNewDialog = ref(false)
@@ -289,15 +292,21 @@ function createPage() {
   display: flex;
   align-items: center;
   gap: 4px;
+  width: calc(100% - 20px);
   min-height: 32px;
   margin: 2px 10px;
   padding: 4px 8px 4px 10px;
+  border: 0;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   font-size: 13px;
   line-height: 1.35;
   border-radius: 8px;
   border-left: 3px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+  box-sizing: border-box;
 }
 
 .wiki-tree-row:hover {
@@ -328,8 +337,10 @@ function createPage() {
 
 .wiki-tree-link {
   flex: 1;
+  align-self: stretch;
   min-width: 0;
-  display: block;
+  display: flex;
+  align-items: center;
   padding: 0;
   line-height: 20px;
   text-decoration: none;
@@ -340,19 +351,12 @@ function createPage() {
   text-align: left;
 }
 
-.wiki-tree-link:focus {
+.wiki-tree-row:focus {
   outline: none;
 }
 
-.wiki-tree-link:focus-visible {
-  outline: none;
-}
-
-.wiki-tree-row:focus-within:has(.wiki-tree-link:focus-visible) {
-  box-shadow: 0 0 0 2px var(--blog-blue-200);
-}
-
-.wiki-tree-row.active:focus-within:has(.wiki-tree-link:focus-visible) {
+.wiki-tree-row.active:focus-visible,
+.wiki-tree-row:focus-visible {
   box-shadow: 0 4px 14px var(--blog-shadow-xs), 0 0 0 2px var(--blog-blue-200);
 }
 

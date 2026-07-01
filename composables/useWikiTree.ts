@@ -38,17 +38,19 @@ export function isWikiBrowsablePage(path?: string | null): boolean {
   return !rel.split('/').some(seg => seg.startsWith('_'))
 }
 
-export function filterWikiPages<T extends WikiPageMeta>(pages: T[]): T[] {
-  const map = new Map<string, T>()
+export function filterWikiPages<T extends { _path?: string | null }>(pages: T[]): Array<T & { _path: string }> {
+  const map = new Map<string, T & { _path: string }>()
 
   for (const page of pages) {
-    if (!isWikiBrowsablePage(page._path))
+    const path = page._path
+    if (!isWikiBrowsablePage(path))
       continue
 
-    const key = normalizeWikiPath(page._path!)
+    const normalizedPage = page as T & { _path: string }
+    const key = normalizeWikiPath(path!)
     const existing = map.get(key)
-    if (!existing || page._path === key)
-      map.set(key, page)
+    if (!existing || path === key)
+      map.set(key, normalizedPage)
   }
 
   return [...map.values()]
