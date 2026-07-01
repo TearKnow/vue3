@@ -1,3 +1,5 @@
+import { normalizeWikiOrderGroups } from '~/utils/wiki-path'
+
 export interface WikiTreeNode {
   name: string
   path: string
@@ -201,7 +203,7 @@ export async function fetchWikiOrderFile(): Promise<WikiOrderFile> {
     })
     const parsed = JSON.parse(data.content) as WikiOrderFile
     if (parsed?.groups && typeof parsed.groups === 'object')
-      return parsed
+      return { groups: normalizeWikiOrderGroups(parsed.groups) }
   }
   catch {
     // ignore

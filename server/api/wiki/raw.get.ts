@@ -1,7 +1,7 @@
 import { getQuery } from 'h3'
 import { serverQueryContent } from '#content/server'
 import { readWikiContentFile } from '../../utils/project-files'
-import { isValidWikiSlug, stripWikiFrontmatter, wikiPathToContentFile } from '../../utils/wiki-content'
+import { isValidWikiSlug, normalizeWikiSlug, stripWikiFrontmatter, wikiPathToContentFile } from '../../utils/wiki-content'
 
 export default defineEventHandler(async (event) => {
   const { slug } = getQuery(event)
@@ -9,15 +9,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '无效 slug' })
   }
 
-  const normalizedSlug = slug.replace(/\\/g, '/')
-  const targetPath = `/wiki/${normalizedSlug}`.toLowerCase()
+  const normalizedSlug = normalizeWikiSlug(slug)
+  const targetPath = `/wiki/${normalizedSlug}`
 
   const pages = await serverQueryContent(event, '/wiki').only(['_path']).find()
   const matched = (pages as { _path?: string }[]).find(
     page => typeof page._path === 'string' && page._path.toLowerCase() === targetPath,
   )
 
-  const wikiPath = matched?._path || `/wiki/${normalizedSlug}`
+  const wikiPath = matched?._path || targetPath
   const filePath = wikiPathToContentFile(wikiPath)
   const raw = await readWikiContentFile(filePath)
 

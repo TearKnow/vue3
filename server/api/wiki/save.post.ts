@@ -7,6 +7,7 @@ import {
   readWikiOrderFileFromGithub,
   writeWikiOrderFileToGithub,
 } from '../../utils/wiki-github'
+import { isValidWikiSlug, normalizeWikiPath, normalizeWikiSlug } from '../../utils/wiki-content'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -16,11 +17,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'slug, title, password 为必填字段' })
   }
 
+  if (!isValidWikiSlug(slug)) {
+    throw createError({ statusCode: 400, statusMessage: '无效 slug' })
+  }
+
   assertWikiPassword(password)
 
+  const normalizedSlug = normalizeWikiSlug(slug)
   const today = new Date().toISOString().slice(0, 10)
-  const filePath = `content/wiki/${slug}.md`
-  const pagePath = `/wiki/${slug.replace(/\\/g, '/')}`
+  const filePath = `content/wiki/${normalizedSlug}.md`
+  const pagePath = normalizeWikiPath(`/wiki/${normalizedSlug}`)
   const parentPath = pagePath.substring(0, pagePath.lastIndexOf('/')) || '/wiki'
 
   const existing = await readGithubFile(filePath)
@@ -41,7 +47,7 @@ export default defineEventHandler(async (event) => {
   await writeGithubFile(
     filePath,
     fileContent,
-    `wiki: ${existing?.sha ? 'update' : 'create'} ${slug}`,
+    `wiki: ${existing?.sha ? 'update' : 'create'} ${normalizedSlug}`,
     existing?.sha || '',
   )
 
@@ -59,7 +65,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    slug,
+    slug: normalizedSlug,
     action: existing?.sha ? 'updated' : 'created',
   }
 })

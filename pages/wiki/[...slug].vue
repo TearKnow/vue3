@@ -65,13 +65,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { isWikiBrowsablePage } from '~/composables/useWikiTree'
+import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 definePageMeta({ layout: 'wiki' })
 
 const route = useRoute()
 
-// slug 就是路径中 /wiki/ 后面的部分
+// slug 就是路径中 /wiki/ 后面的部分（统一小写，避免大小写冲突）
 const slug = computed(() => {
+  const s = (route.params.slug as string[]) || []
+  return normalizeWikiSlug(s.join('/'))
+})
+
+const rawSlug = computed(() => {
   const s = (route.params.slug as string[]) || []
   return s.join('/')
 })
@@ -122,6 +128,15 @@ function onSaved() {
 
 // 从「创建并编辑」跳转过来时，直接进入编辑模式
 onMounted(async () => {
+  if (rawSlug.value && rawSlug.value !== slug.value) {
+    await navigateTo({
+      path: `/wiki/${slug.value}`,
+      query: route.query,
+      replace: true,
+    })
+    return
+  }
+
   const titleFromQuery = route.query.title
   if (typeof titleFromQuery === 'string' && titleFromQuery.trim() && !page.value) {
     await startEdit()

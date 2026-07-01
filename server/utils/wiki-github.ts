@@ -1,3 +1,5 @@
+import { normalizeWikiOrderGroups } from '../../utils/wiki-content'
+
 const GITHUB_API = 'https://api.github.com'
 const WIKI_ORDER_PATH = 'data/wiki/_order.json'
 
@@ -119,7 +121,7 @@ export async function readWikiOrderFileFromGithub() {
   try {
     const parsed = JSON.parse(file.content) as { groups?: Record<string, string[]> }
     return {
-      groups: parsed.groups || {},
+      groups: normalizeWikiOrderGroups(parsed.groups || {}),
       sha: file.sha,
     }
   }
@@ -129,7 +131,7 @@ export async function readWikiOrderFileFromGithub() {
 }
 
 export async function writeWikiOrderFileToGithub(groups: Record<string, string[]>, sha = '') {
-  const content = `${JSON.stringify({ groups }, null, 2)}\n`
+  const content = `${JSON.stringify({ groups: normalizeWikiOrderGroups(groups) }, null, 2)}\n`
   return writeGithubFile(WIKI_ORDER_PATH, content, 'wiki: update sidebar order', sha)
 }
 

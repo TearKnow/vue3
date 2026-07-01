@@ -83,6 +83,7 @@
         </div>
         <p class="wiki-dialog-hint">
           路径预览: /wiki/<b>{{ newFolderPath }}</b><b>{{ generatedSlug }}</b>
+          <span class="wiki-dialog-hint-note">（路径会自动转为小写）</span>
         </p>
         <div class="wiki-dialog-actions">
           <button class="wiki-btn wiki-btn-ghost" @click="showNewDialog = false">
@@ -103,6 +104,7 @@ import {
   buildWikiTree,
   fetchWikiOrderFile,
 } from '~/composables/useWikiTree'
+import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
@@ -133,8 +135,8 @@ const generatedSlug = computed(() => {
 const newFolderPath = computed(() => {
   const folder = newFolder.value.trim()
   if (!folder) return ''
-  const cleaned = folder.replace(/^\/+|\/+$/g, '').replace(/\s+/g, '-')
-  return cleaned ? cleaned + '/' : ''
+  const cleaned = normalizeWikiSlug(folder.replace(/\s+/g, '-'))
+  return cleaned ? `${cleaned}/` : ''
 })
 
 function createPage() {
@@ -415,6 +417,13 @@ function createPage() {
   font-size: 13px;
   color: var(--blog-slate-500);
   word-break: break-all;
+}
+
+.wiki-dialog-hint-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--blog-slate-400);
 }
 
 .wiki-dialog-actions {
