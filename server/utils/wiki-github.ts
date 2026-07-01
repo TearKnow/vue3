@@ -1,4 +1,4 @@
-import { normalizeWikiOrderGroups } from '../../utils/wiki-content'
+import { normalizeWikiOrderGroups } from './wiki-content'
 
 const GITHUB_API = 'https://api.github.com'
 const WIKI_ORDER_PATH = 'data/wiki/_order.json'

@@ -1,4 +1,4 @@
-import { normalizeWikiOrderGroups } from '~/utils/wiki-path'
+import { normalizeWikiOrderGroups, normalizeWikiPath } from '~/utils/wiki-path'
 
 export interface WikiTreeNode {
   name: string
@@ -39,7 +39,19 @@ export function isWikiBrowsablePage(path?: string | null): boolean {
 }
 
 export function filterWikiPages<T extends WikiPageMeta>(pages: T[]): T[] {
-  return pages.filter(page => isWikiBrowsablePage(page._path))
+  const map = new Map<string, T>()
+
+  for (const page of pages) {
+    if (!isWikiBrowsablePage(page._path))
+      continue
+
+    const key = normalizeWikiPath(page._path!)
+    const existing = map.get(key)
+    if (!existing || page._path === key)
+      map.set(key, page)
+  }
+
+  return [...map.values()]
 }
 
 function parentPathOf(path: string): string | null {

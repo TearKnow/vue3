@@ -103,6 +103,7 @@ import { ref, computed } from 'vue'
 import {
   buildWikiTree,
   fetchWikiOrderFile,
+  filterWikiPages,
 } from '~/composables/useWikiTree'
 import { normalizeWikiSlug } from '~/utils/wiki-path'
 
@@ -115,7 +116,10 @@ const { data: wikiPages } = await useAsyncData('wiki-tree', () =>
 
 const { data: wikiOrder } = await useAsyncData('wiki-order', fetchWikiOrderFile)
 
-const tree = computed(() => buildWikiTree(wikiPages.value || [], wikiOrder.value || { groups: {} }))
+const tree = computed(() => buildWikiTree(
+  filterWikiPages(wikiPages.value || []),
+  wikiOrder.value || { groups: {} },
+))
 
 // ── 新建页面 ──
 const showNewDialog = ref(false)
