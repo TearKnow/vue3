@@ -195,6 +195,29 @@ function toggle() {
   color: inherit;
 }
 
+.wiki-tree-link:focus,
+.wiki-tree-folder:focus,
+.wiki-tree-toggle:focus {
+  outline: none;
+}
+
+.wiki-tree-toggle:focus-visible {
+  box-shadow: 0 0 0 2px var(--blog-blue-200);
+}
+
+.wiki-tree-folder:focus-visible,
+.wiki-tree-link:focus-visible {
+  outline: none;
+}
+
+.wiki-tree-row:focus-within:has(:focus-visible) {
+  box-shadow: 0 0 0 2px var(--blog-blue-200);
+}
+
+.wiki-tree-row.active:focus-within:has(:focus-visible) {
+  box-shadow: 0 4px 14px var(--blog-shadow-xs), 0 0 0 2px var(--blog-blue-200);
+}
+
 .wiki-tree-folder {
   border: 0;
   background: transparent;

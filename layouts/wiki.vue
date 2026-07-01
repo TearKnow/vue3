@@ -340,6 +340,22 @@ function createPage() {
   text-align: left;
 }
 
+.wiki-tree-link:focus {
+  outline: none;
+}
+
+.wiki-tree-link:focus-visible {
+  outline: none;
+}
+
+.wiki-tree-row:focus-within:has(.wiki-tree-link:focus-visible) {
+  box-shadow: 0 0 0 2px var(--blog-blue-200);
+}
+
+.wiki-tree-row.active:focus-within:has(.wiki-tree-link:focus-visible) {
+  box-shadow: 0 4px 14px var(--blog-shadow-xs), 0 0 0 2px var(--blog-blue-200);
+}
+
 .wiki-tree-folder {
   overflow: hidden;
   text-overflow: ellipsis;
