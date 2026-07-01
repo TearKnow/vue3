@@ -12,10 +12,18 @@
     <aside class="wiki-sidebar" :class="{ 'wiki-sidebar--open': sidebarOpen }">
       <div class="wiki-sidebar-header">
         <NuxtLink to="/wiki" class="wiki-sidebar-title" @click="sidebarOpen = false">
-          📚 Wiki
+          Wiki
         </NuxtLink>
-        <button class="wiki-btn wiki-btn-primary wiki-new-btn" @click="showNewDialog = true">
-          ＋ 新建
+        <button
+          class="wiki-icon-btn"
+          type="button"
+          title="新建页面"
+          aria-label="新建页面"
+          @click="showNewDialog = true"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
         </button>
       </div>
 
@@ -26,8 +34,14 @@
           class="wiki-tree-row"
           :class="{ active: route.path === '/wiki' }"
         >
-          <NuxtLink to="/wiki" class="wiki-tree-link" @click="sidebarOpen = false">
-            🏠 首页
+          <span class="wiki-tree-toggle invisible" aria-hidden="true" />
+          <NuxtLink
+            to="/wiki"
+            no-prefetch
+            class="wiki-tree-link"
+            @click="sidebarOpen = false"
+          >
+            首页
           </NuxtLink>
         </div>
 
@@ -71,11 +85,11 @@
           路径预览: /wiki/<b>{{ newFolderPath }}</b><b>{{ generatedSlug }}</b>
         </p>
         <div class="wiki-dialog-actions">
-          <button class="wiki-btn wiki-btn-primary" :disabled="!newTitle.trim()" @click="createPage">
-            创建并编辑
-          </button>
           <button class="wiki-btn wiki-btn-ghost" @click="showNewDialog = false">
             取消
+          </button>
+          <button class="wiki-btn wiki-btn-primary" :disabled="!newTitle.trim()" @click="createPage">
+            创建并编辑
           </button>
         </div>
       </div>
@@ -85,83 +99,21 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import {
+  buildWikiTree,
+  fetchWikiOrderFile,
+} from '~/composables/useWikiTree'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
 
-// ── 构建目录树 ──
-interface WikiTreeNode {
-  name: string
-  path: string
-  urlPath: string
-  title: string
-  children: WikiTreeNode[]
-  isPage: boolean
-}
-
-function buildTree(pages: { _path: string, title?: string }[]): WikiTreeNode[] {
-  const map = new Map<string, WikiTreeNode>()
-
-  // 为所有路径及其前缀创建节点
-  for (const page of pages) {
-    const segments = page._path.split('/').filter(Boolean) // ['wiki', 'a', 'b']
-    let acc = ''
-    for (const seg of segments) {
-      acc += '/' + seg
-      if (!map.has(acc)) {
-        map.set(acc, {
-          name: seg,
-          path: acc,
-          urlPath: acc,
-          title: seg,
-          children: [],
-          isPage: false,
-        })
-      }
-    }
-  }
-
-  // 标记有实际页面的节点
-  const pageMap = new Map(pages.map(p => [p._path, p]))
-  for (const [path, node] of map) {
-    const page = pageMap.get(path)
-    if (page) {
-      node.isPage = true
-      if (page.title) node.title = page.title
-    }
-  }
-
-  // 建立父子关系
-  for (const [path, node] of map) {
-    const parentPath = path.substring(0, path.lastIndexOf('/'))
-    const parent = map.get(parentPath)
-    if (parent) {
-      parent.children.push(node)
-    }
-  }
-
-  // 排序：文件夹在前，按名称排序
-  const sort = (nodes: WikiTreeNode[]) => {
-    nodes.sort((a, b) => {
-      const aDir = a.children.length > 0
-      const bDir = b.children.length > 0
-      if (aDir !== bDir) return aDir ? -1 : 1
-      return a.name.localeCompare(b.name, 'zh-CN')
-    })
-    nodes.forEach(n => sort(n.children))
-  }
-
-  const root = map.get('/wiki')
-  if (!root) return []
-  sort(root.children)
-  return root.children
-}
-
 const { data: wikiPages } = await useAsyncData('wiki-tree', () =>
-  queryContent('/wiki').only(['_path', 'title']).find(),
+  queryContent('/wiki').only(['_path', 'title', 'date', 'order']).find(),
 )
 
-const tree = computed(() => buildTree(wikiPages.value || []))
+const { data: wikiOrder } = await useAsyncData('wiki-order', fetchWikiOrderFile)
+
+const tree = computed(() => buildWikiTree(wikiPages.value || [], wikiOrder.value || { groups: {} }))
 
 // ── 新建页面 ──
 const showNewDialog = ref(false)
@@ -200,6 +152,8 @@ function createPage() {
 <style scoped>
 /* ── 整体布局 ── */
 .wiki-layout {
+  --wiki-sidebar-width: 300px;
+  --wiki-content-max-width: 960px;
   display: flex;
   min-height: calc(100vh - 60px);
 }
@@ -214,12 +168,12 @@ function createPage() {
   width: 43px;
   height: 43px;
   border-radius: 999px;
-  border: 0;
-  background: rgba(15, 23, 42, 0.7);
-  color: #fff;
+  border: 1px solid var(--blog-slate-200);
+  background: var(--blog-white);
+  color: var(--blog-slate-700);
   font-size: 18px;
   cursor: pointer;
-  box-shadow: 0 4px 10px var(--blog-shadow-md);
+  box-shadow: 0 4px 14px var(--blog-shadow-sm);
 }
 
 @media (max-width: 768px) {
@@ -239,16 +193,16 @@ function createPage() {
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--blog-overlay-dark);
   }
 }
 
 /* ── 侧边栏 ── */
 .wiki-sidebar {
-  width: 260px;
-  min-width: 260px;
+  width: var(--wiki-sidebar-width);
+  min-width: var(--wiki-sidebar-width);
   border-right: 1px solid var(--blog-slate-200);
-  background: var(--blog-slate-50);
+  background: linear-gradient(180deg, var(--blog-white) 0%, var(--wiki-sidebar-gradient-end) 100%);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -274,71 +228,109 @@ function createPage() {
 }
 
 .wiki-sidebar-header {
-  padding: 16px;
+  padding: 18px 12px 18px 16px;
   border-bottom: 1px solid var(--blog-slate-200);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  background: var(--blog-overlay-light);
+  backdrop-filter: blur(8px);
 }
 
 .wiki-sidebar-title {
-  font-size: 1.05rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  color: var(--blog-slate-900);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blog-slate-700);
   text-decoration: none;
 }
 
 .wiki-sidebar-title:hover {
-  color: var(--blog-blue-600);
+  color: var(--blog-link);
 }
 
-.wiki-new-btn {
-  font-size: 12px;
-  padding: 5px 12px;
+.wiki-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--blog-slate-400);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.wiki-icon-btn:hover {
+  color: var(--blog-slate-700);
+  background: var(--blog-slate-100);
+  border-color: var(--blog-slate-200);
 }
 
 /* ── 目录树 ── */
 .wiki-tree {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0 24px;
+  padding: 6px 0 24px;
 }
 
 .wiki-tree-row {
   display: flex;
-  align-items: center;
-  padding: 6px 16px;
+  align-items: stretch;
+  min-height: 34px;
+  margin: 2px 10px;
+  padding: 0 8px 0 6px;
   cursor: pointer;
-  transition: background 0.1s;
-  font-size: 14px;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 13px;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
 }
 
 .wiki-tree-row:hover {
-  background: var(--blog-slate-100);
+  background: var(--blog-blue-50);
 }
 
 .wiki-tree-row.active {
-  background: var(--blog-blue-100);
-  color: var(--blog-blue-700);
+  background: var(--wiki-card-highlight);
+  color: var(--blog-blue-800);
   font-weight: 600;
+  border-left-color: var(--wiki-accent-border);
+  box-shadow: 0 4px 14px var(--blog-shadow-xs);
 }
 
 .wiki-tree-toggle {
-  width: 18px;
+  width: 20px;
+  flex-shrink: 0;
   font-size: 11px;
   color: var(--blog-slate-500);
-  flex-shrink: 0;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wiki-tree-toggle.invisible {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .wiki-tree-link {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: block;
 }
 
 .wiki-tree-folder {
@@ -360,6 +352,7 @@ function createPage() {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
+  background: linear-gradient(165deg, var(--wiki-main-gradient-start) 0%, var(--wiki-main-gradient-end) 42%, var(--blog-slate-50) 100%);
 }
 
 /* ── 新建对话框 ── */
@@ -369,15 +362,17 @@ function createPage() {
   z-index: 10002;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--blog-overlay-dark);
 }
 
 .wiki-dialog {
   background: var(--blog-white);
-  border-radius: 12px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 14px;
   padding: 24px;
   max-width: 420px;
   width: 90vw;
+  box-shadow: 0 18px 40px var(--blog-shadow-md);
 }
 
 .wiki-dialog h3 {
@@ -429,38 +424,40 @@ function createPage() {
 
 /* ── 按钮复用 ── */
 .wiki-btn {
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
   white-space: nowrap;
-  transition: opacity 0.15s;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .wiki-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .wiki-btn-primary {
-  background: var(--blog-blue-600);
-  color: #fff;
-  border-color: var(--blog-blue-600);
+  background: var(--blog-slate-800);
+  color: var(--blog-white);
+  border-color: var(--blog-slate-800);
 }
 
 .wiki-btn-primary:hover:not(:disabled) {
-  opacity: 0.9;
+  background: var(--blog-slate-700);
+  border-color: var(--blog-slate-700);
 }
 
 .wiki-btn-ghost {
   background: transparent;
-  color: var(--blog-slate-700);
-  border-color: var(--blog-slate-300);
+  color: var(--blog-slate-600);
+  border-color: var(--blog-slate-200);
 }
 
 .wiki-btn-ghost:hover {
-  background: var(--blog-slate-100);
+  background: var(--blog-slate-50);
+  color: var(--blog-slate-800);
 }
 </style>

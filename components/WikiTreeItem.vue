@@ -2,28 +2,43 @@
   <div>
     <div
       class="wiki-tree-row"
-      :class="{ active: isNodeActive }"
-      :style="{ paddingLeft: 16 + depth * 16 + 'px' }"
+      :class="{
+        active: isNodeActive,
+        'wiki-tree-row--folder': isFolderOnly,
+      }"
+      :style="{ paddingLeft: 16 + depth * 14 + 'px' }"
     >
-      <span
+      <button
+        type="button"
         class="wiki-tree-toggle"
         :class="{ invisible: !hasChildren }"
-        @click="toggle"
+        :tabindex="hasChildren ? 0 : -1"
+        :aria-label="expanded ? '收起' : '展开'"
+        :aria-hidden="!hasChildren"
+        @click.stop="toggle"
       >
         {{ expanded ? '▾' : '▸' }}
-      </span>
+      </button>
+
       <NuxtLink
         v-if="node.isPage"
         :to="node.urlPath"
+        no-prefetch
         class="wiki-tree-link"
         @click="$emit('navigate')"
       >
         {{ node.title || node.name }}
       </NuxtLink>
-      <span v-else class="wiki-tree-folder" @click="toggle">
-        📁 {{ node.title || node.name }}
-      </span>
+      <button
+        v-else
+        type="button"
+        class="wiki-tree-folder"
+        @click="toggle"
+      >
+        {{ node.title || node.name }}
+      </button>
     </div>
+
     <div v-if="hasChildren && expanded" class="wiki-tree-children">
       <WikiTreeItem
         v-for="child in node.children"
@@ -38,15 +53,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-
-interface WikiTreeNode {
-  name: string
-  path: string
-  urlPath: string
-  title: string
-  children: WikiTreeNode[]
-  isPage: boolean
-}
+import type { WikiTreeNode } from '~/composables/useWikiTree'
 
 const props = defineProps<{
   node: WikiTreeNode
@@ -62,78 +69,100 @@ const depth = props.depth ?? 0
 const route = useRoute()
 const expanded = ref(false)
 const hasChildren = computed(() => props.node.children.length > 0)
+const isFolderOnly = computed(() => hasChildren.value && !props.node.isPage)
 
-// 如果当前路由包含在这个节点的路径下，自动展开
-const isNodeActive = computed(() => {
-  return route.path === props.node.urlPath
-})
+const isNodeActive = computed(() => route.path === props.node.urlPath)
 
-// 自动展开当前页面所在的父级目录
 if (hasChildren.value) {
-  if (route.path.startsWith(props.node.urlPath + '/')) {
+  if (route.path === props.node.urlPath || route.path.startsWith(`${props.node.urlPath}/`)) {
     expanded.value = true
   }
 }
 
 function toggle() {
-  if (hasChildren.value) {
+  if (hasChildren.value)
     expanded.value = !expanded.value
-  }
 }
 </script>
 
 <style scoped>
 .wiki-tree-row {
   display: flex;
-  align-items: center;
-  padding: 5px 16px;
-  cursor: pointer;
-  transition: background 0.1s;
-  font-size: 14px;
+  align-items: stretch;
+  min-height: 34px;
+  margin: 2px 10px 2px 0;
+  padding: 0 8px 0 0;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  font-size: 13px;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
 }
 
 .wiki-tree-row:hover {
-  background: var(--blog-slate-100);
+  background: var(--blog-blue-50);
 }
 
 .wiki-tree-row.active {
-  background: var(--blog-blue-100);
-  color: var(--blog-blue-700);
+  background: var(--wiki-card-highlight);
+  color: var(--blog-blue-800);
+  font-weight: 600;
+  border-left-color: var(--wiki-accent-border);
+  box-shadow: 0 4px 14px var(--blog-shadow-xs);
+}
+
+.wiki-tree-row--folder .wiki-tree-folder {
+  color: var(--blog-slate-700);
   font-weight: 600;
 }
 
 .wiki-tree-toggle {
-  width: 16px;
+  width: 20px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-size: 10px;
   color: var(--blog-slate-500);
-  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   user-select: none;
-  text-align: center;
 }
 
 .wiki-tree-toggle.invisible {
   visibility: hidden;
+  pointer-events: none;
+}
+
+.wiki-tree-link,
+.wiki-tree-folder {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
 }
 
 .wiki-tree-link {
   text-decoration: none;
   color: inherit;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
 }
 
 .wiki-tree-folder {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-  color: var(--blog-slate-700);
-  user-select: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--blog-slate-600);
+  cursor: pointer;
 }
 
 .wiki-tree-children {
-  /* children indentation handled by parent's paddingLeft */
+  border-left: 1px solid var(--blog-blue-200);
+  margin-left: 18px;
 }
 </style>

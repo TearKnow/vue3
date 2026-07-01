@@ -3,7 +3,7 @@
     <!-- 密码解锁层 -->
     <div v-if="!unlocked" class="wiki-editor-lock">
       <div class="wiki-editor-lock-card">
-        <h3>🔒 输入密码以编辑</h3>
+        <h3>输入密码以编辑</h3>
         <input
           v-model="passwordInput"
           type="password"
@@ -12,11 +12,11 @@
           @keyup.enter="unlock"
         >
         <div class="wiki-lock-actions">
-          <button class="wiki-btn wiki-btn-primary" @click="unlock">
-            解锁编辑
-          </button>
           <button class="wiki-btn wiki-btn-ghost" @click="$emit('cancel')">
             返回阅读
+          </button>
+          <button class="wiki-btn wiki-btn-primary" @click="unlock">
+            解锁编辑
           </button>
         </div>
         <p v-if="lockError" class="wiki-error">
@@ -35,15 +35,15 @@
         >
         <div class="wiki-toolbar-actions">
           <span v-if="draftSaved" class="wiki-draft-indicator">草稿已保存</span>
+          <button class="wiki-btn wiki-btn-ghost" @click="$emit('cancel')">
+            取消
+          </button>
           <button
             class="wiki-btn wiki-btn-primary"
             :disabled="saving"
             @click="save"
           >
             {{ saving ? '保存中...' : '保存' }}
-          </button>
-          <button class="wiki-btn wiki-btn-ghost" @click="$emit('cancel')">
-            取消
           </button>
         </div>
       </div>
@@ -117,6 +117,12 @@ function unlock() {
   }
   lockError.value = ''
   unlocked.value = true
+  try {
+    sessionStorage.setItem('wiki-edit-password', passwordInput.value)
+  }
+  catch {
+    // ignore
+  }
 }
 
 // ── 编辑状态 ──
@@ -288,6 +294,11 @@ async function save() {
   text-align: center;
   max-width: 360px;
   width: 100%;
+  padding: 28px 24px;
+  background: var(--blog-white);
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 14px;
+  box-shadow: 0 12px 28px var(--blog-shadow-xs-plus);
 }
 
 .wiki-editor-lock-card h3 {
@@ -321,38 +332,45 @@ async function save() {
 }
 
 /* ── 工具栏 ── */
+.wiki-editor {
+  min-height: calc(100vh - 60px);
+  background: var(--blog-white);
+}
+
 .wiki-editor-body {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 60px);
 }
 
 .wiki-editor-toolbar {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--blog-slate-200);
-  background: var(--blog-slate-50);
+  background: var(--blog-white);
   flex-wrap: wrap;
 }
 
 .wiki-title-input {
   flex: 1;
   min-width: 160px;
-  padding: 8px 12px;
-  border: 1px solid var(--blog-slate-300);
-  border-radius: 6px;
-  font-size: 15px;
+  padding: 7px 11px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   outline: none;
-  background: var(--blog-white);
+  background: var(--blog-slate-50);
   color: var(--blog-slate-800);
   box-sizing: border-box;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .wiki-title-input:focus {
-  border-color: var(--blog-blue-600);
+  border-color: var(--blog-slate-300);
+  background: var(--blog-white);
 }
 
 .wiki-toolbar-actions {
@@ -368,39 +386,41 @@ async function save() {
 
 /* ── 按钮 ── */
 .wiki-btn {
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   border: 1px solid transparent;
   white-space: nowrap;
-  transition: opacity 0.15s;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .wiki-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .wiki-btn-primary {
-  background: var(--blog-blue-600);
-  color: #fff;
-  border-color: var(--blog-blue-600);
+  background: var(--blog-slate-800);
+  color: var(--blog-white);
+  border-color: var(--blog-slate-800);
 }
 
 .wiki-btn-primary:hover:not(:disabled) {
-  opacity: 0.9;
+  background: var(--blog-slate-700);
+  border-color: var(--blog-slate-700);
 }
 
 .wiki-btn-ghost {
   background: transparent;
-  color: var(--blog-slate-700);
-  border-color: var(--blog-slate-300);
+  color: var(--blog-slate-600);
+  border-color: var(--blog-slate-200);
 }
 
 .wiki-btn-ghost:hover {
-  background: var(--blog-slate-100);
+  background: var(--blog-slate-50);
+  color: var(--blog-slate-800);
 }
 
 /* ── 消息 ── */
@@ -436,12 +456,11 @@ async function save() {
 
 .wiki-pane-label {
   padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--blog-slate-500);
-  background: var(--blog-slate-100);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--blog-slate-400);
+  background: var(--blog-slate-50);
   border-bottom: 1px solid var(--blog-slate-200);
 }
 

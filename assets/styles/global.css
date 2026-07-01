@@ -49,6 +49,14 @@ html {
   --blog-danger-700: #b91c1c;
   --blog-link: #3b6fc0;
   --blog-link-hover: #2b5aa0;
+  --wiki-main-gradient-start: var(--blog-calendar-bg-start);
+  --wiki-main-gradient-end: var(--blog-slate-50);
+  --wiki-hero-gradient-start: var(--blog-blue-50);
+  --wiki-hero-gradient-end: var(--blog-white);
+  --wiki-sidebar-gradient-end: var(--blog-slate-50);
+  --wiki-accent-border: var(--blog-blue-400);
+  --wiki-accent-glow: var(--blog-shadow-brand);
+  --wiki-card-highlight: var(--blog-blue-100);
 }
 
 /* 暗色模式 */
@@ -97,6 +105,14 @@ html.dark {
   --blog-danger-700: #f87171;
   --blog-link: #60a5fa;
   --blog-link-hover: #93c5fd;
+  --wiki-main-gradient-start: #0b1120;
+  --wiki-main-gradient-end: #020617;
+  --wiki-hero-gradient-start: #172554;
+  --wiki-hero-gradient-end: #0b1120;
+  --wiki-sidebar-gradient-end: #020617;
+  --wiki-accent-border: var(--blog-blue-600);
+  --wiki-accent-glow: var(--blog-shadow-brand);
+  --wiki-card-highlight: var(--blog-blue-100);
 }
 
 html.dark .demo-block {

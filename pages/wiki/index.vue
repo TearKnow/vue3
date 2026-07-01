@@ -1,28 +1,18 @@
 <template>
   <div class="wiki-index">
-    <h1 class="wiki-index-title">📚 Wiki 首页</h1>
-    <p class="wiki-index-desc">
-      左侧边栏浏览所有页面，点击「＋ 新建」创建新页面。
-    </p>
+    <header class="wiki-index-hero">
+      <p class="wiki-index-eyebrow">Knowledge Base</p>
+      <h1 class="wiki-index-title">知识库</h1>
+      <p class="wiki-index-desc">
+        记录想法、整理笔记。从左侧目录选择页面开始阅读。
+      </p>
+      <div v-if="pageCount > 0" class="wiki-index-stats">
+        <span>{{ pageCount }} 篇文档</span>
+      </div>
+    </header>
 
-    <!-- 按目录分组展示 -->
-    <div v-if="pages.length > 0">
-      <section v-for="group in groupedPages" :key="group.name" class="wiki-group">
-        <h2 class="wiki-group-title">{{ group.name || '未分类' }}</h2>
-        <NuxtLink
-          v-for="p in group.pages"
-          :key="p._path"
-          class="wiki-list-item"
-          :to="p._path"
-        >
-          <span class="wiki-list-title">{{ p.title || displayName(p._path) }}</span>
-          <span v-if="p.date" class="wiki-list-date">{{ p.date }}</span>
-        </NuxtLink>
-      </section>
-    </div>
-
-    <div v-else class="wiki-empty">
-      <p>还没有 Wiki 页面，点击侧边栏的「＋ 新建」创建第一篇。</p>
+    <div v-if="pageCount === 0" class="wiki-empty">
+      <p>还没有页面，侧栏右上角可新建第一篇。</p>
     </div>
   </div>
 </template>
@@ -36,103 +26,86 @@ useSeoMeta({
 })
 
 const { data: pages } = await useAsyncData('wiki-index', () =>
-  queryContent('/wiki').only(['_path', 'title', 'date']).find(),
+  queryContent('/wiki').only(['_path']).find(),
 )
 
-function displayName(path?: string) {
-  if (!path) return ''
-  const parts = path.replace(/^\/wiki\//, '').split('/')
-  return parts[parts.length - 1] || ''
-}
-
-// 按父目录分组
-const groupedPages = computed(() => {
-  const list = (pages.value || []).filter(p => p._path !== '/wiki')
-  const groups = new Map<string, typeof list>()
-
-  for (const page of list) {
-    const parentPath = (page._path || '').replace(/\/[^/]+$/, '') // 去掉最后一个路径段
-    const groupName = parentPath === '/wiki' ? '' : (parentPath.replace(/^\/wiki\//, '') || '')
-    if (!groups.has(groupName)) groups.set(groupName, [])
-    groups.get(groupName)!.push(page)
-  }
-
-  return [...groups.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, 'zh-CN'))
-    .map(([name, groupPages]) => ({
-      name,
-      pages: groupPages.sort((a, b) => (b.date || '').localeCompare(a.date || '')),
-    }))
-})
+const pageCount = computed(() => (pages.value || []).filter(p => p._path !== '/wiki').length)
 </script>
 
 <style scoped>
 .wiki-index {
-  padding: 32px 40px 80px;
-  max-width: 800px;
+  padding: 24px 32px 80px;
+  max-width: var(--wiki-content-max-width, 960px);
+  margin: 0 auto;
 }
 
 @media (max-width: 768px) {
   .wiki-index {
-    padding: 24px 20px 80px;
+    padding: 16px 16px 80px;
   }
+}
+
+.wiki-index-hero {
+  padding: 28px 30px;
+  border: 1px solid var(--blog-blue-100);
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--wiki-hero-gradient-start) 0%, var(--wiki-hero-gradient-end) 68%);
+  box-shadow: 0 16px 36px var(--blog-shadow-xs-plus);
+}
+
+.wiki-index-eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blog-blue-700);
 }
 
 .wiki-index-title {
   margin: 0 0 8px;
-  font-size: 1.6rem;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
   color: var(--blog-slate-900);
 }
 
 .wiki-index-desc {
-  margin: 0 0 32px;
+  margin: 0;
+  max-width: 36rem;
   color: var(--blog-slate-600);
   font-size: 15px;
+  line-height: 1.65;
 }
 
-.wiki-group {
-  margin-bottom: 32px;
-}
-
-.wiki-group-title {
-  margin: 0 0 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--blog-slate-700);
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--blog-slate-200);
-}
-
-.wiki-list-item {
+.wiki-index-stats {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  color: var(--blog-slate-800);
-  transition: background 0.15s;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
 }
 
-.wiki-list-item:hover {
-  background: var(--blog-slate-50);
-}
-
-.wiki-list-title {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.wiki-list-date {
-  font-size: 13px;
-  color: var(--blog-slate-500);
-  white-space: nowrap;
+.wiki-index-stats span {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--blog-overlay-light);
+  border: 1px solid var(--blog-blue-100);
+  color: var(--blog-blue-800);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .wiki-empty {
-  padding: 60px 20px;
+  margin-top: 24px;
+  padding: 56px 20px;
   text-align: center;
   color: var(--blog-slate-500);
+  font-size: 14px;
+  background: var(--blog-white);
+  border: 1px dashed var(--blog-slate-300);
+  border-radius: 14px;
 }
 </style>
