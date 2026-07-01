@@ -31,6 +31,10 @@
       </div>
 
       <!-- 页面不存在 -->
+      <div v-else-if="isReservedSlug" class="wiki-empty">
+        <h2>页面不存在</h2>
+        <p>该路径不可访问。</p>
+      </div>
       <div v-else class="wiki-empty">
         <h2>此页面不存在</h2>
         <p>「{{ slug }}」尚未创建。</p>
@@ -60,6 +64,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { isWikiBrowsablePage } from '~/composables/useWikiTree'
 
 definePageMeta({ layout: 'wiki' })
 
@@ -71,10 +76,14 @@ const slug = computed(() => {
   return s.join('/')
 })
 
+const isReservedSlug = computed(() => !isWikiBrowsablePage(`/wiki/${slug.value}`))
+
 // 查询 wiki 页面内容
-const { data: page } = await useAsyncData(`wiki-${slug.value}`, () =>
-  queryContent(`/wiki/${slug.value}`).findOne(),
-)
+const { data: page } = await useAsyncData(`wiki-${slug.value}`, () => {
+  if (!isWikiBrowsablePage(`/wiki/${slug.value}`))
+    return Promise.resolve(null)
+  return queryContent(`/wiki/${slug.value}`).findOne()
+})
 
 // ── 编辑状态 ──
 const editing = ref(false)

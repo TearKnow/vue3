@@ -26,6 +26,20 @@ export function emptyWikiOrder(): WikiOrderFile {
   return { groups: {} }
 }
 
+/** 排除 _order 等内部文件，不作为 Wiki 页面展示 */
+export function isWikiBrowsablePage(path?: string | null): boolean {
+  if (!path || path === '/wiki')
+    return false
+  const rel = path.replace(/^\/wiki\/?/, '')
+  if (!rel)
+    return false
+  return !rel.split('/').some(seg => seg.startsWith('_'))
+}
+
+export function filterWikiPages<T extends WikiPageMeta>(pages: T[]): T[] {
+  return pages.filter(page => isWikiBrowsablePage(page._path))
+}
+
 function parentPathOf(path: string): string | null {
   if (path === '/wiki')
     return null
@@ -75,7 +89,7 @@ export function buildWikiTree(
   const map = new Map<string, WikiTreeNode>()
 
   for (const page of pages) {
-    if (!page._path || page._path === '/wiki')
+    if (!isWikiBrowsablePage(page._path))
       continue
 
     const segments = page._path.split('/').filter(Boolean)
@@ -183,7 +197,7 @@ export function moveWikiPathInOrder(
 export async function fetchWikiOrderFile(): Promise<WikiOrderFile> {
   try {
     const data = await $fetch<{ content: string }>('/project-files/content', {
-      query: { file: 'content/wiki/_order.json' },
+      query: { file: 'data/wiki/_order.json' },
     })
     const parsed = JSON.parse(data.content) as WikiOrderFile
     if (parsed?.groups && typeof parsed.groups === 'object')

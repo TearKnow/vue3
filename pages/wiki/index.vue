@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+import { filterWikiPages } from '~/composables/useWikiTree'
+
 definePageMeta({ layout: 'wiki' })
 
 useSeoMeta({
@@ -29,7 +31,7 @@ const { data: pages } = await useAsyncData('wiki-index', () =>
   queryContent('/wiki').only(['_path']).find(),
 )
 
-const pageCount = computed(() => (pages.value || []).filter(p => p._path !== '/wiki').length)
+const pageCount = computed(() => filterWikiPages(pages.value || []).length)
 </script>
 
 <style scoped>

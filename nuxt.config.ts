@@ -10,6 +10,10 @@ export default defineNuxtConfig({
     highlight: {
       theme: 'github-dark',
     },
+    ignore: [
+      '**/wiki/_*',
+      '**/wiki/_*/**',
+    ],
   },
   devtools: { enabled: true }, app: {
     head: {

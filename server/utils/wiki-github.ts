@@ -1,5 +1,5 @@
 const GITHUB_API = 'https://api.github.com'
-const WIKI_ORDER_PATH = 'content/wiki/_order.json'
+const WIKI_ORDER_PATH = 'data/wiki/_order.json'
 
 export function getWikiGitHubConfig() {
   return {
