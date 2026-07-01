@@ -216,7 +216,7 @@ watch([title, content], () => {
   draftTimer = setTimeout(saveDraft, 2000)
 })
 
-// 挂载时检查草稿
+// 挂载时检查草稿；拒绝恢复时仍使用父组件传入的正文
 onMounted(() => {
   const draft = loadDraft()
   if (draft) {
@@ -225,13 +225,24 @@ onMounted(() => {
       if (restore) {
         title.value = draft.title
         content.value = draft.content
+        return
       }
-      else {
-        clearDraft()
-      }
+      clearDraft()
     }
   }
+  title.value = props.initialTitle
+  content.value = props.initialContent
 })
+
+watch(
+  () => [props.initialTitle, props.initialContent] as const,
+  ([nextTitle, nextContent]) => {
+    if (!unlocked.value) {
+      title.value = nextTitle
+      content.value = nextContent
+    }
+  },
+)
 
 // ── 保存 ──
 async function save() {

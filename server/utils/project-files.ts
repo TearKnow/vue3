@@ -50,8 +50,44 @@ async function listFilesLocal(): Promise<string[]> {
     .sort((a, b) => a.localeCompare(b))
 }
 
+function isWikiMarkdownPath(filePath: string) {
+  if (!filePath.startsWith('content/wiki/') || !filePath.endsWith('.md'))
+    return false
+  const rel = filePath.slice('content/wiki/'.length)
+  return rel.length > 0 && !rel.split('/').some(seg => seg === '..' || seg.startsWith('_'))
+}
+
+function isInsideWikiRoot(fullPath: string) {
+  const wikiRoot = resolve(workspaceRoot, 'content/wiki')
+  const relative = fullPath.slice(wikiRoot.length)
+  return fullPath === wikiRoot || relative.startsWith('/') || relative.startsWith('\\')
+}
+
+async function readWikiMarkdownLocal(normalizedPath: string) {
+  if (!isWikiMarkdownPath(normalizedPath))
+    return null
+
+  const fullPath = resolve(workspaceRoot, normalizedPath)
+  if (!isInsideWikiRoot(fullPath))
+    return null
+
+  try {
+    return await readFile(fullPath, 'utf8')
+  }
+  catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT')
+      return null
+    throw error
+  }
+}
+
 async function readFileLocal(filePath: string): Promise<string | null> {
   const normalizedPath = filePath.replaceAll('\\', '/').replace(/^\/+/, '')
+
+  const wikiContent = await readWikiMarkdownLocal(normalizedPath)
+  if (wikiContent !== null)
+    return wikiContent
+
   const files = await listFilesLocal()
   if (!files.includes(normalizedPath))
     return null
@@ -114,11 +150,14 @@ export async function listVisibleProjectFiles(): Promise<string[]> {
 
 export async function readVisibleProjectFile(filePath: string): Promise<string | null> {
   try {
-    return await readFileLocal(filePath)
+    const local = await readFileLocal(filePath)
+    if (local !== null)
+      return local
   }
   catch {
-    return await readFileGitHub(filePath)
+    // 本地读取失败时继续尝试 GitHub
   }
+  return await readFileGitHub(filePath)
 }
 
 export function buildProjectTree(files: string[]) {
