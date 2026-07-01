@@ -2,6 +2,9 @@
   "groups": {
     "/wiki/Algorithm": [
       "/wiki/Algorithm/start"
+    ],
+    "/wiki/algorithm": [
+      "/wiki/algorithm/start"
     ]
   }
 }
