@@ -281,13 +281,15 @@ function createPage() {
 
 .wiki-tree-row {
   display: flex;
-  align-items: stretch;
-  min-height: 34px;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
   margin: 2px 10px;
-  padding: 0 8px 0 6px;
+  padding: 4px 8px 4px 10px;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   font-size: 13px;
+  line-height: 1.35;
   border-radius: 8px;
   border-left: 3px solid transparent;
 }
@@ -306,11 +308,9 @@ function createPage() {
 
 .wiki-tree-toggle {
   width: 20px;
-  flex-shrink: 0;
-  font-size: 11px;
-  color: var(--blog-slate-500);
-  user-select: none;
-  display: flex;
+  height: 20px;
+  flex: 0 0 20px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
@@ -323,14 +323,15 @@ function createPage() {
 .wiki-tree-link {
   flex: 1;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  padding: 6px 0;
+  display: block;
+  padding: 0;
+  line-height: 20px;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 .wiki-tree-folder {
