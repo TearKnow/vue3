@@ -95,13 +95,11 @@ const editContent = ref('')
 // 加载原始 markdown 内容用于编辑
 async function loadRawContent() {
   try {
-    const data = await $fetch<{ content: string }>('/project-files/content', {
-      query: { file: `content/wiki/${slug.value}.md` },
+    const data = await $fetch<{ content: string }>('/api/wiki/raw', {
+      query: { slug: slug.value },
     })
     if (data.content) {
-      // 去掉 frontmatter（兼容 \n 与 \r\n）
-      const body = data.content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').trim()
-      editContent.value = body
+      editContent.value = data.content
       return
     }
   }

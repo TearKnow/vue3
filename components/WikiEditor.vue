@@ -9,14 +9,15 @@
           type="password"
           class="wiki-password-input"
           placeholder="请输入 Wiki 编辑密码"
+          :disabled="unlocking"
           @keyup.enter="unlock"
         >
         <div class="wiki-lock-actions">
           <button class="wiki-btn wiki-btn-ghost" @click="$emit('cancel')">
             返回阅读
           </button>
-          <button class="wiki-btn wiki-btn-primary" @click="unlock">
-            解锁编辑
+          <button class="wiki-btn wiki-btn-primary" :disabled="unlocking" @click="unlock">
+            {{ unlocking ? '验证中...' : '解锁编辑' }}
           </button>
         </div>
         <p v-if="lockError" class="wiki-error">
@@ -107,21 +108,45 @@ const emit = defineEmits<{
 
 // ── 密码解锁 ──
 const unlocked = ref(false)
+const unlocking = ref(false)
 const passwordInput = ref('')
 const lockError = ref('')
 
-function unlock() {
+async function unlock() {
   if (!passwordInput.value.trim()) {
     lockError.value = '请输入密码'
     return
   }
+
+  unlocking.value = true
   lockError.value = ''
-  unlocked.value = true
+
   try {
-    sessionStorage.setItem('wiki-edit-password', passwordInput.value)
+    const res = await fetch('/api/wiki/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: passwordInput.value }),
+    })
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ statusMessage: res.statusText }))
+      lockError.value = (err as { statusMessage?: string }).statusMessage || '密码错误'
+      return
+    }
+
+    unlocked.value = true
+    try {
+      sessionStorage.setItem('wiki-edit-password', passwordInput.value)
+    }
+    catch {
+      // ignore
+    }
   }
   catch {
-    // ignore
+    lockError.value = '网络错误，请稍后重试'
+  }
+  finally {
+    unlocking.value = false
   }
 }
 

@@ -137,6 +137,49 @@ async function readFileGitHub(filePath: string): Promise<string | null> {
   return data.content ?? null
 }
 
+async function findWikiMarkdownPathCaseInsensitive(filePath: string): Promise<string | null> {
+  if (!isWikiMarkdownPath(filePath))
+    return null
+
+  try {
+    const files = await listFilesGitHub()
+    return files.find(f => f.toLowerCase() === filePath.toLowerCase()) || null
+  }
+  catch {
+    return null
+  }
+}
+
+/** 读取 Wiki markdown 原文（本地 → GitHub 精确 → GitHub 大小写容错） */
+export async function readWikiContentFile(filePath: string): Promise<string | null> {
+  const normalizedPath = filePath.replaceAll('\\', '/').replace(/^\/+/, '')
+  if (!isWikiMarkdownPath(normalizedPath))
+    return null
+
+  const local = await readWikiMarkdownLocal(normalizedPath)
+  if (local !== null)
+    return local
+
+  try {
+    const files = await listFilesLocal()
+    if (files.includes(normalizedPath))
+      return readFile(resolve(workspaceRoot, normalizedPath), 'utf8')
+  }
+  catch {
+    // 无 git 环境（如部分 serverless）时跳过
+  }
+
+  const exactGithub = await readFileGitHub(normalizedPath)
+  if (exactGithub !== null)
+    return exactGithub
+
+  const matchedPath = await findWikiMarkdownPathCaseInsensitive(normalizedPath)
+  if (matchedPath)
+    return readFileGitHub(matchedPath)
+
+  return null
+}
+
 // ── Public API: local → GitHub fallback ──
 
 export async function listVisibleProjectFiles(): Promise<string[]> {
@@ -149,15 +192,20 @@ export async function listVisibleProjectFiles(): Promise<string[]> {
 }
 
 export async function readVisibleProjectFile(filePath: string): Promise<string | null> {
+  const normalizedPath = filePath.replaceAll('\\', '/').replace(/^\/+/, '')
+
+  if (isWikiMarkdownPath(normalizedPath))
+    return readWikiContentFile(normalizedPath)
+
   try {
-    const local = await readFileLocal(filePath)
+    const local = await readFileLocal(normalizedPath)
     if (local !== null)
       return local
   }
   catch {
     // 本地读取失败时继续尝试 GitHub
   }
-  return await readFileGitHub(filePath)
+  return await readFileGitHub(normalizedPath)
 }
 
 export function buildProjectTree(files: string[]) {
