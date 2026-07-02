@@ -2,14 +2,33 @@
   <div class="wiki-page" :class="{ 'wiki-page--editing': editing }">
     <!-- 阅读模式 -->
     <template v-if="!editing">
-      <div v-if="page" class="wiki-article">
+      <div v-if="page" class="wiki-article-wrap">
+        <nav v-if="breadcrumbs.length" class="wiki-breadcrumb" aria-label="当前位置">
+          <NuxtLink to="/wiki" class="wiki-breadcrumb-link" no-prefetch>Wiki</NuxtLink>
+          <template v-for="(item, index) in breadcrumbs" :key="item.path">
+            <span class="wiki-breadcrumb-sep" aria-hidden="true">/</span>
+            <NuxtLink
+              v-if="index < breadcrumbs.length - 1"
+              :to="item.path"
+              no-prefetch
+              class="wiki-breadcrumb-link"
+            >
+              {{ item.label }}
+            </NuxtLink>
+            <span v-else class="wiki-breadcrumb-current">{{ item.label }}</span>
+          </template>
+        </nav>
+
+        <div class="wiki-article">
         <header class="wiki-article-header">
           <div class="wiki-article-head-main">
             <h1 class="wiki-article-title">
               {{ page.title || slug }}
             </h1>
             <div v-if="page.date" class="wiki-article-meta">
-              <span class="wiki-article-date">{{ page.date }}</span>
+              <time class="wiki-article-date" :datetime="String(page.date)">
+                更新于 {{ page.date }}
+              </time>
             </div>
           </div>
           <button
@@ -28,9 +47,8 @@
         <div class="wiki-article-body">
           <ContentRenderer :value="page" />
         </div>
+        </div>
       </div>
-
-      <!-- 页面不存在 -->
       <div v-else-if="isReservedSlug" class="wiki-empty">
         <h2>页面不存在</h2>
         <p>该路径不可访问。</p>
@@ -83,6 +101,14 @@ const rawSlug = computed(() => {
 })
 
 const isReservedSlug = computed(() => !isWikiBrowsablePage(`/wiki/${slug.value}`))
+
+const breadcrumbs = computed(() => {
+  const parts = slug.value.split('/').filter(Boolean)
+  return parts.map((seg, index) => ({
+    label: seg,
+    path: `/wiki/${parts.slice(0, index + 1).join('/')}`,
+  }))
+})
 
 // 查询 wiki 页面内容
 const { data: page } = await useAsyncData(`wiki-${slug.value}`, () => {
@@ -149,7 +175,7 @@ onMounted(async () => {
 .wiki-page {
   max-width: var(--wiki-content-max-width, 960px);
   margin: 0 auto;
-  padding: 32px 32px 88px;
+  padding: 32px 32px 40px;
 }
 
 .wiki-page--editing {
@@ -158,13 +184,51 @@ onMounted(async () => {
   padding: 0;
 }
 
+.wiki-article-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wiki-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--blog-slate-500);
+}
+
+.wiki-breadcrumb-link {
+  color: var(--blog-slate-500);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.wiki-breadcrumb-link:hover {
+  color: var(--blog-link);
+}
+
+.wiki-breadcrumb-sep {
+  color: var(--blog-slate-300);
+  user-select: none;
+}
+
+.wiki-breadcrumb-current {
+  color: var(--blog-slate-700);
+  font-weight: 500;
+}
+
 .wiki-article {
   position: relative;
   overflow: hidden;
   background: var(--blog-white);
   border: 1px solid var(--blog-slate-200);
   border-radius: 20px;
-  box-shadow: 0 18px 42px var(--blog-shadow-xs-plus);
+  box-shadow:
+    0 18px 42px var(--blog-shadow-xs-plus),
+    0 0 0 1px var(--blog-blue-100);
 }
 
 .wiki-article::before {
@@ -182,9 +246,11 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 0;
-  padding: 34px 36px 26px;
+  padding: 32px 36px 24px;
   border-bottom: 1px solid var(--blog-slate-200);
-  background: linear-gradient(180deg, var(--wiki-hero-gradient-start) 0%, var(--blog-white) 100%);
+  background:
+    linear-gradient(180deg, var(--wiki-hero-gradient-start) 0%, var(--blog-white) 100%),
+    radial-gradient(ellipse 80% 120% at 100% 0%, var(--wiki-hero-accent) 0%, transparent 55%);
 }
 
 .wiki-article-head-main {
@@ -193,7 +259,7 @@ onMounted(async () => {
 }
 
 .wiki-article-title {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   font-size: clamp(1.7rem, 3.2vw, 2.2rem);
   line-height: 1.28;
   letter-spacing: 0.01em;
@@ -201,21 +267,16 @@ onMounted(async () => {
 }
 
 .wiki-article-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  margin-top: 2px;
 }
 
 .wiki-article-date {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--blog-blue-50);
-  border: 1px solid var(--blog-blue-100);
-  color: var(--blog-blue-800);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--blog-slate-500);
 }
 
 .wiki-action-btn {
@@ -248,10 +309,12 @@ onMounted(async () => {
 }
 
 .wiki-article-body {
-  padding: 30px 36px 38px;
+  padding: 28px 36px 36px;
   font-size: 1.03rem;
   line-height: 1.85;
   color: var(--blog-slate-800);
+  background:
+    linear-gradient(180deg, var(--blog-white) 0%, var(--blog-slate-50) 220%);
 }
 
 /* ── ContentRenderer 内容样式 ── */
@@ -262,29 +325,25 @@ onMounted(async () => {
 }
 
 .wiki-article-body :deep(h2) {
-  position: relative;
   font-size: 1.28rem;
-  margin: 2rem 0 0.9rem;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--blog-slate-200);
+  margin: 2rem 0 0.75rem;
   color: var(--blog-slate-900);
-}
-
-.wiki-article-body :deep(h2)::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -1px;
-  width: 56px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--blog-blue-600), var(--blog-cyan-500));
-  border-radius: 999px;
 }
 
 .wiki-article-body :deep(h3) {
   font-size: 1.08rem;
   margin: 1.5rem 0 0.6rem;
   color: var(--blog-slate-800);
+}
+
+.wiki-article-body :deep(h2:last-child),
+.wiki-article-body :deep(h3:last-child),
+.wiki-article-body :deep(p:last-child),
+.wiki-article-body :deep(ul:last-child),
+.wiki-article-body :deep(ol:last-child),
+.wiki-article-body :deep(blockquote:last-child),
+.wiki-article-body :deep(pre:last-child) {
+  margin-bottom: 0;
 }
 
 .wiki-article-body :deep(p) {
@@ -409,7 +468,7 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .wiki-page {
-    padding: 20px 16px 80px;
+    padding: 20px 16px 32px;
   }
 
   .wiki-article-header {

@@ -11,6 +11,24 @@
       </div>
     </header>
 
+    <section v-if="pageCount > 0" class="wiki-index-tips" aria-label="使用提示">
+      <article class="wiki-index-tip-card">
+        <span class="wiki-index-tip-mark wiki-index-tip-mark--browse" aria-hidden="true" />
+        <h2 class="wiki-index-tip-title">浏览目录</h2>
+        <p class="wiki-index-tip-desc">左侧树形目录按主题组织，点击即可阅读。</p>
+      </article>
+      <article class="wiki-index-tip-card">
+        <span class="wiki-index-tip-mark wiki-index-tip-mark--create" aria-hidden="true" />
+        <h2 class="wiki-index-tip-title">快速新建</h2>
+        <p class="wiki-index-tip-desc">侧栏右上角 + 号，填写标题即可创建页面。</p>
+      </article>
+      <article class="wiki-index-tip-card">
+        <span class="wiki-index-tip-mark wiki-index-tip-mark--edit" aria-hidden="true" />
+        <h2 class="wiki-index-tip-title">随时编辑</h2>
+        <p class="wiki-index-tip-desc">文章页右上角可进入 Markdown 编辑模式。</p>
+      </article>
+    </section>
+
     <div v-if="pageCount === 0" class="wiki-empty">
       <p>还没有页面，侧栏右上角可新建第一篇。</p>
     </div>
@@ -36,23 +54,37 @@ const pageCount = computed(() => filterWikiPages(pages.value || []).length)
 
 <style scoped>
 .wiki-index {
-  padding: 24px 32px 80px;
+  padding: 24px 32px 40px;
   max-width: var(--wiki-content-max-width, 960px);
   margin: 0 auto;
 }
 
 @media (max-width: 768px) {
   .wiki-index {
-    padding: 16px 16px 80px;
+    padding: 16px 16px 32px;
   }
 }
 
 .wiki-index-hero {
+  position: relative;
+  overflow: hidden;
   padding: 28px 30px;
   border: 1px solid var(--blog-blue-100);
   border-radius: 18px;
   background: linear-gradient(135deg, var(--wiki-hero-gradient-start) 0%, var(--wiki-hero-gradient-end) 68%);
   box-shadow: 0 16px 36px var(--blog-shadow-xs-plus);
+}
+
+.wiki-index-hero::after {
+  content: '';
+  position: absolute;
+  right: -36px;
+  top: -48px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--wiki-hero-accent) 0%, transparent 72%);
+  pointer-events: none;
 }
 
 .wiki-index-eyebrow {
@@ -98,6 +130,61 @@ const pageCount = computed(() => filterWikiPages(pages.value || []).length)
   color: var(--blog-blue-800);
   font-size: 12px;
   font-weight: 600;
+}
+
+.wiki-index-tips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.wiki-index-tip-card {
+  padding: 18px 18px 16px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 14px;
+  background: var(--blog-white);
+  box-shadow: 0 10px 24px var(--blog-shadow-xs);
+}
+
+.wiki-index-tip-mark {
+  display: block;
+  width: 28px;
+  height: 4px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+}
+
+.wiki-index-tip-mark--browse {
+  background: linear-gradient(90deg, var(--blog-blue-600), var(--blog-cyan-500));
+}
+
+.wiki-index-tip-mark--create {
+  background: linear-gradient(90deg, var(--blog-blue-400), var(--blog-blue-600));
+}
+
+.wiki-index-tip-mark--edit {
+  background: linear-gradient(90deg, var(--blog-cyan-500), var(--blog-blue-400));
+}
+
+.wiki-index-tip-title {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blog-slate-800);
+}
+
+.wiki-index-tip-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--blog-slate-600);
+}
+
+@media (max-width: 768px) {
+  .wiki-index-tips {
+    grid-template-columns: 1fr;
+  }
 }
 
 .wiki-empty {

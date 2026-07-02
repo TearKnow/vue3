@@ -11,9 +11,20 @@
     <!-- 侧边栏 -->
     <aside class="wiki-sidebar" :class="{ 'wiki-sidebar--open': sidebarOpen }">
       <div class="wiki-sidebar-header">
-        <NuxtLink to="/wiki" class="wiki-sidebar-title" @click="sidebarOpen = false">
-          Wiki
-        </NuxtLink>
+        <div class="wiki-sidebar-brand">
+          <span class="wiki-sidebar-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+          </span>
+          <div class="wiki-sidebar-brand-text">
+            <NuxtLink to="/wiki" class="wiki-sidebar-title" @click="sidebarOpen = false">
+              Wiki
+            </NuxtLink>
+            <p class="wiki-sidebar-subtitle">个人知识库</p>
+          </div>
+        </div>
         <button
           class="wiki-icon-btn"
           type="button"
@@ -28,7 +39,8 @@
       </div>
 
       <!-- 目录树 -->
-      <nav class="wiki-tree">
+      <nav class="wiki-tree" aria-label="Wiki 目录">
+        <p class="wiki-tree-section">目录</p>
         <!-- 根页面（首页） -->
         <NuxtLink
           to="/wiki"
@@ -53,7 +65,9 @@
 
     <!-- 主内容区 -->
     <main class="wiki-main">
-      <slot />
+      <div class="wiki-main-inner">
+        <slot />
+      </div>
     </main>
 
     <!-- 新建页面对话框 -->
@@ -164,7 +178,9 @@ function createPage() {
   --wiki-sidebar-width: 300px;
   --wiki-content-max-width: 960px;
   display: flex;
-  min-height: calc(100vh - 60px);
+  align-items: stretch;
+  min-height: 100vh;
+  background: linear-gradient(165deg, var(--wiki-main-gradient-start) 0%, var(--wiki-main-gradient-end) 42%, var(--blog-slate-50) 100%);
 }
 
 /* ── 侧边栏切换按钮（移动端） ── */
@@ -212,12 +228,15 @@ function createPage() {
   min-width: var(--wiki-sidebar-width);
   border-right: 1px solid var(--blog-slate-200);
   background: linear-gradient(180deg, var(--blog-white) 0%, var(--wiki-sidebar-gradient-end) 100%);
+  box-shadow: 4px 0 24px var(--wiki-sidebar-shadow);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  height: calc(100vh - 60px);
+  min-height: 100vh;
   position: sticky;
-  top: 60px;
+  top: 0;
+  align-self: stretch;
+  z-index: 1;
 }
 
 @media (max-width: 768px) {
@@ -237,7 +256,7 @@ function createPage() {
 }
 
 .wiki-sidebar-header {
-  padding: 18px 12px 18px 16px;
+  padding: 16px 12px 16px 14px;
   border-bottom: 1px solid var(--blog-slate-200);
   display: flex;
   align-items: center;
@@ -247,13 +266,46 @@ function createPage() {
   backdrop-filter: blur(8px);
 }
 
+.wiki-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wiki-sidebar-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, var(--blog-blue-50) 0%, var(--blog-white) 100%);
+  border: 1px solid var(--blog-blue-100);
+  color: var(--blog-blue-700);
+  flex-shrink: 0;
+}
+
+.wiki-sidebar-brand-text {
+  min-width: 0;
+}
+
 .wiki-sidebar-title {
+  display: block;
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--blog-slate-700);
   text-decoration: none;
+  line-height: 1.2;
+}
+
+.wiki-sidebar-subtitle {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--blog-slate-500);
+  line-height: 1.3;
 }
 
 .wiki-sidebar-title:hover {
@@ -285,7 +337,16 @@ function createPage() {
 .wiki-tree {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 0 24px;
+  padding: 10px 0 24px;
+}
+
+.wiki-tree-section {
+  margin: 0 16px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blog-slate-400);
 }
 
 .wiki-tree-row {
@@ -376,10 +437,30 @@ function createPage() {
 
 /* ── 主内容 ── */
 .wiki-main {
+  position: relative;
+  isolation: isolate;
   flex: 1;
   min-width: 0;
+  min-height: 100vh;
   overflow-y: auto;
   background: linear-gradient(165deg, var(--wiki-main-gradient-start) 0%, var(--wiki-main-gradient-end) 42%, var(--blog-slate-50) 100%);
+}
+
+.wiki-main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 42% at 8% 0%, var(--wiki-ambient-primary) 0%, transparent 70%),
+    radial-gradient(ellipse 48% 38% at 100% 100%, var(--wiki-ambient-secondary) 0%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wiki-main-inner {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
 }
 
 /* ── 新建对话框 ── */
