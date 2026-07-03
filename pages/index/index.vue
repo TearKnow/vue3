@@ -94,7 +94,7 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
   font-size: inherit;
   font-weight: 600;
   box-shadow: 0 2px 6px var(--blog-shadow-xs);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
   box-sizing: border-box;
 }
 
@@ -107,8 +107,7 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
 }
 
 .action-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px var(--blog-shadow-sm);
+  box-shadow: 0 4px 10px var(--blog-shadow-sm);
 }
 
 .action-icon {

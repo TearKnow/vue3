@@ -435,12 +435,11 @@ const RouteTreeNode = defineComponent({
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .tree-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px var(--blog-shadow-sm);
+  box-shadow: 0 2px 6px var(--blog-shadow-sm);
 }
 
 .btn-expand {
