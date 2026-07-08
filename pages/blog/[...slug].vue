@@ -1011,6 +1011,32 @@ watchEffect(() => {
   overflow-x: auto;
   max-width: 100%;
   min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blog-scrollbar-thumb) transparent;
+}
+
+.article-body :deep(pre .code-scroll::-webkit-scrollbar) {
+  height: 6px;
+}
+
+.article-body :deep(pre .code-scroll::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.article-body :deep(pre .code-scroll::-webkit-scrollbar-thumb) {
+  background-color: var(--blog-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.article-body :deep(pre .code-scroll::-webkit-scrollbar-thumb:hover) {
+  background-color: var(--blog-scrollbar-thumb-hover);
+}
+
+.article-body :deep(pre .code-scroll::-webkit-scrollbar-button),
+.article-body :deep(pre .code-scroll::-webkit-scrollbar-corner) {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* 无 Shiki 时的普通围栏代码块 */
@@ -1044,6 +1070,7 @@ watchEffect(() => {
   counter-reset: line;
   padding: 0 0.85rem 0 0;
   font-size: inherit;
+  color: var(--blog-slate-200);
   background: transparent !important;
 }
 
@@ -1053,6 +1080,7 @@ watchEffect(() => {
   min-height: 1.55em;
   padding-left: 3.15rem;
   padding-right: 0.35rem;
+  color: var(--blog-slate-200);
 }
 
 .article-body :deep(pre.shiki code .line::before) {
@@ -1109,8 +1137,34 @@ watchEffect(() => {
   width: max-content;
   max-width: 100%;
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blog-scrollbar-thumb) transparent;
   border-collapse: collapse;
   margin: 1rem 0;
+}
+
+.article-body :deep(table::-webkit-scrollbar) {
+  height: 6px;
+}
+
+.article-body :deep(table::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.article-body :deep(table::-webkit-scrollbar-thumb) {
+  background-color: var(--blog-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.article-body :deep(table::-webkit-scrollbar-thumb:hover) {
+  background-color: var(--blog-scrollbar-thumb-hover);
+}
+
+.article-body :deep(table::-webkit-scrollbar-button),
+.article-body :deep(table::-webkit-scrollbar-corner) {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .article-body :deep(table th),
