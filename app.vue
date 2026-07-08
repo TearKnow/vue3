@@ -6,6 +6,9 @@
     :show="showBackToTop"
     @click="scrollToTop"
   />
+  <ClientOnly>
+    <WikiAiPanel />
+  </ClientOnly>
   <button
     class="quick-entry-fab"
     type="button"

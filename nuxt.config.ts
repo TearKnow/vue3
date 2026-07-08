@@ -36,6 +36,9 @@ export default defineNuxtConfig({
     githubOwner: process.env.GITHUB_OWNER || 'TearKnow',
     githubRepo: process.env.GITHUB_REPO || 'vue3',
     githubBranch: process.env.GITHUB_BRANCH || 'main',
+    deepseekApiKey: process.env.DEEPSEEK_API_KEY || '',
+    deepseekModel: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+    deepseekBaseUrl: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       comments: {

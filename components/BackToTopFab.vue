@@ -4,8 +4,9 @@
       v-if="show"
       type="button"
       class="back-to-top-btn"
+      :class="{ 'back-to-top-btn--wiki': isWikiPage }"
       title="回到顶部"
-      :style="{ bottom }"
+      :style="bottom ? { bottom } : undefined"
       @click="$emit('click')"
     >
       <svg
@@ -25,22 +26,28 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 withDefaults(defineProps<{
   show: boolean
   bottom?: string
 }>(), {
-  bottom: 'calc(80px + env(safe-area-inset-bottom))',
+  bottom: '',
 })
 
 defineEmits<{
   (e: 'click'): void
 }>()
+
+const route = useRoute()
+const isWikiPage = computed(() => route.path === '/wiki' || route.path.startsWith('/wiki/'))
 </script>
 
 <style scoped>
 .back-to-top-btn {
   position: fixed;
   right: 24px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
   z-index: 100;
   display: flex;
   align-items: center;
@@ -83,5 +90,21 @@ defineEmits<{
 .fade-up-leave-to {
   opacity: 0;
   transform: translateY(12px);
+}
+
+/* 移动端：放左侧，与右侧 AI / 快捷入口错开 */
+@media (max-width: 899px) {
+  .back-to-top-btn {
+    right: auto;
+    left: 16px;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Wiki 移动端侧栏钮同处左下，抬高回到顶部（与右侧 AI 助教对齐） */
+@media (max-width: 768px) {
+  .back-to-top-btn--wiki {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
 }
 </style>
