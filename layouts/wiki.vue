@@ -30,7 +30,7 @@
           type="button"
           title="新建页面"
           aria-label="新建页面"
-          @click="showNewDialog = true"
+          @click="openNewDialog"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
             <path d="M12 5v14M5 12h14" />
@@ -71,7 +71,13 @@
     </main>
 
     <!-- 新建页面对话框 -->
-    <div v-if="showNewDialog" class="wiki-dialog-mask" @click.self="showNewDialog = false">
+    <div
+      v-if="showNewDialog"
+      class="wiki-dialog-mask"
+      @pointerdown.self="dialogMaskPointerDown = true"
+      @pointerup.self="closeDialogFromMask"
+      @pointercancel="dialogMaskPointerDown = false"
+    >
       <div class="wiki-dialog">
         <h3>新建 Wiki 页面</h3>
         <div class="wiki-dialog-field">
@@ -142,6 +148,7 @@ const tree = computed(() => {
 const showNewDialog = ref(false)
 const newTitle = ref('')
 const newFolder = ref('')
+const dialogMaskPointerDown = ref(false)
 
 const generatedSlug = computed(() => {
   return newTitle.value
@@ -160,6 +167,31 @@ const newFolderPath = computed(() => {
   return cleaned ? `${cleaned}/` : ''
 })
 
+function defaultNewFolderFromRoute(): string {
+  if (!route.path.startsWith('/wiki/'))
+    return ''
+
+  const rel = route.path.slice('/wiki/'.length)
+  if (!rel)
+    return ''
+
+  const parts = normalizeWikiSlug(rel).split('/').filter(Boolean)
+  if (parts.length === 0)
+    return ''
+
+  if (parts.length === 1)
+    return parts[0]
+
+  return parts.slice(0, -1).join('/')
+}
+
+function openNewDialog() {
+  newFolder.value = defaultNewFolderFromRoute()
+  newTitle.value = ''
+  dialogMaskPointerDown.value = false
+  showNewDialog.value = true
+}
+
 function createPage() {
   const title = newTitle.value.trim()
   if (!title) return
@@ -169,6 +201,14 @@ function createPage() {
   newTitle.value = ''
   newFolder.value = ''
   navigateTo(`/wiki/${prefix}${slug}?title=${encodeURIComponent(title)}`)
+}
+
+function closeDialogFromMask() {
+  if (!dialogMaskPointerDown.value)
+    return
+
+  dialogMaskPointerDown.value = false
+  showNewDialog.value = false
 }
 </script>
 
