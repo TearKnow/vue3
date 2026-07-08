@@ -1,6 +1,7 @@
 <template>
   <div class="wiki-ai-root">
     <button
+      v-if="!open"
       type="button"
       class="wiki-ai-fab"
       aria-label="打开 AI 助教"
@@ -425,11 +426,11 @@ watch(() => pageContext.value.pageKey, () => {
 .wiki-ai-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 10002;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 16px 20px 20px;
+  padding: 16px 20px 88px;
   background: var(--blog-overlay-dark);
 }
 
