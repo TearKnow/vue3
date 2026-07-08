@@ -8,13 +8,19 @@
           <template v-for="(item, index) in breadcrumbs" :key="item.path">
             <span class="wiki-breadcrumb-sep" aria-hidden="true">/</span>
             <NuxtLink
-              v-if="index < breadcrumbs.length - 1"
+              v-if="!item.isCurrent && item.isPage"
               :to="item.path"
               no-prefetch
               class="wiki-breadcrumb-link"
             >
               {{ item.label }}
             </NuxtLink>
+            <span
+              v-else-if="!item.isCurrent"
+              class="wiki-breadcrumb-folder"
+            >
+              {{ item.label }}
+            </span>
             <span v-else class="wiki-breadcrumb-current">{{ item.label }}</span>
           </template>
         </nav>
@@ -82,7 +88,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { isWikiBrowsablePage } from '~/composables/useWikiTree'
+import { buildWikiBreadcrumbs, filterWikiPages, isWikiBrowsablePage } from '~/composables/useWikiTree'
 import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 definePageMeta({ layout: 'wiki' })
@@ -102,13 +108,13 @@ const rawSlug = computed(() => {
 
 const isReservedSlug = computed(() => !isWikiBrowsablePage(`/wiki/${slug.value}`))
 
-const breadcrumbs = computed(() => {
-  const parts = slug.value.split('/').filter(Boolean)
-  return parts.map((seg, index) => ({
-    label: seg,
-    path: `/wiki/${parts.slice(0, index + 1).join('/')}`,
-  }))
-})
+const { data: wikiPageList } = await useAsyncData('wiki-tree', () =>
+  queryContent('/wiki').only(['_path', 'title']).find(),
+)
+
+const breadcrumbs = computed(() =>
+  buildWikiBreadcrumbs(slug.value, filterWikiPages(wikiPageList.value || [])),
+)
 
 // 查询 wiki 页面内容
 const { data: page } = await useAsyncData(`wiki-${slug.value}`, () => {
@@ -218,6 +224,10 @@ onMounted(async () => {
 .wiki-breadcrumb-current {
   color: var(--blog-slate-700);
   font-weight: 500;
+}
+
+.wiki-breadcrumb-folder {
+  color: var(--blog-slate-400);
 }
 
 .wiki-article {

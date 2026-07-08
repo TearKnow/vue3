@@ -1,4 +1,4 @@
-import { normalizeWikiOrderGroups, normalizeWikiPath } from '~/utils/wiki-path'
+import { normalizeWikiOrderGroups, normalizeWikiPath, normalizeWikiSlug } from '~/utils/wiki-path'
 
 export interface WikiTreeNode {
   name: string
@@ -54,6 +54,32 @@ export function filterWikiPages<T extends { _path?: string | null }>(pages: T[])
   }
 
   return [...map.values()]
+}
+
+export interface WikiBreadcrumbItem {
+  label: string
+  path: string
+  isPage: boolean
+  isCurrent: boolean
+}
+
+export function buildWikiBreadcrumbs(slug: string, pages: WikiPageMeta[]): WikiBreadcrumbItem[] {
+  const pageMap = new Map(
+    filterWikiPages(pages).map(page => [normalizeWikiPath(page._path), page]),
+  )
+  const parts = normalizeWikiSlug(slug).split('/').filter(Boolean)
+
+  return parts.map((seg, index) => {
+    const path = normalizeWikiPath(`/wiki/${parts.slice(0, index + 1).join('/')}`)
+    const meta = pageMap.get(path)
+
+    return {
+      label: meta?.title || seg,
+      path,
+      isPage: !!meta,
+      isCurrent: index === parts.length - 1,
+    }
+  })
 }
 
 function parentPathOf(path: string): string | null {
