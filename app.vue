@@ -12,15 +12,17 @@
   <button
     class="quick-entry-fab"
     type="button"
-    aria-label="打开快捷入口"
+    aria-label="打开快捷操作"
     @click="showQuickEntry = true"
   >
-    ⌘
+    ⋯
   </button>
   <div
     v-if="showQuickEntry"
     class="quick-entry-mask"
-    @click="showQuickEntry = false"
+    @pointerdown.self="quickEntryMaskDown = true"
+    @pointerup.self="closeQuickEntryFromMask"
+    @pointercancel="quickEntryMaskDown = false"
   >
     <div
       class="quick-entry-panel"
@@ -30,7 +32,7 @@
       @click.stop
     >
       <div class="quick-entry-header">
-        <span class="quick-entry-title">快捷入口</span>
+        <span class="quick-entry-title">快捷操作</span>
         <button
           class="quick-entry-theme-btn"
           type="button"
@@ -42,6 +44,35 @@
       </div>
       <p class="quick-entry-desc quick-entry-desc-desktop">
         按 <code>Ctrl + Z</code> 打开，按 <code>Esc</code> 关闭
+      </p>
+
+      <div v-if="isMobile" class="quick-entry-actions">
+        <button type="button" class="quick-entry-action" @click="handleOpenAi">
+          <span class="quick-entry-action-icon" aria-hidden="true">✦</span>
+          <span>AI 助教</span>
+        </button>
+        <button
+          v-if="showBackToTop"
+          type="button"
+          class="quick-entry-action"
+          @click="handleScrollToTop"
+        >
+          <span class="quick-entry-action-icon" aria-hidden="true">↑</span>
+          <span>回到顶部</span>
+        </button>
+        <button
+          v-if="isWikiPage"
+          type="button"
+          class="quick-entry-action"
+          @click="handleOpenWikiSidebar"
+        >
+          <span class="quick-entry-action-icon" aria-hidden="true">☰</span>
+          <span>Wiki 目录</span>
+        </button>
+      </div>
+
+      <p v-if="isMobile" class="quick-entry-section-label">
+        站点导航
       </p>
       <NuxtLink
         v-for="item in quickEntryItems"
@@ -70,6 +101,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import BackToTopFab from '~/components/BackToTopFab.vue'
 import { useBlogNavigationLoading } from '~/composables/useBlogNavigationLoading'
+import { useMobileFabActions, useMobileViewport } from '~/composables/useMobileFabActions'
 import { quickEntryLinks } from '~/constants/quick-entry-links'
 import { useTheme } from '~/composables/useTheme'
 
@@ -81,9 +113,12 @@ useSeoMeta({
 useBlogNavigationLoading()
 
 const { isDark: themeIsDark, init: initTheme, toggle: toggleTheme } = useTheme()
+const { openAiPanel, openWikiSidebar, isWikiPage } = useMobileFabActions()
+const { isMobile } = useMobileViewport()
 
 const showQuickEntry = ref(false)
 const showBackToTop = ref(false)
+const quickEntryMaskDown = ref(false)
 
 const quickEntryItems = [
   { label: '首页', to: '/', icon: '🏠', openInNewTab: false },
@@ -98,7 +133,7 @@ const onGlobalKeydown = (event: KeyboardEvent) => {
   }
 
   if (event.key === 'Escape' && showQuickEntry.value) {
-    showQuickEntry.value = false
+    closeQuickEntry()
   }
 }
 
@@ -108,6 +143,33 @@ const onGlobalScroll = () => {
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function closeQuickEntry() {
+  quickEntryMaskDown.value = false
+  showQuickEntry.value = false
+}
+
+function closeQuickEntryFromMask() {
+  if (!quickEntryMaskDown.value)
+    return
+
+  closeQuickEntry()
+}
+
+function handleOpenAi() {
+  closeQuickEntry()
+  openAiPanel()
+}
+
+function handleScrollToTop() {
+  closeQuickEntry()
+  scrollToTop()
+}
+
+function handleOpenWikiSidebar() {
+  closeQuickEntry()
+  openWikiSidebar()
 }
 
 onMounted(() => {
@@ -145,7 +207,7 @@ body {
   z-index: 9999;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--blog-overlay-dark);
 }
 
 .quick-entry-panel {
@@ -236,6 +298,50 @@ body {
   margin-top: 0;
 }
 
+.quick-entry-actions {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.quick-entry-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 8px;
+  background: var(--blog-slate-50);
+  color: var(--blog-slate-800);
+  font-size: 14px;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.quick-entry-action:hover {
+  border-color: var(--blog-blue-200);
+  background: var(--blog-blue-50);
+  color: var(--blog-slate-900);
+}
+
+.quick-entry-action-icon {
+  width: 18px;
+  text-align: center;
+  color: var(--blog-blue-600);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.quick-entry-section-label {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--blog-slate-500);
+}
+
 .quick-entry-fab {
   position: fixed;
   right: 24px;
@@ -248,16 +354,17 @@ body {
   display: grid;
   place-items: center;
   padding: 0;
-  background: rgba(15, 23, 42, 0.58);
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 18px;
+  background: var(--blog-code-btn-bg);
+  color: var(--blog-white);
+  font-size: 22px;
   font-weight: 500;
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+  line-height: 1;
+  box-shadow: 0 4px 10px var(--blog-shadow-sm);
   backdrop-filter: blur(2px);
 }
 
 .quick-entry-fab:active {
-  transform: scale(0.96);
+  background: var(--blog-slate-700);
 }
 
 @media (min-width: 900px) {

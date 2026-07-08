@@ -164,6 +164,7 @@ import {
   saveAiSession,
   type AiMessage,
 } from '~/utils/ai-session'
+import { useRegisterMobileAiOpener } from '~/composables/useMobileFabActions'
 
 const MarkdownIt = ((_markdownit as any).default || _markdownit) as typeof _markdownit
 const md = MarkdownIt({ html: false, breaks: true, linkify: true })
@@ -381,6 +382,8 @@ function closePanelFromMask() {
   maskPointerDown.value = false
   open.value = false
 }
+
+useRegisterMobileAiOpener(openPanel)
 
 watch(() => pageContext.value.pageKey, () => {
   if (open.value)
@@ -752,10 +755,7 @@ watch(() => pageContext.value.pageKey, () => {
 
 @media (max-width: 899px) {
   .wiki-ai-fab {
-    right: 16px;
-    bottom: calc(84px + env(safe-area-inset-bottom));
-    padding: 9px 14px;
-    font-size: 13px;
+    display: none;
   }
 }
 

@@ -122,10 +122,17 @@ import {
   filterWikiPages,
 } from '~/composables/useWikiTree'
 import type { WikiPageMeta } from '~/composables/useWikiTree'
+import { useRegisterMobileWikiSidebarOpener } from '~/composables/useMobileFabActions'
 import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
+
+function openWikiSidebar() {
+  sidebarOpen.value = true
+}
+
+useRegisterMobileWikiSidebarOpener(openWikiSidebar)
 
 const { data: wikiPages } = await useAsyncData('wiki-tree', () =>
   queryContent('/wiki').only(['_path', 'title', 'date', 'order']).find(),
@@ -223,7 +230,7 @@ function closeDialogFromMask() {
   background: linear-gradient(165deg, var(--wiki-main-gradient-start) 0%, var(--wiki-main-gradient-end) 42%, var(--blog-slate-50) 100%);
 }
 
-/* ── 侧边栏切换按钮（移动端） ── */
+/* ── 侧边栏切换按钮（移动端改由快捷操作面板打开） ── */
 .wiki-sidebar-toggle {
   display: none;
   position: fixed;
@@ -239,13 +246,6 @@ function closeDialogFromMask() {
   font-size: 18px;
   cursor: pointer;
   box-shadow: 0 4px 14px var(--blog-shadow-sm);
-}
-
-@media (max-width: 768px) {
-  .wiki-sidebar-toggle {
-    display: grid;
-    place-items: center;
-  }
 }
 
 .wiki-sidebar-overlay {
