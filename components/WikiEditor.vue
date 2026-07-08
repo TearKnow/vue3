@@ -3,26 +3,31 @@
     <!-- 密码解锁层 -->
     <div v-if="!unlocked" class="wiki-editor-lock">
       <div class="wiki-editor-lock-card">
-        <h3>输入密码以编辑</h3>
-        <input
-          v-model="passwordInput"
-          type="password"
-          class="wiki-password-input"
-          placeholder="请输入 Wiki 编辑密码"
-          :disabled="unlocking"
-          @keyup.enter="unlock"
-        >
-        <div class="wiki-lock-actions">
-          <button class="wiki-btn wiki-btn-ghost" @click="$emit('cancel')">
-            返回阅读
-          </button>
-          <button class="wiki-btn wiki-btn-primary" :disabled="unlocking" @click="unlock">
-            {{ unlocking ? '验证中...' : '解锁编辑' }}
-          </button>
-        </div>
-        <p v-if="lockError" class="wiki-error">
-          {{ lockError }}
-        </p>
+        <h3 v-if="checkingStoredAuth">
+          验证已保存的密码...
+        </h3>
+        <template v-else>
+          <h3>输入密码以编辑</h3>
+          <input
+            v-model="passwordInput"
+            type="password"
+            class="wiki-password-input"
+            placeholder="请输入 Wiki 编辑密码"
+            :disabled="unlocking"
+            @keyup.enter="unlock"
+          >
+          <div class="wiki-lock-actions">
+            <button class="wiki-btn wiki-btn-ghost" @click="$emit('cancel')">
+              返回阅读
+            </button>
+            <button class="wiki-btn wiki-btn-primary" :disabled="unlocking" @click="unlock">
+              {{ unlocking ? '验证中...' : '解锁编辑' }}
+            </button>
+          </div>
+          <p v-if="lockError" class="wiki-error">
+            {{ lockError }}
+          </p>
+        </template>
       </div>
     </div>
 
@@ -91,6 +96,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import _markdownit from 'markdown-it'
+import {
+  clearStoredWikiEditPassword,
+  getStoredWikiEditPassword,
+  setStoredWikiEditPassword,
+} from '~/utils/wiki-edit-password'
 
 // Vite CJS/ESM interop: markdown-it 需要兼容两种导出方式
 const MarkdownIt = ((_markdownit as any).default || _markdownit) as typeof _markdownit
@@ -109,8 +119,29 @@ const emit = defineEmits<{
 // ── 密码解锁 ──
 const unlocked = ref(false)
 const unlocking = ref(false)
+const checkingStoredAuth = ref(true)
 const passwordInput = ref('')
 const lockError = ref('')
+
+async function verifyPassword(password: string): Promise<boolean> {
+  const res = await fetch('/api/wiki/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  })
+  return res.ok
+}
+
+async function unlockWithPassword(password: string): Promise<boolean> {
+  const ok = await verifyPassword(password)
+  if (!ok)
+    return false
+
+  passwordInput.value = password
+  unlocked.value = true
+  setStoredWikiEditPassword(password)
+  return true
+}
 
 async function unlock() {
   if (!passwordInput.value.trim()) {
@@ -122,24 +153,10 @@ async function unlock() {
   lockError.value = ''
 
   try {
-    const res = await fetch('/api/wiki/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: passwordInput.value }),
-    })
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ statusMessage: res.statusText }))
-      lockError.value = (err as { statusMessage?: string }).statusMessage || '密码错误'
-      return
-    }
-
-    unlocked.value = true
-    try {
-      sessionStorage.setItem('wiki-edit-password', passwordInput.value)
-    }
-    catch {
-      // ignore
+    const ok = await unlockWithPassword(passwordInput.value)
+    if (!ok) {
+      clearStoredWikiEditPassword()
+      lockError.value = '密码错误'
     }
   }
   catch {
@@ -241,8 +258,21 @@ watch([title, content], () => {
   draftTimer = setTimeout(saveDraft, 2000)
 })
 
-// 挂载时检查草稿；拒绝恢复时仍使用父组件传入的正文
-onMounted(() => {
+// 挂载时检查已保存密码与草稿；拒绝恢复时仍使用父组件传入的正文
+onMounted(async () => {
+  const storedPassword = getStoredWikiEditPassword()
+  if (storedPassword) {
+    try {
+      const ok = await unlockWithPassword(storedPassword)
+      if (!ok)
+        clearStoredWikiEditPassword()
+    }
+    catch {
+      // 网络错误时保留本地记录，下次再试
+    }
+  }
+  checkingStoredAuth.value = false
+
   const draft = loadDraft()
   if (draft) {
     if (draft.content !== props.initialContent || draft.title !== props.initialTitle) {
@@ -297,6 +327,7 @@ async function save() {
       if (res.status === 401) {
         unlocked.value = false
         passwordInput.value = ''
+        clearStoredWikiEditPassword()
         lockError.value = '密码错误，请重新输入'
       }
       else {
