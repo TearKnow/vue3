@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import type { H3Event } from 'h3'
 import { serverQueryContent } from '#content/server'
 import { getWikiPageBody } from './wiki-page-body'
 import { normalizeWikiSlug, stripWikiFrontmatter } from './wiki-content'
@@ -13,6 +14,13 @@ export interface SitePageContext {
   title: string
   body: string
   source: 'wiki' | 'blog' | 'page'
+}
+
+interface BlogContentDoc {
+  title?: string
+  description?: string
+  _path?: string
+  body?: unknown
 }
 
 function truncateBody(body: string) {
@@ -49,37 +57,64 @@ function blogPathToContentFile(path: string) {
   return `content/blog/${rel}.md`
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function pathToBlogSlug(path: string) {
+  return path
+    .split('/')
+    .filter(Boolean)
+    .pop()
+    ?.replace(/^\d{4}-\d{2}-\d{2}-/, '') || ''
+}
+
+function extractPlainText(value: unknown): string {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) return value.map(extractPlainText).join(' ')
+  if (typeof value === 'object') {
+    return Object.entries(value).reduce((text, [key, nested]) => {
+      if (key === 'type' || key === 'position') return text
+      return `${text} ${extractPlainText(nested)}`
+    }, '').trim()
+  }
+  return ''
+}
+
 function normalizeRoutePath(path: string) {
   const base = path.split('?')[0].split('#')[0].replace(/\/+$/, '')
   return base || '/'
 }
 
-async function getBlogPageContext(event: any, path: string): Promise<SitePageContext | null> {
-  const doc = await serverQueryContent(event, path).only(['title', 'description', '_path']).findOne() as {
-    title?: string
-    description?: string
-    _path?: string
-  } | null
+async function getBlogPageContext(event: H3Event, path: string): Promise<SitePageContext | null> {
+  const slug = path.replace(/^\/blog\/?/, '')
+  const postPathPattern = new RegExp(`^/blog/(?:\\d{4}-\\d{2}-\\d{2}-)?${escapeRegExp(slug)}$`)
+  const doc = await serverQueryContent(event, '/blog')
+    .where({ _path: postPathPattern })
+    .only(['title', 'description', '_path', 'body'])
+    .findOne() as BlogContentDoc | null
 
   if (!doc?._path)
     return null
 
-  const filePath = blogPathToContentFile(path)
+  const filePath = blogPathToContentFile(doc._path)
   const raw = filePath ? await readLocalMarkdown(filePath) : null
   const stripped = raw ? stripWikiFrontmatter(raw) : ''
-  const body = stripped || [doc.description, '（未能读取正文原文，仅提供摘要信息）'].filter(Boolean).join('\n\n')
-  const slug = path.replace(/^\/blog\/?/, '')
+  const contentBody = extractPlainText(doc.body)
+  const body = stripped || contentBody || [doc.description, '（未能读取正文原文，仅提供摘要信息）'].filter(Boolean).join('\n\n')
+  const resolvedSlug = pathToBlogSlug(doc._path) || slug
 
   return {
-    pageKey: `blog:${slug}`,
+    pageKey: `blog:${resolvedSlug}`,
     pagePath: path,
-    title: typeof doc.title === 'string' ? doc.title : slug,
+    title: typeof doc.title === 'string' ? doc.title : resolvedSlug,
     body: truncateBody(body),
     source: 'blog',
   }
 }
 
-export async function getSitePageContext(event: any, routePath: string): Promise<SitePageContext> {
+export async function getSitePageContext(event: H3Event, routePath: string): Promise<SitePageContext> {
   const path = normalizeRoutePath(routePath)
 
   if (path.startsWith('/wiki/') && path !== '/wiki') {
