@@ -131,12 +131,27 @@
                   </svg>
                 </button>
               </div>
-              <label class="wiki-ai-deep-think">
-                <input v-model="deepThink" type="checkbox" class="wiki-ai-deep-think-input">
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M12 3l1.4 4.3H18l-3.6 2.6 1.4 4.3L12 11.6 8.2 14.2l1.4-4.3L6 7.3h4.6L12 3z" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                深度思考
+              <label
+                class="wiki-ai-deep-think"
+                :class="{ 'wiki-ai-deep-think--active': deepThink }"
+                title="开启后使用推理模型，回答更慢但更仔细"
+              >
+                <input
+                  v-model="deepThink"
+                  type="checkbox"
+                  class="wiki-ai-deep-think-input"
+                  :disabled="sending"
+                >
+                <span class="wiki-ai-deep-think-chip">
+                  <svg class="wiki-ai-deep-think-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M8 9.2C6.2 10 5 11.7 5 13.6c0 2.4 1.9 4.4 4.3 4.4H8" />
+                    <path d="M16 9.2c1.8.8 3 2.5 3 4.4 0 2.4-1.9 4.4-4.3 4.4H16" />
+                    <path d="M9.5 8.8A2.6 2.6 0 0 1 12 6.2c1.2 0 2.2.7 2.7 1.8" />
+                    <path d="M12 6.2V4.5" />
+                    <path d="M10 14.8c.6.7 1.3 1 2 1s1.4-.3 2-1" />
+                  </svg>
+                  <span>深度思考</span>
+                </span>
               </label>
             </footer>
           </template>
@@ -794,13 +809,9 @@ watch(() => pageContext.value.pageKey, () => {
 
 .wiki-ai-deep-think {
   display: inline-flex;
-  align-items: center;
-  gap: 4px;
   margin-top: 8px;
   margin-left: auto;
   float: right;
-  font-size: 11px;
-  color: var(--blog-slate-500);
   cursor: pointer;
   user-select: none;
 }
@@ -810,10 +821,47 @@ watch(() => pageContext.value.pageKey, () => {
   opacity: 0;
   width: 0;
   height: 0;
+  pointer-events: none;
 }
 
-.wiki-ai-deep-think:has(.wiki-ai-deep-think-input:checked) {
-  color: var(--blog-blue-700);
+.wiki-ai-deep-think-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 999px;
+  background: var(--blog-slate-50);
+  color: var(--blog-slate-700);
+  font-size: 12px;
+  line-height: 1;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wiki-ai-deep-think-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--blog-blue-600);
+}
+
+.wiki-ai-deep-think:hover .wiki-ai-deep-think-chip {
+  color: var(--blog-blue-800);
+  background: var(--blog-blue-50);
+  border-color: var(--blog-blue-200);
+}
+
+.wiki-ai-deep-think--active .wiki-ai-deep-think-chip,
+.wiki-ai-deep-think:has(.wiki-ai-deep-think-input:checked) .wiki-ai-deep-think-chip {
+  color: var(--blog-blue-800);
+  background: var(--blog-blue-50);
+  border-color: var(--blog-blue-300);
+  box-shadow: 0 0 0 1px var(--blog-blue-200);
+}
+
+.wiki-ai-deep-think:has(.wiki-ai-deep-think-input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 @media (max-width: 899px) {
