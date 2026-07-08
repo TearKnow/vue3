@@ -187,7 +187,7 @@ const pageContext = useAiPageContext()
 const sessionTitle = ref('')
 
 const open = ref(false)
-useBodyScrollLock(open)
+useBodyScrollLock(open, { allowScrollSelectors: ['.wiki-ai-messages'] })
 const unlocked = ref(false)
 const unlocking = ref(false)
 const checkingAuth = ref(false)

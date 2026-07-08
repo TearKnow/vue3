@@ -1,43 +1,60 @@
-export function useBodyScrollLock(isLocked: Ref<boolean>) {
-  const lockedScrollTop = ref(0)
+interface BodyScrollLockOptions {
+  /** 允许继续滚动的区域（如弹框内消息列表） */
+  allowScrollSelectors?: string[]
+}
+
+export function useBodyScrollLock(isLocked: Ref<boolean>, options: BodyScrollLockOptions = {}) {
+  const allowScrollSelectors = options.allowScrollSelectors ?? []
+
+  function isInsideAllowedScrollable(target: EventTarget | null) {
+    if (!(target instanceof Element))
+      return false
+
+    return allowScrollSelectors.some(selector => target.closest(selector))
+  }
+
+  function onWheel(event: WheelEvent) {
+    if (isInsideAllowedScrollable(event.target))
+      return
+
+    event.preventDefault()
+  }
+
+  function onTouchMove(event: TouchEvent) {
+    if (isInsideAllowedScrollable(event.target))
+      return
+
+    event.preventDefault()
+  }
+
+  const scrollKeys = new Set([' ', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End'])
+
+  function onKeyDown(event: KeyboardEvent) {
+    if (!scrollKeys.has(event.key))
+      return
+
+    if (isInsideAllowedScrollable(event.target))
+      return
+
+    event.preventDefault()
+  }
 
   function lock() {
     if (!import.meta.client)
       return
 
-    const html = document.documentElement
-    const body = document.body
-    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth
-
-    lockedScrollTop.value = window.scrollY || window.pageYOffset || 0
-    html.style.overflow = 'hidden'
-    body.style.overflow = 'hidden'
-    body.style.position = 'fixed'
-    body.style.top = `-${lockedScrollTop.value}px`
-    body.style.left = '0'
-    body.style.right = '0'
-    body.style.touchAction = 'none'
-
-    if (scrollBarWidth > 0)
-      body.style.paddingRight = `${scrollBarWidth}px`
+    document.addEventListener('wheel', onWheel, { passive: false })
+    document.addEventListener('touchmove', onTouchMove, { passive: false })
+    document.addEventListener('keydown', onKeyDown)
   }
 
   function unlock() {
     if (!import.meta.client)
       return
 
-    const html = document.documentElement
-    const body = document.body
-
-    html.style.overflow = ''
-    body.style.overflow = ''
-    body.style.position = ''
-    body.style.top = ''
-    body.style.left = ''
-    body.style.right = ''
-    body.style.paddingRight = ''
-    body.style.touchAction = ''
-    window.scrollTo(0, lockedScrollTop.value)
+    document.removeEventListener('wheel', onWheel)
+    document.removeEventListener('touchmove', onTouchMove)
+    document.removeEventListener('keydown', onKeyDown)
   }
 
   watch(isLocked, (locked) => {
