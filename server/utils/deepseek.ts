@@ -3,7 +3,7 @@ interface ChatMessage {
   content: string
 }
 
-export async function callDeepSeekChat(messages: ChatMessage[], model?: string) {
+function getDeepSeekConfig() {
   const config = useRuntimeConfig()
   const apiKey = config.deepseekApiKey as string
 
@@ -11,14 +11,22 @@ export async function callDeepSeekChat(messages: ChatMessage[], model?: string) 
     throw createError({ statusCode: 500, statusMessage: '服务器未配置 DEEPSEEK_API_KEY 环境变量' })
   }
 
-  const baseUrl = (config.deepseekBaseUrl as string) || 'https://api.deepseek.com'
-  const resolvedModel = model || (config.deepseekModel as string) || 'deepseek-chat'
+  return {
+    apiKey,
+    baseUrl: (config.deepseekBaseUrl as string) || 'https://api.deepseek.com',
+    model: (config.deepseekModel as string) || 'deepseek-chat',
+  }
+}
+
+export async function callDeepSeekChat(messages: ChatMessage[], model?: string) {
+  const { apiKey, baseUrl, model: defaultModel } = getDeepSeekConfig()
+  const resolvedModel = model || defaultModel
 
   const res = await fetch(`${baseUrl}/v1/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model: resolvedModel,
@@ -45,6 +53,25 @@ export async function callDeepSeekChat(messages: ChatMessage[], model?: string) 
   }
 
   return content
+}
+
+export async function createDeepSeekChatStream(messages: ChatMessage[], model?: string) {
+  const { apiKey, baseUrl, model: defaultModel } = getDeepSeekConfig()
+  const resolvedModel = model || defaultModel
+
+  return fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: resolvedModel,
+      messages,
+      temperature: 0.7,
+      stream: true,
+    }),
+  })
 }
 
 export function buildPageAiSystemPrompt(title: string, body: string, source: 'wiki' | 'blog' | 'page' = 'page') {

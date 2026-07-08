@@ -79,8 +79,14 @@
                 class="wiki-ai-message"
                 :class="`wiki-ai-message--${msg.role}`"
               >
+                <p
+                  v-if="msg.role === 'assistant' && streamingMessageIndex === index"
+                  class="wiki-ai-message-content wiki-ai-streaming"
+                >
+                  {{ msg.content }}<span v-if="sending" class="wiki-ai-cursor" aria-hidden="true">▍</span>
+                </p>
                 <div
-                  v-if="msg.role === 'assistant'"
+                  v-else-if="msg.role === 'assistant'"
                   class="wiki-ai-message-content wiki-ai-markdown"
                   v-html="renderMarkdown(msg.content)"
                 />
@@ -88,9 +94,6 @@
                   {{ msg.content }}
                 </p>
               </article>
-              <p v-if="sending" class="wiki-ai-typing">
-                思考中...
-              </p>
               <p v-if="chatError" class="wiki-ai-error wiki-ai-error--inline">
                 {{ chatError }}
               </p>
@@ -159,6 +162,7 @@ import {
   type AiMessage,
 } from '~/utils/ai-session'
 import { useRegisterMobileAiOpener } from '~/composables/useMobileFabActions'
+import { readAiChatStream } from '~/utils/ai-stream'
 
 const MarkdownIt = ((_markdownit as any).default || _markdownit) as typeof _markdownit
 const md = MarkdownIt({ html: false, breaks: true, linkify: true })
@@ -180,6 +184,8 @@ const chatError = ref('')
 const deepThink = ref(false)
 const messagesRef = ref<HTMLElement | null>(null)
 const maskPointerDown = ref(false)
+const streamingMessageIndex = ref(-1)
+let chatAbortController: AbortController | null = null
 
 function renderMarkdown(content: string) {
   try {
@@ -281,6 +287,9 @@ async function sendChatRequest(userText: string) {
   if (!text)
     return
 
+  chatAbortController?.abort()
+  chatAbortController = new AbortController()
+
   chatError.value = ''
   sending.value = true
 
@@ -290,14 +299,19 @@ async function sendChatRequest(userText: string) {
   inputText.value = ''
   await scrollToBottom()
 
+  const assistantIndex = messages.value.length
+  messages.value.push({ role: 'assistant', content: '' })
+  streamingMessageIndex.value = assistantIndex
+
   try {
     const res = await fetch('/api/ai/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: chatAbortController.signal,
       body: JSON.stringify({
         password: passwordInput.value,
         pagePath,
-        messages: messages.value,
+        messages: messages.value.slice(0, -1),
         deepThink: deepThink.value,
       }),
     })
@@ -309,27 +323,65 @@ async function sendChatRequest(userText: string) {
         passwordInput.value = ''
         clearStoredWikiEditPassword()
         lockError.value = '密码已失效，请重新输入'
-        messages.value.pop()
+        messages.value.splice(assistantIndex - 1, 2)
         persistSession()
         return
       }
       throw new Error((err as { statusMessage?: string }).statusMessage || '请求失败')
     }
 
-    const data = await res.json() as { reply: string; title?: string }
-    if (data.title)
-      sessionTitle.value = data.title
-    messages.value.push({ role: 'assistant', content: data.reply })
+    if (!res.body) {
+      throw new Error('响应体为空')
+    }
+
+    let streamFailed = false
+
+    await readAiChatStream(res.body, {
+      onMeta: (meta) => {
+        if (meta.title)
+          sessionTitle.value = meta.title
+      },
+      onDelta: (content) => {
+        const current = messages.value[assistantIndex]
+        if (current)
+          current.content += content
+        void scrollToBottom()
+      },
+      onError: (message) => {
+        streamFailed = true
+        chatError.value = message
+      },
+    })
+
+    const assistantMessage = messages.value[assistantIndex]
+    if (streamFailed || !assistantMessage?.content.trim()) {
+      messages.value.splice(assistantIndex, 1)
+      if (!streamFailed)
+        chatError.value = 'AI 返回内容为空'
+      persistSession()
+      return
+    }
+
     persistSession()
     await scrollToBottom()
   }
   catch (e: any) {
-    messages.value.pop()
+    if (e?.name === 'AbortError') {
+      const assistantMessage = messages.value[assistantIndex]
+      if (assistantMessage && !assistantMessage.content.trim())
+        messages.value.splice(assistantIndex, 1)
+      persistSession()
+      return
+    }
+
+    messages.value.splice(assistantIndex, 1)
     persistSession()
     chatError.value = e.message || '发送失败，请重试'
   }
   finally {
+    streamingMessageIndex.value = -1
     sending.value = false
+    chatAbortController = null
   }
 }
 
@@ -365,6 +417,7 @@ async function openPanel() {
 }
 
 function closePanel() {
+  chatAbortController?.abort()
   maskPointerDown.value = false
   open.value = false
 }
@@ -589,6 +642,23 @@ watch(() => pageContext.value.pageKey, () => {
   color: var(--blog-slate-800);
 }
 
+.wiki-ai-streaming {
+  white-space: pre-wrap;
+}
+
+.wiki-ai-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--blog-blue-600);
+  animation: wiki-ai-cursor-blink 1s step-end infinite;
+}
+
+@keyframes wiki-ai-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 .wiki-ai-markdown :deep(p) {
   margin: 0 0 10px;
 }
@@ -622,12 +692,6 @@ watch(() => pageContext.value.pageKey, () => {
 .wiki-ai-markdown :deep(pre code) {
   padding: 0;
   background: transparent;
-}
-
-.wiki-ai-typing {
-  margin: 0;
-  font-size: 13px;
-  color: var(--blog-slate-400);
 }
 
 .wiki-ai-error {
