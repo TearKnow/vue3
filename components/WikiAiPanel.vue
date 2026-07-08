@@ -36,12 +36,6 @@
                   <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
-              <button type="button" class="wiki-ai-icon-btn" title="当前页对话" disabled>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M3 3v5h5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
               <button type="button" class="wiki-ai-icon-btn" title="关闭" @click="closePanel">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round" />
