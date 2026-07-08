@@ -2,7 +2,7 @@
   <div class="blog-article">
     <div
       class="reading-progress"
-      :style="{ transform: `scaleX(${readingProgress})` }"
+      :style="{ width: `${readingProgress * 100}%` }"
       aria-hidden="true"
     />
     <div class="top-bar">
@@ -484,7 +484,8 @@ const updateReadingProgress = () => {
   const maxScrollable = Math.max(1, articleEl.offsetHeight - window.innerHeight)
   const current = window.scrollY - articleTop
   const progress = current / maxScrollable
-  readingProgress.value = Math.min(1, Math.max(0, progress))
+  // 极小的进度不显示，避免顶部出现色块
+  readingProgress.value = progress < 0.008 ? 0 : Math.min(1, Math.max(0, progress))
 }
 
 const scrollToComments = () => {
@@ -772,11 +773,9 @@ watchEffect(() => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 3px;
-  transform-origin: left center;
+  width: 0;
+  height: 2px;
   background: linear-gradient(90deg, var(--blog-blue-600) 0%, var(--blog-cyan-500) 100%);
-  box-shadow: 0 1px 8px var(--blog-shadow-brand);
   z-index: 1200;
   pointer-events: none;
 }
