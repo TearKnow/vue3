@@ -4,8 +4,6 @@ description: "一文看懂 `useNuxtApp()` + `import.meta.dev` + `vueApp.config.w
 date: 2026-05-28
 tags:
   - Nuxt
-  - Vue
-  - 调试
 draft: false
 pinned: false
 ---

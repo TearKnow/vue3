@@ -5,7 +5,6 @@ date: 2026-07-08
 tags:
   - Nuxt
   - AI
-  - DeepSeek
 draft: false
 pinned: false
 ---

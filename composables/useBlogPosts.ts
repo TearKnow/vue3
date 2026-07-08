@@ -12,6 +12,45 @@ export interface BlogPostMeta {
 }
 
 export const BLOG_PAGE_SIZE = 20
+export const BLOG_MAX_TAGS = 2
+
+/** 同组标签只保留先出现的那个（如 Nuxt / Vue 二选一） */
+const BLOG_TAG_GROUPS: readonly (readonly string[])[] = [
+  ['Nuxt', 'Vue'],
+  ['npm', 'pnpm'],
+]
+
+function dedupeSimilarBlogTags(tags: string[]) {
+  const result: string[] = []
+  const usedGroups = new Set<number>()
+
+  for (const tag of tags) {
+    const groupIndex = BLOG_TAG_GROUPS.findIndex(group =>
+      group.some(item => item.toLowerCase() === tag.toLowerCase()),
+    )
+
+    if (groupIndex === -1) {
+      result.push(tag)
+      continue
+    }
+
+    if (usedGroups.has(groupIndex))
+      continue
+
+    usedGroups.add(groupIndex)
+    result.push(tag)
+  }
+
+  return result
+}
+
+export function normalizeBlogTags(tags: unknown): string[] {
+  if (!Array.isArray(tags))
+    return []
+
+  const cleaned = tags.filter((tag): tag is string => typeof tag === 'string' && tag.trim().length > 0)
+  return dedupeSimilarBlogTags(cleaned).slice(0, BLOG_MAX_TAGS)
+}
 
 export function monthKeyFromDate(date?: string) {
   if (!date || date.length < 7) return ''
@@ -75,7 +114,7 @@ export async function fetchBlogMetaList(options: FetchBlogMetaOptions = {}): Pro
       title: typeof doc.title === 'string' ? doc.title : undefined,
       description: typeof doc.description === 'string' ? doc.description : undefined,
       date: typeof doc.date === 'string' ? doc.date : undefined,
-      tags: Array.isArray(doc.tags) ? (doc.tags.filter(t => typeof t === 'string') as string[]) : [],
+      tags: normalizeBlogTags(doc.tags),
       content: rawContent || undefined,
       pinned: Boolean(doc.pinned),
       draft: Boolean(doc.draft),

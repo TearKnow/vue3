@@ -226,7 +226,7 @@
 <script setup lang="ts">
 import { nextTick } from 'vue'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
-import { fetchBlogMetaList } from '~/composables/useBlogPosts'
+import { fetchBlogMetaList, normalizeBlogTags } from '~/composables/useBlogPosts'
 import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
 import { useTheme } from '~/composables/useTheme'
 
@@ -686,10 +686,7 @@ const nextPost = computed(() => {
   return (postNavList.value ?? [])[idx + 1] ?? null
 })
 
-const articleTags = computed(() => {
-  const t = post.value?.tags
-  return Array.isArray(t) ? (t as string[]) : []
-})
+const articleTags = computed(() => normalizeBlogTags(post.value?.tags))
 
 interface TocLinkNode {
   id?: string

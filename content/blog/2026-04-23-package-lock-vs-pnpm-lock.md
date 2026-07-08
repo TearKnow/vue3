@@ -4,7 +4,6 @@ description: "记录一次依赖管理小坑：为什么项目能跑但编辑器
 date: 2026-04-23
 tags:
   - npm
-  - pnpm
 draft: false
 pinned: false
 ---
