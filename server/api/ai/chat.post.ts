@@ -43,11 +43,11 @@ export default defineEventHandler(async (event) => {
     }))
     .filter(item => item.content)
 
-  const model = deepThink ? 'deepseek-reasoner' : undefined
+  const model = deepThink ? 'deepseek-reasoner' : ((useRuntimeConfig().deepseekModel as string) || 'deepseek-chat')
 
   const upstream = await createDeepSeekChatStream(
     [
-      { role: 'system', content: buildPageAiSystemPrompt(page.title, page.body, page.source) },
+      { role: 'system', content: buildPageAiSystemPrompt(page.title, page.body, page.source, model) },
       ...history,
     ],
     model,

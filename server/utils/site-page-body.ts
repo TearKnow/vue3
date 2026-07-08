@@ -141,7 +141,7 @@ export async function getSitePageContext(event: H3Event, routePath: string): Pro
     pageKey: `route:${path}`,
     pagePath: path,
     title: path === '/' ? '首页' : path,
-    body: `当前页面路径：${path}\n该页面没有可读取的正文内容。请结合用户问题作答；若需要页面正文才能回答，请说明当前环境无法获取正文。`,
+    body: `当前页面路径：${path}。`,
     source: 'page',
   }
 }
