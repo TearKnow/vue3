@@ -46,32 +46,38 @@
         按 <code>Ctrl + Z</code> 打开，按 <code>Esc</code> 关闭
       </p>
 
-      <div v-if="isMobile" class="quick-entry-actions">
-        <button type="button" class="quick-entry-action" @click="handleOpenAi">
-          <span class="quick-entry-action-icon" aria-hidden="true">✦</span>
-          <span>AI 助教</span>
+      <div class="quick-entry-actions">
+        <button type="button" class="quick-entry-action" @click="handleRandomBlog">
+          <span class="quick-entry-action-icon" aria-hidden="true">🎲</span>
+          <span>随机文章</span>
         </button>
-        <button
-          v-if="showBackToTop"
-          type="button"
-          class="quick-entry-action"
-          @click="handleScrollToTop"
-        >
-          <span class="quick-entry-action-icon" aria-hidden="true">↑</span>
-          <span>回到顶部</span>
-        </button>
-        <button
-          v-if="isWikiPage"
-          type="button"
-          class="quick-entry-action"
-          @click="handleOpenWikiSidebar"
-        >
-          <span class="quick-entry-action-icon" aria-hidden="true">☰</span>
-          <span>Wiki 目录</span>
-        </button>
+        <template v-if="isMobile">
+          <button type="button" class="quick-entry-action" @click="handleOpenAi">
+            <span class="quick-entry-action-icon" aria-hidden="true">✦</span>
+            <span>AI 助教</span>
+          </button>
+          <button
+            v-if="showBackToTop"
+            type="button"
+            class="quick-entry-action"
+            @click="handleScrollToTop"
+          >
+            <span class="quick-entry-action-icon" aria-hidden="true">↑</span>
+            <span>回到顶部</span>
+          </button>
+          <button
+            v-if="isWikiPage"
+            type="button"
+            class="quick-entry-action"
+            @click="handleOpenWikiSidebar"
+          >
+            <span class="quick-entry-action-icon" aria-hidden="true">☰</span>
+            <span>Wiki 目录</span>
+          </button>
+        </template>
       </div>
 
-      <p v-if="isMobile" class="quick-entry-section-label">
+      <p class="quick-entry-section-label">
         站点导航
       </p>
       <NuxtLink
@@ -102,6 +108,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import BackToTopFab from '~/components/BackToTopFab.vue'
 import { useBlogNavigationLoading } from '~/composables/useBlogNavigationLoading'
 import { useMobileFabActions, useMobileViewport } from '~/composables/useMobileFabActions'
+import { useRandomBlogPost } from '~/composables/useRandomBlogPost'
 import { quickEntryLinks } from '~/constants/quick-entry-links'
 import { useTheme } from '~/composables/useTheme'
 
@@ -115,6 +122,7 @@ useBlogNavigationLoading()
 const { isDark: themeIsDark, init: initTheme, toggle: toggleTheme } = useTheme()
 const { openAiPanel, openWikiSidebar, isWikiPage } = useMobileFabActions()
 const { isMobile } = useMobileViewport()
+const { goToRandomBlog } = useRandomBlogPost()
 
 const showQuickEntry = ref(false)
 const showBackToTop = ref(false)
@@ -170,6 +178,11 @@ function handleScrollToTop() {
 function handleOpenWikiSidebar() {
   closeQuickEntry()
   openWikiSidebar()
+}
+
+async function handleRandomBlog() {
+  closeQuickEntry()
+  await goToRandomBlog()
 }
 
 onMounted(() => {
