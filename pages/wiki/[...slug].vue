@@ -40,10 +40,10 @@
           <button
             type="button"
             class="wiki-action-btn"
-            title="编辑"
+            title="编辑此页"
             @click="startEdit"
           >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="wiki-action-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
             </svg>
@@ -292,30 +292,38 @@ onMounted(async () => {
 .wiki-action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex-shrink: 0;
-  padding: 6px 11px;
+  align-self: center;
+  padding: 7px 12px;
   border: 1px solid var(--blog-slate-200);
-  border-radius: 999px;
-  background: var(--blog-overlay-light);
-  color: var(--blog-slate-500);
-  font-size: 12px;
+  border-radius: 8px;
+  background: var(--blog-white);
+  color: var(--blog-slate-600);
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1;
   cursor: pointer;
-  opacity: 0.55;
-  transition: opacity 0.2s ease, color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px var(--blog-shadow-xs);
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.wiki-article-header:hover .wiki-action-btn,
-.wiki-action-btn:focus-visible {
-  opacity: 1;
+.wiki-action-btn-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }
 
 .wiki-action-btn:hover {
   color: var(--blog-blue-800);
-  background: var(--blog-white);
+  background: var(--blog-blue-50);
   border-color: var(--blog-blue-200);
-  box-shadow: 0 6px 16px var(--blog-shadow-xs);
+  box-shadow: 0 4px 12px var(--blog-shadow-xs);
+}
+
+.wiki-action-btn:focus-visible {
+  outline: 2px solid var(--blog-blue-200);
+  outline-offset: 2px;
 }
 
 .wiki-article-body {
@@ -488,10 +496,6 @@ onMounted(async () => {
   .wiki-article-body {
     padding: 22px 20px 28px;
     font-size: 1rem;
-  }
-
-  .wiki-action-btn {
-    opacity: 1;
   }
 }
 </style>
