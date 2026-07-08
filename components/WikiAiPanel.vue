@@ -162,6 +162,7 @@ import {
   type AiMessage,
 } from '~/utils/ai-session'
 import { useRegisterMobileAiOpener } from '~/composables/useMobileFabActions'
+import { useBodyScrollLock } from '~/composables/useBodyScrollLock'
 import { readAiChatStream } from '~/utils/ai-stream'
 
 const MarkdownIt = ((_markdownit as any).default || _markdownit) as typeof _markdownit
@@ -171,6 +172,7 @@ const pageContext = useAiPageContext()
 const sessionTitle = ref('')
 
 const open = ref(false)
+useBodyScrollLock(open)
 const unlocked = ref(false)
 const unlocking = ref(false)
 const checkingAuth = ref(false)
@@ -482,6 +484,7 @@ watch(() => pageContext.value.pageKey, () => {
   justify-content: flex-end;
   padding: 16px 20px 88px;
   background: var(--blog-overlay-dark);
+  overscroll-behavior: none;
 }
 
 .wiki-ai-panel {
@@ -611,6 +614,8 @@ watch(() => pageContext.value.pageKey, () => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .wiki-ai-empty {
