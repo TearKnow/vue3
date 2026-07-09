@@ -95,11 +95,24 @@
           </div>
         </header>
 
-        <ContentRenderer
-          v-if="post"
-          :value="post"
-          class="article-body"
-        />
+        <ClientOnly>
+          <InlineAnnotations
+            v-if="post"
+            :page-key="annotationPageKey"
+          >
+            <ContentRenderer
+              :value="post"
+              class="article-body"
+            />
+          </InlineAnnotations>
+          <template #fallback>
+            <ContentRenderer
+              v-if="post"
+              :value="post"
+              class="article-body"
+            />
+          </template>
+        </ClientOnly>
 
         <section
           v-if="prevPost || nextPost"
@@ -234,6 +247,7 @@ const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
 const requestURL = useRequestURL()
 const currentSlug = computed(() => decodeURIComponent(route.path.replace(/^\/blog\//, '').replace(/\/$/, '')))
+const annotationPageKey = computed(() => `blog:${currentSlug.value}`)
 const { isDark: isDarkMode } = useTheme()
 const tocOpen = ref(false)
 const lockedScrollTop = ref(0)

@@ -63,6 +63,7 @@ html {
   --wiki-ambient-secondary: rgb(6 182 212 / 0.06);
   --wiki-hero-accent: rgb(37 99 235 / 0.12);
   --wiki-sidebar-shadow: rgb(15 23 42 / 0.04);
+  --blog-annotation-bg: #EA9999;
 }
 
 /* 暗色模式 */
@@ -125,6 +126,7 @@ html.dark {
   --wiki-ambient-secondary: rgb(34 211 238 / 0.08);
   --wiki-hero-accent: rgb(59 130 246 / 0.18);
   --wiki-sidebar-shadow: rgb(0 0 0 / 0.28);
+  --blog-annotation-bg: #c47878;
 }
 
 /* 细滚动条：代码块、表格等溢出区域（无两端箭头） */

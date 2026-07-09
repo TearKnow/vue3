@@ -50,9 +50,18 @@
             <span>编辑</span>
           </button>
         </header>
-        <div class="wiki-article-body">
-          <ContentRenderer :value="page" />
-        </div>
+        <ClientOnly>
+          <InlineAnnotations :page-key="annotationPageKey">
+            <div class="wiki-article-body">
+              <ContentRenderer :value="page" />
+            </div>
+          </InlineAnnotations>
+          <template #fallback>
+            <div class="wiki-article-body">
+              <ContentRenderer :value="page" />
+            </div>
+          </template>
+        </ClientOnly>
         </div>
       </div>
       <div v-else-if="isReservedSlug" class="wiki-empty">
@@ -115,6 +124,8 @@ const { data: wikiPageList } = await useAsyncData('wiki-tree', () =>
 const breadcrumbs = computed(() =>
   buildWikiBreadcrumbs(slug.value, filterWikiPages(wikiPageList.value || [])),
 )
+
+const annotationPageKey = computed(() => `wiki:${slug.value}`)
 
 // 查询 wiki 页面内容
 const { data: page } = await useAsyncData(`wiki-${slug.value}`, () => {
@@ -331,6 +342,7 @@ onMounted(async () => {
   font-size: 1.03rem;
   line-height: 1.85;
   color: var(--blog-slate-800);
+  user-select: text;
   background:
     linear-gradient(180deg, var(--blog-white) 0%, var(--blog-slate-50) 220%);
 }
