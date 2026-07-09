@@ -25,6 +25,10 @@
           </NuxtLink>
         </div>
       </div>
+
+      <ClientOnly>
+        <CheckinPanel />
+      </ClientOnly>
     </div>
   </div>
 </template>
