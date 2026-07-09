@@ -20,11 +20,8 @@ export { buildCumulativeSeries, parseCheckinDays }
 
 const workspaceRoot = process.cwd()
 
-const DEFAULT_DATA: CheckinData = {
-  items: [
-    { id: 1, label: '日常打卡' },
-    { id: 2, label: '算法刷题' },
-  ],
+const EMPTY_CHECKIN_DATA: CheckinData = {
+  items: [],
   records: {},
 }
 
@@ -55,7 +52,7 @@ export function parseCheckinData(raw: string): CheckinData {
             return { id, label }
           })
           .filter((item): item is CheckinItem => item !== null)
-      : DEFAULT_DATA.items
+      : []
 
     const records: Record<string, number[]> = {}
     if (parsed.records && typeof parsed.records === 'object') {
@@ -65,13 +62,10 @@ export function parseCheckinData(raw: string): CheckinData {
       }
     }
 
-    return {
-      items: items.length ? items : DEFAULT_DATA.items,
-      records,
-    }
+    return { items, records }
   }
   catch {
-    return { ...DEFAULT_DATA, records: {} }
+    return { ...EMPTY_CHECKIN_DATA }
   }
 }
 
@@ -129,7 +123,7 @@ export async function readCheckinFile() {
     return remote
 
   return {
-    content: serializeCheckinData(DEFAULT_DATA),
+    content: serializeCheckinData(EMPTY_CHECKIN_DATA),
     sha: '',
   }
 }
@@ -150,7 +144,7 @@ export async function writeCheckinFile(data: CheckinData, sha = '', message?: st
 export async function loadCheckinData() {
   const local = await readLocalCheckinFile()
   const remote = await readGithubFile(CHECKIN_FILE_PATH)
-  const content = local?.content || remote?.content || serializeCheckinData(DEFAULT_DATA)
+  const content = local?.content || remote?.content || serializeCheckinData(EMPTY_CHECKIN_DATA)
 
   return {
     data: parseCheckinData(content),

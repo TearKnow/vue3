@@ -7,12 +7,9 @@
       <div class="checkin-form">
         <div class="checkin-form-head">
           <p class="checkin-date">
-            今天：{{ todayLabel }}
+            {{ todayLabel }}
           </p>
-          <p v-if="checkedInToday" class="checkin-status">
-            今日已签到
-          </p>
-          <p v-else-if="saveMessage" class="checkin-message" :class="{ 'checkin-message--error': saveError }">
+          <p v-if="saveMessage" class="checkin-message" :class="{ 'checkin-message--error': saveError }">
             {{ saveMessage }}
           </p>
         </div>
@@ -48,7 +45,7 @@
               :disabled="saving || checkedInToday"
               @click="saveCheckin"
             >
-              {{ saving ? '保存中...' : checkedInToday ? '今日已签到' : '保存签到' }}
+              {{ saving ? '保存中...' : checkedInToday ? '已签到' : '签到' }}
             </button>
           </div>
         </template>
@@ -398,13 +395,6 @@ watch([chartDates, chartSeries], () => {
   margin: 8px 0 0;
   font-size: 0.82rem;
   color: var(--blog-blue-600);
-}
-
-.checkin-status {
-  margin: 8px 0 0;
-  font-size: 0.82rem;
-  color: var(--blog-blue-600);
-  font-weight: 600;
 }
 
 .checkin-message--error {
