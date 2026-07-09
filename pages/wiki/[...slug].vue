@@ -440,6 +440,54 @@ onMounted(async () => {
   box-shadow: 0 12px 28px var(--blog-shadow-xs);
 }
 
+.wiki-article-body :deep(table) {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blog-scrollbar-thumb) transparent;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.wiki-article-body :deep(table::-webkit-scrollbar) {
+  height: 6px;
+}
+
+.wiki-article-body :deep(table::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.wiki-article-body :deep(table::-webkit-scrollbar-thumb) {
+  background-color: var(--blog-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.wiki-article-body :deep(table::-webkit-scrollbar-thumb:hover) {
+  background-color: var(--blog-scrollbar-thumb-hover);
+}
+
+.wiki-article-body :deep(table::-webkit-scrollbar-button),
+.wiki-article-body :deep(table::-webkit-scrollbar-corner) {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.wiki-article-body :deep(table th),
+.wiki-article-body :deep(table td) {
+  border: 1px solid var(--blog-slate-300);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.wiki-article-body :deep(table th) {
+  background: var(--blog-slate-100);
+  font-weight: 600;
+  color: var(--blog-slate-900);
+}
+
 .wiki-text-btn {
   padding: 0;
   border: 0;

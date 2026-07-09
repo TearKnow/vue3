@@ -31,7 +31,8 @@ export default defineEventHandler(async (event) => {
 
   const existing = await readGithubFile(filePath)
   const existingMeta = existing?.content ? parseWikiFrontmatter(existing.content) : {}
-  const date = typeof existingMeta.date === 'string' ? existingMeta.date : today
+  // date 用于页面「更新于」展示，每次保存刷新为当天
+  const date = today
   const orderLine = typeof existingMeta.order === 'number' ? `order: ${existingMeta.order}` : ''
 
   const frontmatter = [
