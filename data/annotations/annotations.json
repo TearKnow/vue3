@@ -1,12 +1,21 @@
 {
   "annotations": [
     {
-      "id": "ann_mrdalzn3_txxror",
-      "pageKey": "blog:site-ai-assistant-deepseek",
       "quote": "容」灵活，实际好用很多",
       "prefix": " Markdown 输出、语言与用户一致这样比「你只能回答本文内",
       "suffix": "。聊天 API 与 SSE 流式入口是 server/api/a",
+      "id": "ann_mrdalzn3_txxror",
+      "pageKey": "blog:site-ai-assistant-deepseek",
       "comment": "测试下",
+      "createdAt": "2026-07-09"
+    },
+    {
+      "id": "ann_mrdap9ip_cck54w",
+      "pageKey": "blog:site-ai-assistant-deepseek",
+      "quote": "WIKI_PASSWORD ",
+      "prefix": "静默解锁。密码与本地会话AI 和 Wiki 编辑共用同一套密码（",
+      "suffix": "环境变量）。utils/wiki-edit-password.t",
+      "comment": "需要在vercel里添加环境变量",
       "createdAt": "2026-07-09"
     }
   ]
