@@ -17,6 +17,15 @@
       "pageKey": "blog:site-ai-assistant-deepseek",
       "comment": "需要在vercel里添加环境变量",
       "createdAt": "2026-07-09"
+    },
+    {
+      "id": "ann_mrdcvhkh_fiiviv",
+      "pageKey": "blog:site-ai-assistant-deepseek",
+      "quote": "一页，就带",
+      "prefix": "部聊天工具顺手得多。一分钟看懂整条链路可以概括成 五步：用户在哪",
+      "suffix": "哪一页的路径 — 前端不传正文，只传 pagePath 和聊天记",
+      "comment": "来自手机",
+      "createdAt": "2026-07-09"
     }
   ]
 }
