@@ -19,12 +19,21 @@
       "createdAt": "2026-07-09"
     },
     {
-      "id": "ann_mrdbyjyt_6zp5aw",
-      "pageKey": "blog:site-ai-assistant-deepseek",
       "quote": "pageKey,\n  title,\n  updatedAt,\n  messages,",
       "prefix": "${pageKey}`, JSON.stringify({\n  ",
       "suffix": "\n}))\n路由变化时 watch 重新 loadSession(",
+      "id": "ann_mrdbyjyt_6zp5aw",
+      "pageKey": "blog:site-ai-assistant-deepseek",
       "comment": "这里可以吗",
+      "createdAt": "2026-07-09"
+    },
+    {
+      "id": "ann_mrdbz62t_a3bcyq",
+      "pageKey": "blog:site-ai-assistant-deepseek",
+      "quote": "DEEPSEEK_API_KEY",
+      "prefix": " 重新 loadSession()，同一页刷新也能续聊。环境变量",
+      "suffix": "=sk-xxx          # 必填\nWIKI_PASSW",
+      "comment": "这里呢",
       "createdAt": "2026-07-09"
     }
   ]
