@@ -263,7 +263,6 @@ function toggle() {
 .wiki-tree-children {
   overflow: hidden;
   margin-left: 20px;
-  border-left: 1px solid var(--blog-blue-200);
 }
 
 @media (prefers-reduced-motion: reduce) {

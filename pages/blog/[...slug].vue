@@ -578,8 +578,11 @@ const enhanceCodeBlocks = () => {
 const updateActiveHeading = () => {
   if (!import.meta.client) return
   if (!tocHeadingElements.value.length) {
-    activeHeadingId.value = ''
-    return
+    refreshTocHeadingElements()
+    if (!tocHeadingElements.value.length) {
+      activeHeadingId.value = ''
+      return
+    }
   }
 
   const threshold = 120
@@ -1298,28 +1301,8 @@ watchEffect(() => {
   margin-left: 0.7rem;
 }
 
-.toc li.depth-1::before {
-  content: '';
-  position: absolute;
-  left: -0.35rem;
-  top: 0.3rem;
-  bottom: 0.3rem;
-  width: 1px;
-  background: var(--blog-slate-300);
-}
-
 .toc li.depth-2 {
   margin-left: 1.35rem;
-}
-
-.toc li.depth-2::before {
-  content: '';
-  position: absolute;
-  left: -0.35rem;
-  top: 0.3rem;
-  bottom: 0.3rem;
-  width: 1px;
-  background: var(--blog-slate-200);
 }
 
 .neighbors {
