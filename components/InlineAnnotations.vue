@@ -328,6 +328,11 @@ function hideHoverCard() {
   hoverCard.value = null
 }
 
+function handleScrollCloseHoverCard() {
+  if (hoverCard.value)
+    hideHoverCard()
+}
+
 function scheduleHideHoverCard() {
   cancelHideHoverCard()
   hideHoverTimer = setTimeout(() => {
@@ -435,12 +440,14 @@ onMounted(() => {
   isCoarsePointer.value = window.matchMedia('(hover: none), (pointer: coarse)').matches
   document.addEventListener('mousedown', handleDocumentMouseDown)
   document.addEventListener('mouseup', handleDocumentMouseUp)
+  window.addEventListener('scroll', handleScrollCloseHoverCard, { capture: true, passive: true })
   nextTick(() => trySetupObserver())
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMouseDown)
   document.removeEventListener('mouseup', handleDocumentMouseUp)
+  window.removeEventListener('scroll', handleScrollCloseHoverCard, { capture: true })
   if (containerEl) {
     containerEl.removeEventListener('click', handleContainerClick)
     containerEl.removeEventListener('mouseover', handleContainerMouseOver)
