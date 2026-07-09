@@ -140,6 +140,8 @@ const isCoarsePointer = ref(false)
 let containerEl: HTMLElement | null = null
 let observer: IntersectionObserver | null = null
 let hideHoverTimer: ReturnType<typeof setTimeout> | null = null
+let selectionCheckRaf = 0
+let selectionCheckTimer: ReturnType<typeof setTimeout> | null = null
 
 const annotationMap = computed(() => {
   const map = new Map<string, AnnotationItem>()
@@ -204,14 +206,28 @@ function hideToolbar() {
   toolbarVisible.value = false
 }
 
-function handleMouseUp() {
+function cancelSelectionCheck() {
+  if (selectionCheckRaf) {
+    window.cancelAnimationFrame(selectionCheckRaf)
+    selectionCheckRaf = 0
+  }
+  if (selectionCheckTimer) {
+    clearTimeout(selectionCheckTimer)
+    selectionCheckTimer = null
+  }
+}
+
+function updateToolbarFromSelection() {
   const container = getContainer()
-  if (!container)
+  if (!container) {
+    hideToolbar()
     return
+  }
 
   const anchor = captureSelectionAnchor(container)
   if (!anchor) {
-    hideToolbar()
+    if (!composeOpen.value)
+      hideToolbar()
     return
   }
 
@@ -224,12 +240,49 @@ function handleMouseUp() {
   }
 
   const rect = range.getBoundingClientRect()
+  if (rect.width === 0 && rect.height === 0) {
+    hideToolbar()
+    return
+  }
+
+  const toolbarHeight = 40
+  const gap = 8
+  const preferredTop = isCoarsePointer.value
+    ? rect.top - toolbarHeight - gap
+    : rect.bottom + gap
+
   toolbarStyle.value = {
     position: 'fixed',
-    top: `${rect.bottom + 8}px`,
-    left: `${Math.max(12, rect.left)}px`,
+    top: `${Math.max(12, Math.min(preferredTop, window.innerHeight - toolbarHeight - 12))}px`,
+    left: `${Math.max(12, Math.min(rect.left, window.innerWidth - 120))}px`,
   }
   toolbarVisible.value = true
+}
+
+function scheduleSelectionCheck() {
+  if (selectionCheckRaf) {
+    window.cancelAnimationFrame(selectionCheckRaf)
+    selectionCheckRaf = 0
+  }
+
+  selectionCheckRaf = window.requestAnimationFrame(() => {
+    selectionCheckRaf = window.requestAnimationFrame(() => {
+      selectionCheckRaf = 0
+      updateToolbarFromSelection()
+    })
+  })
+
+  if (!isCoarsePointer.value)
+    return
+
+  if (selectionCheckTimer)
+    clearTimeout(selectionCheckTimer)
+
+  // iOS 选区更新可能略晚于 touchend
+  selectionCheckTimer = setTimeout(() => {
+    selectionCheckTimer = null
+    updateToolbarFromSelection()
+  }, 250)
 }
 
 function openCompose() {
@@ -331,6 +384,8 @@ function hideHoverCard() {
 function handleScrollCloseHoverCard() {
   if (hoverCard.value)
     hideHoverCard()
+  if (isCoarsePointer.value && toolbarVisible.value)
+    hideToolbar()
 }
 
 function scheduleHideHoverCard() {
@@ -400,17 +455,36 @@ function handleContainerMouseOut(event: MouseEvent) {
 }
 
 function handleDocumentMouseUp() {
-  window.requestAnimationFrame(() => {
-    handleMouseUp()
-  })
+  scheduleSelectionCheck()
+}
+
+function handleSelectionChange() {
+  if (!isCoarsePointer.value)
+    return
+  scheduleSelectionCheck()
+}
+
+function handleTouchEnd(event: TouchEvent) {
+  if (!isCoarsePointer.value)
+    return
+
+  const target = event.target as HTMLElement | null
+  if (target?.closest('.annotation-toolbar') || target?.closest('.annotation-dialog'))
+    return
+
+  scheduleSelectionCheck()
 }
 
 function handleDocumentMouseDown(event: MouseEvent) {
   const target = event.target as HTMLElement | null
   if (target?.closest('.annotation-toolbar') || target?.closest('.annotation-dialog'))
     return
-  if (!target?.closest('.inline-annotations-root'))
-    hideToolbar()
+  if (!target?.closest('.inline-annotations-root')) {
+    if (isCoarsePointer.value)
+      scheduleSelectionCheck()
+    else
+      hideToolbar()
+  }
 }
 
 function setupObserver() {
@@ -440,6 +514,8 @@ onMounted(() => {
   isCoarsePointer.value = window.matchMedia('(hover: none), (pointer: coarse)').matches
   document.addEventListener('mousedown', handleDocumentMouseDown)
   document.addEventListener('mouseup', handleDocumentMouseUp)
+  document.addEventListener('selectionchange', handleSelectionChange)
+  document.addEventListener('touchend', handleTouchEnd, { passive: true })
   window.addEventListener('scroll', handleScrollCloseHoverCard, { capture: true, passive: true })
   nextTick(() => trySetupObserver())
 })
@@ -447,7 +523,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMouseDown)
   document.removeEventListener('mouseup', handleDocumentMouseUp)
+  document.removeEventListener('selectionchange', handleSelectionChange)
+  document.removeEventListener('touchend', handleTouchEnd)
   window.removeEventListener('scroll', handleScrollCloseHoverCard, { capture: true })
+  cancelSelectionCheck()
   if (containerEl) {
     containerEl.removeEventListener('click', handleContainerClick)
     containerEl.removeEventListener('mouseover', handleContainerMouseOver)
@@ -507,15 +586,16 @@ mark.inline-annotation-mark :is(code) {
 }
 
 .annotation-toolbar-btn {
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: 1px solid var(--blog-blue-200);
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--blog-white);
   color: var(--blog-blue-700);
   font-size: 0.82rem;
   font-weight: 600;
   box-shadow: 0 8px 20px var(--blog-shadow-sm);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .annotation-mask {
