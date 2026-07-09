@@ -463,11 +463,35 @@ watch(() => props.pageKey, () => {
 }
 
 mark.inline-annotation-mark {
+  position: relative;
+  z-index: 1;
+  display: inline;
   background: var(--blog-annotation-bg);
   color: inherit;
   cursor: pointer;
-  border-radius: 2px;
-  padding: 0 1px;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* 覆盖 blog / wiki 的 inline code 背景，批注色优先 */
+mark.inline-annotation-mark :is(code) {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+.inline-annotations-root :is(p, li, td, th) code:has(> mark.inline-annotation-mark) {
+  background: var(--blog-annotation-bg) !important;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.inline-annotations-root :is(p, li, td, th) code > mark.inline-annotation-mark {
+  background: transparent !important;
+  padding: 0 !important;
 }
 
 .annotation-toolbar {

@@ -109,7 +109,9 @@ export function wrapAnchorHighlight(
   mark.dataset.annotationId = annotationId
 
   try {
-    range.surroundContents(mark)
+    const fragment = range.extractContents()
+    mark.appendChild(fragment)
+    range.insertNode(mark)
     return true
   }
   catch {
