@@ -29,7 +29,7 @@
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/checkin` | 返回 items、records、最近 30 天累计曲线数据 |
+| GET | `/api/checkin` | 返回 items、records、今日签到状态；图表由前端按所选天数本地计算 |
 | POST | `/api/checkin/save` | `{ date?, itemIds }`，更新当天记录并 commit；今日已签到则拒绝 |
 
 ## 前端

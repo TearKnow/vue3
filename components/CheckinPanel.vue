@@ -215,6 +215,7 @@ function setChartDays(days: CheckinDayOption) {
   chartDays.value = days
   storeChartDays(days)
   updateChartData()
+  nextTick(() => renderChart())
 }
 
 function formatAxisDate(date: string) {
