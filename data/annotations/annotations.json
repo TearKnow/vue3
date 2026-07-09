@@ -17,15 +17,6 @@
       "pageKey": "blog:site-ai-assistant-deepseek",
       "comment": "需要在vercel里添加环境变量",
       "createdAt": "2026-07-09"
-    },
-    {
-      "quote": "pageKey,\n  title,\n  updatedAt,\n  messages,",
-      "prefix": "${pageKey}`, JSON.stringify({\n  ",
-      "suffix": "\n}))\n路由变化时 watch 重新 loadSession(",
-      "id": "ann_mrdbyjyt_6zp5aw",
-      "pageKey": "blog:site-ai-assistant-deepseek",
-      "comment": "这里可以吗",
-      "createdAt": "2026-07-09"
     }
   ]
 }
