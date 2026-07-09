@@ -247,9 +247,7 @@ function updateToolbarFromSelection() {
 
   const toolbarHeight = 40
   const gap = 8
-  const preferredTop = isCoarsePointer.value
-    ? rect.top - toolbarHeight - gap
-    : rect.bottom + gap
+  const preferredTop = rect.bottom + gap
 
   toolbarStyle.value = {
     position: 'fixed',
