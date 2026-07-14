@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
+import { getTodayDateString } from '../../utils/beijing-time'
 import { getWikiGitHubConfig, readGithubFile, writeGithubFile } from './wiki-github'
 
 export const ANNOTATIONS_FILE_PATH = 'data/annotations/annotations.json'
@@ -71,17 +72,6 @@ export function parseAnnotationsFile(raw: string): AnnotationsFile {
 
 export function serializeAnnotationsFile(data: AnnotationsFile) {
   return `${JSON.stringify(data, null, 2)}\n`
-}
-
-function formatDate(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-export function getTodayDateString() {
-  return formatDate(new Date())
 }
 
 export function createAnnotationId() {

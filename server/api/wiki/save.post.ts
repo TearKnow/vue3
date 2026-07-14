@@ -8,6 +8,7 @@ import {
   writeWikiOrderFileToGithub,
 } from '../../utils/wiki-github'
 import { isValidWikiSlug, normalizeWikiPath, normalizeWikiSlug } from '../../utils/wiki-content'
+import { getTodayDateString } from '../../../utils/beijing-time'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
   assertWikiPassword(password)
 
   const normalizedSlug = normalizeWikiSlug(slug)
-  const today = new Date().toISOString().slice(0, 10)
+  const today = getTodayDateString()
   const filePath = `content/wiki/${normalizedSlug}.md`
   const pagePath = normalizeWikiPath(`/wiki/${normalizedSlug}`)
   const parentPath = pagePath.substring(0, pagePath.lastIndexOf('/')) || '/wiki'

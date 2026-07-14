@@ -1,0 +1,32 @@
+---
+description: 业务日期与时间统一使用北京时间（Asia/Shanghai）
+alwaysApply: true
+---
+
+# 北京时间（Asia/Shanghai）
+
+凡涉及「今天 / 日期键 / 按天切换业务日」的逻辑，一律按 **北京时间**（`Asia/Shanghai`），禁止依赖服务器默认时区或 `toISOString().slice(0, 10)`（UTC）。
+
+## 用法
+
+优先复用 `utils/beijing-time.ts`：
+
+- `getTodayDateString()` / `formatBeijingDate()` → `YYYY-MM-DD`
+- `getBeijingDateParts()` → `{ year, month(0–11), date }`
+- `buildBeijingRecentDateKeys(n)` → 连续日历日
+
+```ts
+// ❌ BAD：线上多在 UTC，北京早上仍可能算成前一天
+const today = new Date().toISOString().slice(0, 10)
+const today = formatDate(new Date()) // getFullYear/getMonth/getDate 用的是运行时本地时区
+
+// ✅ GOOD
+import { getTodayDateString, getBeijingDateParts } from '~/utils/beijing-time'
+const today = getTodayDateString()
+const { year, month, date } = getBeijingDateParts()
+```
+
+## 边界
+
+- RSS/`pubDate` 等对外协议可用 UTC（如 `toUTCString()`），但业务日历日仍以北京为准。
+- 展示文案可用 `toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai', ... })`。

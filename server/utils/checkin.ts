@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
+import { getTodayDateString } from '../../utils/beijing-time'
 import {
   buildCumulativeSeries,
   DEFAULT_CHECKIN_DAYS,
@@ -11,6 +12,8 @@ import {
   parseCheckinDays,
 } from '../../utils/checkin-chart'
 import { getWikiGitHubConfig, readGithubFile, writeGithubFile } from './wiki-github'
+
+export { getTodayDateString }
 
 export const CHECKIN_FILE_PATH = 'data/checkin/checkin.json'
 export const CHECKIN_DAYS = DEFAULT_CHECKIN_DAYS
@@ -71,17 +74,6 @@ export function parseCheckinData(raw: string): CheckinData {
 
 export function serializeCheckinData(data: CheckinData) {
   return `${JSON.stringify(data, null, 2)}\n`
-}
-
-function formatDate(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-export function getTodayDateString() {
-  return formatDate(new Date())
 }
 
 export function sanitizeCheckinSave(data: CheckinData, date: string, itemIds: number[]) {

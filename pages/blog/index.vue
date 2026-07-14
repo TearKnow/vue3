@@ -274,6 +274,7 @@ import affirmations from '~/docs/affirmations.json'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
 import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
+import { getBeijingDateParts } from '~/utils/beijing-time'
 
 useSeoMeta({
   title: '博客',
@@ -334,18 +335,23 @@ const allMonthCount = computed(() => {
 const router = useRouter()
 const route = useRoute()
 
-/** 日历「今天」必须用用户本机时区；SSR 里 `new Date()` 常是 UTC，会差一天 */
-const localToday = ref<{ year: number, month: number, date: number } | null>(null)
-const viewMonth = ref(new Date())
+/** 日历「今天」统一用北京时间，避免服务器 UTC / 访客本机时区差一天 */
+const beijingNow = getBeijingDateParts()
+const localToday = ref<{ year: number, month: number, date: number }>({
+  year: beijingNow.year,
+  month: beijingNow.month,
+  date: beijingNow.date,
+})
+const viewMonth = ref(new Date(beijingNow.year, beijingNow.month, 1))
 const weekDays = ['日', '一', '二', '三', '四', '五', '六']
 const calendarMonthLabel = computed(() => viewMonth.value.toLocaleDateString('zh-CN', {
   year: 'numeric',
   month: 'long',
+  timeZone: 'Asia/Shanghai',
 }))
 
 const isCurrentMonth = computed(() => {
   const t = localToday.value
-  if (!t) return true
   return viewMonth.value.getFullYear() === t.year && viewMonth.value.getMonth() === t.month
 })
 
@@ -396,7 +402,7 @@ const calendarDays = computed(() => {
       day,
       hasPost: postCount > 0,
       postCount,
-      isToday: t != null && year === t.year && month === t.month && day === t.date,
+      isToday: year === t.year && month === t.month && day === t.date,
     })
   }
   while (days.length % 7 !== 0) {
@@ -420,9 +426,7 @@ function shiftCalendarMonth(offset: number) {
 
 function jumpToCurrentMonth() {
   const t = localToday.value
-  if (t) {
-    viewMonth.value = new Date(t.year, t.month, 1)
-  }
+  viewMonth.value = new Date(t.year, t.month, 1)
 }
 
 function dotLevelClass(postCount: number) {
@@ -462,7 +466,7 @@ function onCalendarDayClick(dayCell: CalendarDayCell, index: number) {
 }
 
 const dailyAffirmation = computed(() => {
-  const day = new Date().getDate()
+  const day = getBeijingDateParts().date
   return affirmations[(day - 1) % affirmations.length]
 })
 
@@ -574,13 +578,13 @@ const pageTo = (page: number) => {
 }
 
 onMounted(() => {
-  const n = new Date()
+  const n = getBeijingDateParts()
   localToday.value = {
-    year: n.getFullYear(),
-    month: n.getMonth(),
-    date: n.getDate(),
+    year: n.year,
+    month: n.month,
+    date: n.date,
   }
-  viewMonth.value = new Date(n.getFullYear(), n.getMonth(), 1)
+  viewMonth.value = new Date(n.year, n.month, 1)
   removeBlogNavigationLoadingOverlay()
 })
 

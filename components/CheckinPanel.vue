@@ -150,15 +150,23 @@ let chart: echarts.ECharts | null = null
 const todayLabel = computed(() => {
   if (!today.value)
     return ''
-  const date = new Date(`${today.value}T00:00:00`)
-  return Number.isNaN(date.getTime())
-    ? today.value
-    : date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'short',
-      })
+  // 日期键已是北京日历日，用 +08:00 锚定后再格式化，避免运行时本地时区影响周几
+  const date = new Date(`${today.value}T12:00:00+08:00`)
+  if (Number.isNaN(date.getTime()))
+    return today.value
+
+  const opts = { timeZone: 'Asia/Shanghai' } as const
+  const datePart = date.toLocaleDateString('zh-CN', {
+    ...opts,
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+  const weekdayPart = date.toLocaleDateString('zh-CN', {
+    ...opts,
+    weekday: 'short',
+  })
+  return `${datePart} ${weekdayPart}`
 })
 
 function readCssVar(name: string, fallback: string) {

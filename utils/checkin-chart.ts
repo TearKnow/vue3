@@ -1,3 +1,5 @@
+import { buildBeijingRecentDateKeys } from './beijing-time'
+
 export const CHECKIN_DAY_OPTIONS = [30, 60, 90] as const
 export const DEFAULT_CHECKIN_DAYS = 30
 
@@ -31,25 +33,8 @@ export function parseCheckinDays(value: unknown, fallback = DEFAULT_CHECKIN_DAYS
     : fallback
 }
 
-function formatDate(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 export function buildRecentDates(days: CheckinDayOption, endDate = new Date()) {
-  const dates: string[] = []
-  const cursor = new Date(endDate)
-  cursor.setHours(0, 0, 0, 0)
-
-  for (let i = days - 1; i >= 0; i -= 1) {
-    const current = new Date(cursor)
-    current.setDate(cursor.getDate() - i)
-    dates.push(formatDate(current))
-  }
-
-  return dates
+  return buildBeijingRecentDateKeys(days, endDate)
 }
 
 export function buildCumulativeSeries(data: CheckinData, days: CheckinDayOption = DEFAULT_CHECKIN_DAYS): CheckinChartData {

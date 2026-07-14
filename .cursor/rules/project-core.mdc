@@ -12,3 +12,4 @@ alwaysApply: true
 - 卡片、按钮等交互 hover 不使用 `translateY` / `scale` 上浮或缩放动效；仅用颜色、边框、阴影等静态反馈。
 - **遮罩弹框关闭**：禁止仅用 `@click.self` 关窗。须 `pointerdown.self` 记录按下、`pointerup.self` 仅在遮罩上释放时才关闭，并处理 `pointercancel` 重置状态；避免输入框内拖选文字、鼠标移出遮罩未释放时误关（参考 `layouts/wiki.vue` 新建对话框）。
 - 完成改动后，运行对应的 lint 或最小验证命令再给出结论。
+- **业务日期一律北京时间**（`Asia/Shanghai`）：详见 `.cursor/rules/beijing-time.mdc`，复用 `utils/beijing-time.ts`，禁止用 UTC/`toISOString().slice(0, 10)` 当「今天」。
