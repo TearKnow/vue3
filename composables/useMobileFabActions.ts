@@ -1,23 +1,12 @@
 const openAiPanelHandler = shallowRef<(() => void) | null>(null)
-const openWikiSidebarHandler = shallowRef<(() => void) | null>(null)
 
 export function useMobileFabActions() {
-  const route = useRoute()
-
-  const isWikiPage = computed(() => route.path === '/wiki' || route.path.startsWith('/wiki/'))
-
   function openAiPanel() {
     openAiPanelHandler.value?.()
   }
 
-  function openWikiSidebar() {
-    openWikiSidebarHandler.value?.()
-  }
-
   return {
     openAiPanel,
-    openWikiSidebar,
-    isWikiPage,
   }
 }
 
@@ -29,17 +18,6 @@ export function useRegisterMobileAiOpener(handler: () => void) {
   onUnmounted(() => {
     if (openAiPanelHandler.value === handler)
       openAiPanelHandler.value = null
-  })
-}
-
-export function useRegisterMobileWikiSidebarOpener(handler: () => void) {
-  onMounted(() => {
-    openWikiSidebarHandler.value = handler
-  })
-
-  onUnmounted(() => {
-    if (openWikiSidebarHandler.value === handler)
-      openWikiSidebarHandler.value = null
   })
 }
 

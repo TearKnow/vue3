@@ -1,8 +1,25 @@
 <template>
   <div class="wiki-layout">
     <!-- 移动端侧边栏切换 -->
-    <button class="wiki-sidebar-toggle" @click="sidebarOpen = !sidebarOpen">
-      {{ sidebarOpen ? '✕' : '☰' }}
+    <button
+      class="wiki-sidebar-toggle"
+      type="button"
+      :aria-label="sidebarOpen ? '关闭 Wiki 目录' : '打开 Wiki 目录'"
+      :aria-expanded="sidebarOpen"
+      @click="sidebarOpen = !sidebarOpen"
+    >
+      <svg
+        class="wiki-sidebar-toggle-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path v-if="sidebarOpen" d="M18 6 6 18M6 6l12 12" />
+        <path v-else d="M4 7h16M4 12h16M4 17h16" />
+      </svg>
     </button>
 
     <!-- 移动端遮罩 -->
@@ -122,17 +139,10 @@ import {
   filterWikiPages,
 } from '~/composables/useWikiTree'
 import type { WikiPageMeta } from '~/composables/useWikiTree'
-import { useRegisterMobileWikiSidebarOpener } from '~/composables/useMobileFabActions'
 import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
-
-function openWikiSidebar() {
-  sidebarOpen.value = true
-}
-
-useRegisterMobileWikiSidebarOpener(openWikiSidebar)
 
 const { data: wikiPages } = await useAsyncData('wiki-tree', () =>
   queryContent('/wiki').only(['_path', 'title', 'date', 'order']).find(),
@@ -230,22 +240,34 @@ function closeDialogFromMask() {
   background: linear-gradient(165deg, var(--wiki-main-gradient-start) 0%, var(--wiki-main-gradient-end) 42%, var(--blog-slate-50) 100%);
 }
 
-/* ── 侧边栏切换按钮（移动端改由快捷操作面板打开） ── */
+/* ── 侧边栏切换按钮（移动端） ── */
 .wiki-sidebar-toggle {
   display: none;
   position: fixed;
-  bottom: 24px;
-  left: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  left: 16px;
   z-index: 10001;
-  width: 43px;
-  height: 43px;
-  border-radius: 999px;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
   border: 1px solid var(--blog-slate-200);
   background: var(--blog-white);
   color: var(--blog-slate-700);
-  font-size: 18px;
   cursor: pointer;
   box-shadow: 0 4px 14px var(--blog-shadow-sm);
+}
+
+.wiki-sidebar-toggle-icon {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 768px) {
+  .wiki-sidebar-toggle {
+    display: grid;
+  }
 }
 
 .wiki-sidebar-overlay {

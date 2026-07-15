@@ -65,15 +65,6 @@
             <span class="quick-entry-action-icon" aria-hidden="true">↑</span>
             <span>回到顶部</span>
           </button>
-          <button
-            v-if="isWikiPage"
-            type="button"
-            class="quick-entry-action"
-            @click="handleOpenWikiSidebar"
-          >
-            <span class="quick-entry-action-icon" aria-hidden="true">☰</span>
-            <span>Wiki 目录</span>
-          </button>
         </template>
       </div>
 
@@ -120,7 +111,7 @@ useSeoMeta({
 useBlogNavigationLoading()
 
 const { isDark: themeIsDark, init: initTheme, toggle: toggleTheme } = useTheme()
-const { openAiPanel, openWikiSidebar, isWikiPage } = useMobileFabActions()
+const { openAiPanel } = useMobileFabActions()
 const { isMobile } = useMobileViewport()
 const { goToRandomBlog } = useRandomBlogPost()
 
@@ -173,11 +164,6 @@ function handleOpenAi() {
 function handleScrollToTop() {
   closeQuickEntry()
   scrollToTop()
-}
-
-function handleOpenWikiSidebar() {
-  closeQuickEntry()
-  openWikiSidebar()
 }
 
 async function handleRandomBlog() {
