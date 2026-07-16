@@ -56,7 +56,7 @@
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
 import { onMounted } from 'vue'
-import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
+import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 
 const route = useRoute()
 const monthParam = computed(() => {
@@ -101,7 +101,7 @@ useSeoMeta({
 })
 
 onMounted(() => {
-  removeBlogNavigationLoadingOverlay()
+  removeNavigationLoadingOverlay()
 })
 </script>
 

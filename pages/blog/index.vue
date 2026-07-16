@@ -273,7 +273,7 @@ import { useRouter, useRoute } from '#imports'
 import affirmations from '~/docs/affirmations.json'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE, formatMonthLabel, monthKeyFromDate } from '~/composables/useBlogPosts'
-import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
+import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 import { getBeijingDateParts } from '~/utils/beijing-time'
 
 useSeoMeta({
@@ -585,7 +585,7 @@ onMounted(() => {
     date: n.date,
   }
   viewMonth.value = new Date(n.year, n.month, 1)
-  removeBlogNavigationLoadingOverlay()
+  removeNavigationLoadingOverlay()
 })
 
 onBeforeUnmount(() => {

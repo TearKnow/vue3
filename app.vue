@@ -97,7 +97,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import BackToTopFab from '~/components/BackToTopFab.vue'
-import { useBlogNavigationLoading } from '~/composables/useBlogNavigationLoading'
+import { useNavigationLoading } from '~/composables/useNavigationLoading'
 import { useMobileFabActions, useMobileViewport } from '~/composables/useMobileFabActions'
 import { useRandomBlogPost } from '~/composables/useRandomBlogPost'
 import { quickEntryLinks } from '~/constants/quick-entry-links'
@@ -108,7 +108,7 @@ useSeoMeta({
   description: 'vue3，你的选择',
 })
 
-useBlogNavigationLoading()
+useNavigationLoading()
 
 const { isDark: themeIsDark, init: initTheme, toggle: toggleTheme } = useTheme()
 const { openAiPanel } = useMobileFabActions()
@@ -190,12 +190,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-@keyframes blog-page-loading-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 body {
   margin: 0;
 }

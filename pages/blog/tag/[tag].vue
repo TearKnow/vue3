@@ -58,7 +58,7 @@
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { BLOG_PAGE_SIZE } from '~/composables/useBlogPosts'
 import { onMounted } from 'vue'
-import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
+import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 
 const route = useRoute()
 const tagParam = computed(() => {
@@ -110,7 +110,7 @@ useSeoMeta({
 })
 
 onMounted(() => {
-  removeBlogNavigationLoadingOverlay()
+  removeNavigationLoadingOverlay()
 })
 </script>
 

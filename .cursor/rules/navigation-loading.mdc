@@ -1,0 +1,27 @@
+---
+description: 站内链接导航须提供全屏 loading 反馈
+alwaysApply: true
+---
+
+# 站内导航 Loading
+
+站内路由切换（`NuxtLink` / `navigateTo` / `router.push`）须有全屏 loading，让用户确认点击已生效。
+
+## 实现
+
+- 统一使用 `composables/useNavigationLoading.ts`，在 `app.vue` 调用一次 `useNavigationLoading()`。
+- **不要**为单个页面/板块再写一套独立 overlay；扩展现有 composable。
+- path 未变（仅 hash / 同 path 的 query 微调）可不展示；首屏初始化导航不展示。
+- 外链、`target="_blank"` 不走路由，无需 loading。
+
+## 关闭时机
+
+- 默认：路由 `afterEach` 后关闭（wiki 等页适用）。
+- 若目标页数据在路由完成后仍在加载（如 blog 详情 `pending`），在页面数据就绪 / `onMounted` 时调用 `removeNavigationLoadingOverlay()`，不要过早在 `afterEach` 摘掉。
+
+## 示例
+
+```ts
+// ❌ BAD：wiki / 新板块自己造 loading，或点链接无任何反馈
+// ✅ GOOD：依赖 useNavigationLoading；特殊页再手动 removeNavigationLoadingOverlay()
+```

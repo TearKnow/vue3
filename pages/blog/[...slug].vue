@@ -240,7 +240,7 @@
 import { nextTick } from 'vue'
 import type { BlogPostMeta } from '~/composables/useBlogPosts'
 import { fetchBlogMetaList, normalizeBlogTags } from '~/composables/useBlogPosts'
-import { removeBlogNavigationLoadingOverlay } from '~/composables/useBlogNavigationLoading'
+import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 import { useTheme } from '~/composables/useTheme'
 
 const route = useRoute()
@@ -474,7 +474,7 @@ watch(commentsProvider, () => {
 
 watch(pending, (value) => {
   if (!value) {
-    removeBlogNavigationLoadingOverlay()
+    removeNavigationLoadingOverlay()
   }
 })
 
@@ -659,7 +659,7 @@ onBeforeUnmount(() => {
 })
 
 onMounted(() => {
-  removeBlogNavigationLoadingOverlay()
+  removeNavigationLoadingOverlay()
   refreshTocHeadingElements()
   updateReadingProgress()
   onScroll()
