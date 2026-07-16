@@ -55,11 +55,22 @@
       <ClientOnly>
         <div class="checkin-chart-wrap">
           <div class="checkin-chart-toolbar">
-            <span class="checkin-chart-toolbar-label">统计范围</span>
-            <div class="checkin-range-group" role="group" aria-label="统计范围">
+            <div
+              ref="rangeGroupRef"
+              class="checkin-range-group"
+              :class="{ 'checkin-range-group--ready': rangeThumbReady }"
+              role="group"
+              aria-label="统计范围"
+            >
+              <span
+                class="checkin-range-thumb"
+                :style="rangeThumbStyle"
+                aria-hidden="true"
+              />
               <button
                 v-for="option in dayOptions"
                 :key="option"
+                :ref="(el) => setRangeBtnRef(option, el)"
                 type="button"
                 class="checkin-range-btn"
                 :class="{ 'checkin-range-btn--active': chartDays === option }"
@@ -83,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type ComponentPublicInstance } from 'vue'
 import * as echarts from 'echarts/core'
 import { LineChart } from 'echarts/charts'
 import {
@@ -133,6 +144,13 @@ const CHART_COLORS = [
 const { isDark } = useTheme()
 
 const chartRef = ref<HTMLElement | null>(null)
+const rangeGroupRef = ref<HTMLElement | null>(null)
+const rangeThumbReady = ref(false)
+const rangeThumbStyle = ref({
+  width: '0px',
+  transform: 'translateX(0px)',
+})
+const rangeBtnRefs = new Map<CheckinDayOption, HTMLButtonElement>()
 const items = ref<CheckinItem[]>([])
 const records = ref<Record<string, number[]>>({})
 const selectedIds = ref<number[]>([])
@@ -186,7 +204,7 @@ const todayLabel = computed(() => {
     month: 'long',
     day: 'numeric',
   })
-  const weekdayPart = date.toLocaleDateString('zh-CN', {
+  const weekdayPart = date.toLocaleDateString('en-US', {
     ...opts,
     weekday: 'short',
   })
@@ -230,6 +248,30 @@ function storeChartDays(days: CheckinDayOption) {
   }
 }
 
+function setRangeBtnRef(option: CheckinDayOption, el: Element | ComponentPublicInstance | null) {
+  if (el instanceof HTMLButtonElement)
+    rangeBtnRefs.set(option, el)
+  else
+    rangeBtnRefs.delete(option)
+}
+
+function updateRangeThumb() {
+  const group = rangeGroupRef.value
+  const btn = rangeBtnRefs.get(chartDays.value)
+  if (!group || !btn)
+    return
+
+  const groupRect = group.getBoundingClientRect()
+  const btnRect = btn.getBoundingClientRect()
+  const left = btnRect.left - groupRect.left
+
+  rangeThumbStyle.value = {
+    width: `${btnRect.width}px`,
+    transform: `translateX(${left}px)`,
+  }
+  rangeThumbReady.value = true
+}
+
 function updateChartData() {
   const chart = buildCumulativeSeries({
     items: items.value,
@@ -247,7 +289,10 @@ function setChartDays(days: CheckinDayOption) {
   chartDays.value = days
   storeChartDays(days)
   updateChartData()
-  nextTick(() => renderChart())
+  nextTick(() => {
+    updateRangeThumb()
+    renderChart()
+  })
 }
 
 function formatAxisDate(date: string) {
@@ -335,6 +380,8 @@ async function loadCheckin() {
     updateChartData()
     await nextTick()
     renderChart()
+    await nextTick()
+    updateRangeThumb()
   }
   catch (error) {
     loadError.value = error instanceof Error ? error.message : '加载签到数据失败'
@@ -373,6 +420,7 @@ async function saveCheckin() {
 }
 
 function handleResize() {
+  updateRangeThumb()
   chart?.resize()
 }
 
@@ -380,16 +428,23 @@ onMounted(() => {
   chartDays.value = readStoredChartDays()
   loadCheckin()
   window.addEventListener('resize', handleResize)
+  nextTick(() => updateRangeThumb())
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
   chart?.dispose()
   chart = null
+  rangeBtnRefs.clear()
 })
 
 watch(isDark, () => {
   renderChart()
+  nextTick(() => updateRangeThumb())
+})
+
+watch(chartDays, () => {
+  nextTick(() => updateRangeThumb())
 })
 
 watch([chartDates, chartSeries], () => {
@@ -508,18 +563,12 @@ watch([chartDates, chartSeries], () => {
 .checkin-chart-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
   margin-bottom: 10px;
 }
 
-.checkin-chart-toolbar-label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--blog-slate-500);
-}
-
 .checkin-range-group {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -529,23 +578,43 @@ watch([chartDates, chartSeries], () => {
   background: var(--blog-slate-100);
 }
 
+.checkin-range-thumb {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: 30px;
+  border-radius: 7px;
+  background: var(--blog-white);
+  box-shadow: 0 1px 2px var(--blog-shadow-xs);
+  opacity: 0;
+  transition: transform 0.22s ease, width 0.22s ease, opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.checkin-range-group--ready .checkin-range-thumb {
+  opacity: 1;
+}
+
 .checkin-range-btn {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-width: 52px;
-  height: 28px;
-  padding: 0 10px;
+  min-width: 56px;
+  height: 30px;
+  padding: 0 12px;
   border: 0;
   border-radius: 7px;
   background: transparent;
   color: var(--blog-slate-500);
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .checkin-range-btn:hover:not(.checkin-range-btn--active) {
@@ -553,10 +622,8 @@ watch([chartDates, chartSeries], () => {
 }
 
 .checkin-range-btn--active {
-  background: var(--blog-white);
   color: var(--blog-slate-800);
   font-weight: 600;
-  box-shadow: 0 1px 2px var(--blog-shadow-xs);
 }
 
 .checkin-range-btn:focus-visible {
@@ -585,10 +652,6 @@ watch([chartDates, chartSeries], () => {
   .checkin-form {
     border-right: 0;
     border-bottom: 1px solid var(--blog-slate-200);
-  }
-
-  .checkin-chart-toolbar {
-    flex-wrap: wrap;
   }
 }
 </style>
