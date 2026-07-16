@@ -98,6 +98,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { buildWikiBreadcrumbs, filterWikiPages, isWikiBrowsablePage } from '~/composables/useWikiTree'
+import { useEnhanceCodeBlocks } from '~/composables/useEnhanceCodeBlocks'
 import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 definePageMeta({ layout: 'wiki' })
@@ -133,6 +134,8 @@ const { data: page } = await useAsyncData(`wiki-${slug.value}`, () => {
     return Promise.resolve(null)
   return queryContent(`/wiki/${slug.value}`).findOne()
 })
+
+useEnhanceCodeBlocks('.wiki-article-body', page)
 
 // ── 编辑状态 ──
 const editing = ref(false)
@@ -400,21 +403,149 @@ onMounted(async () => {
 }
 
 .wiki-article-body :deep(pre) {
-  margin: 0 0 1.2rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 24px var(--blog-shadow-xs);
+  position: relative;
+}
+
+.wiki-article-body :deep(pre .code-scroll) {
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blog-scrollbar-thumb) transparent;
+}
+
+.wiki-article-body :deep(pre .code-scroll::-webkit-scrollbar) {
+  height: 6px;
+}
+
+.wiki-article-body :deep(pre .code-scroll::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.wiki-article-body :deep(pre .code-scroll::-webkit-scrollbar-thumb) {
+  background-color: var(--blog-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.wiki-article-body :deep(pre .code-scroll::-webkit-scrollbar-thumb:hover) {
+  background-color: var(--blog-scrollbar-thumb-hover);
+}
+
+.wiki-article-body :deep(pre .code-scroll::-webkit-scrollbar-button),
+.wiki-article-body :deep(pre .code-scroll::-webkit-scrollbar-corner) {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.wiki-article-body :deep(pre:not(.shiki)) {
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: var(--blog-code-bg);
+  color: var(--blog-slate-200);
+  overflow-x: visible;
+  max-width: 100%;
+  font-size: 0.85rem;
+  border: 1px solid var(--blog-slate-900);
+}
+
+.wiki-article-body :deep(pre.shiki) {
+  margin: 1rem 0;
+  padding: 0.85rem 0.75rem 0.85rem 0;
+  border-radius: 10px;
+  background: var(--blog-code-bg);
+  overflow-x: visible;
+  max-width: 100%;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  border: 1px solid var(--blog-slate-900);
+}
+
+.wiki-article-body :deep(pre.shiki code) {
+  display: block;
+  counter-reset: line;
+  padding: 0 0.85rem 0 0;
+  font-size: inherit;
+  color: var(--blog-slate-200);
+  background: transparent !important;
+}
+
+.wiki-article-body :deep(pre.shiki code .line) {
+  position: relative;
+  display: block;
+  min-height: 1.55em;
+  padding-left: 3.15rem;
+  padding-right: 0.35rem;
+  color: var(--blog-slate-200);
+}
+
+.wiki-article-body :deep(pre.shiki code .line::before) {
+  counter-increment: line;
+  content: counter(line);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2.35rem;
+  text-align: right;
+  padding-right: 0.65rem;
+  box-sizing: border-box;
+  color: var(--blog-slate-500);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  border-right: 1px solid var(--blog-slate-800);
+  pointer-events: none;
+}
+
+.wiki-article-body :deep(pre.shiki code .line.highlight) {
+  background: var(--blog-code-line-highlight);
 }
 
 .wiki-article-body :deep(code) {
-  padding: 0.12rem 0.38rem;
-  border-radius: 6px;
-  background: var(--blog-slate-100);
-  font-size: 0.92em;
+  font-family: ui-monospace, monospace;
 }
 
-.wiki-article-body :deep(pre code) {
+.wiki-article-body :deep(p code),
+.wiki-article-body :deep(li code) {
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: var(--blog-slate-100);
+  font-size: 0.88em;
+}
+
+.wiki-article-body :deep(.code-copy-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  border: 1px solid var(--blog-slate-600);
+  border-radius: 6px;
+  background: var(--blog-code-btn-bg);
+  color: var(--blog-slate-200);
+  font-size: 0.72rem;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
   padding: 0;
-  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wiki-article-body :deep(.code-copy-btn:hover) {
+  background: var(--blog-code-btn-bg-hover);
+  border-color: var(--blog-slate-500);
+}
+
+.wiki-article-body :deep(.code-copy-btn:focus-visible) {
+  outline: 2px solid var(--blog-blue-300);
+  outline-offset: 1px;
+}
+
+.wiki-article-body :deep(.code-copy-btn svg) {
+  display: block;
 }
 
 .wiki-article-body :deep(blockquote) {
