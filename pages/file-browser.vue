@@ -23,72 +23,76 @@
       >
         <aside class="file-sidebar">
           <div class="file-sidebar-header">
-            <div class="file-sidebar-title">
-              <span>文件树</span>
-              <span class="file-count">{{ visibleFileCount }} / {{ treeTotal }} 个文件</span>
-            </div>
-            <div class="file-tree-actions">
-              <button
-                type="button"
-                class="locate-file-btn"
-                title="定位当前文件"
-                :disabled="!selectedFile"
-                @click="locateSelectedFile"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+            <div class="file-sidebar-title-bar">
+              <span class="file-sidebar-heading">文件树</span>
+              <div class="file-tree-actions">
+                <button
+                  type="button"
+                  class="locate-file-btn"
+                  title="定位当前文件"
+                  :disabled="!selectedFile"
+                  @click="locateSelectedFile"
                 >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="8"
-                  />
-                  <line
-                    x1="12"
-                    y1="2"
-                    x2="12"
-                    y2="6"
-                  />
-                  <line
-                    x1="12"
-                    y1="18"
-                    x2="12"
-                    y2="22"
-                  />
-                  <line
-                    x1="2"
-                    y1="12"
-                    x2="6"
-                    y2="12"
-                  />
-                  <line
-                    x1="18"
-                    y1="12"
-                    x2="22"
-                    y2="12"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                @click="expandAllFolders"
-              >
-                全部展开
-              </button>
-              <button
-                type="button"
-                @click="collapseAllFolders"
-              >
-                全部收起
-              </button>
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="8"
+                    />
+                    <line
+                      x1="12"
+                      y1="2"
+                      x2="12"
+                      y2="6"
+                    />
+                    <line
+                      x1="12"
+                      y1="18"
+                      x2="12"
+                      y2="22"
+                    />
+                    <line
+                      x1="2"
+                      y1="12"
+                      x2="6"
+                      y2="12"
+                    />
+                    <line
+                      x1="18"
+                      y1="12"
+                      x2="22"
+                      y2="12"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  title="全部展开"
+                  @click="expandAllFolders"
+                >
+                  展开
+                </button>
+                <button
+                  type="button"
+                  title="全部收起"
+                  @click="collapseAllFolders"
+                >
+                  收起
+                </button>
+              </div>
             </div>
+            <p class="file-count">
+              {{ visibleFileCount }} / {{ treeTotal }} 个文件
+            </p>
           </div>
 
           <div class="file-search-box">
@@ -725,35 +729,45 @@ const FileTreeNode = defineComponent({
 
 .file-sidebar-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
   margin-bottom: 12px;
 }
 
-.file-sidebar-title {
+.file-sidebar-title-bar {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--blog-slate-600);
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.file-sidebar-heading {
+  color: var(--blog-slate-700);
+  font-size: 0.95rem;
   font-weight: 600;
+  line-height: 1.2;
+  flex-shrink: 0;
 }
 
 .file-tree-actions {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding-right: 12px;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .file-tree-actions button {
-  padding: 4px 10px;
+  padding: 4px 8px;
   border: 1px solid var(--blog-slate-200);
   border-radius: 8px;
   background: var(--blog-slate-50);
   color: var(--blog-slate-600);
   cursor: pointer;
   font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .file-tree-actions button:hover:not(:disabled) {
@@ -799,9 +813,12 @@ const FileTreeNode = defineComponent({
 }
 
 .file-count {
+  margin: 0;
   color: var(--blog-slate-400);
   font-size: 12px;
   line-height: 1.4;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .file-sidebar-empty,
