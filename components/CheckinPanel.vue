@@ -63,9 +63,10 @@
                 type="button"
                 class="checkin-range-btn"
                 :class="{ 'checkin-range-btn--active': chartDays === option }"
+                :aria-pressed="chartDays === option"
                 @click="setChartDays(option)"
               >
-                近{{ option }}天
+                {{ option }}天
               </button>
             </div>
           </div>
@@ -509,40 +510,58 @@ watch([chartDates, chartSeries], () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .checkin-chart-toolbar-label {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  font-weight: 500;
   color: var(--blog-slate-500);
 }
 
 .checkin-range-group {
-  display: flex;
-  gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 10px;
+  background: var(--blog-slate-100);
 }
 
 .checkin-range-btn {
-  padding: 4px 10px;
-  border: 1px solid var(--blog-slate-200);
-  border-radius: 999px;
-  background: var(--blog-white);
-  color: var(--blog-slate-600);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 52px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--blog-slate-500);
   font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.checkin-range-btn:hover {
-  border-color: var(--blog-blue-200);
-  color: var(--blog-blue-700);
+.checkin-range-btn:hover:not(.checkin-range-btn--active) {
+  color: var(--blog-slate-700);
 }
 
 .checkin-range-btn--active {
-  border-color: var(--blog-blue-300);
-  background: var(--blog-blue-50);
-  color: var(--blog-blue-700);
+  background: var(--blog-white);
+  color: var(--blog-slate-800);
   font-weight: 600;
+  box-shadow: 0 1px 2px var(--blog-shadow-xs);
+}
+
+.checkin-range-btn:focus-visible {
+  outline: 2px solid var(--blog-blue-200);
+  outline-offset: 1px;
 }
 
 .checkin-chart-wrap--fallback {
@@ -566,6 +585,10 @@ watch([chartDates, chartSeries], () => {
   .checkin-form {
     border-right: 0;
     border-bottom: 1px solid var(--blog-slate-200);
+  }
+
+  .checkin-chart-toolbar {
+    flex-wrap: wrap;
   }
 }
 </style>
