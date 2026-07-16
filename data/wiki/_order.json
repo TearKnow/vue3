@@ -1,7 +1,8 @@
 {
   "groups": {
     "/wiki/algorithm": [
-      "/wiki/algorithm/start"
+      "/wiki/algorithm/start",
+      "/wiki/algorithm/cycle-array"
     ]
   }
 }
