@@ -366,19 +366,42 @@ onMounted(async () => {
 .wiki-article-body :deep(h1) {
   font-size: 1.55rem;
   margin: 0 0 16px;
+  font-weight: 700;
   color: var(--blog-slate-900);
 }
 
 .wiki-article-body :deep(h2) {
   font-size: 1.28rem;
   margin: 2rem 0 0.75rem;
-  color: var(--blog-slate-900);
+  padding-bottom: 0.45rem;
+  font-weight: 700;
+  color: var(--blog-link);
+  border-bottom: 1px solid var(--blog-blue-100);
 }
 
 .wiki-article-body :deep(h3) {
   font-size: 1.08rem;
   margin: 1.5rem 0 0.6rem;
+  font-weight: 600;
+  color: var(--blog-link);
+}
+
+.wiki-article-body :deep(h4) {
+  font-size: 1rem;
+  margin: 1.2rem 0 0.5rem;
+  font-weight: 600;
   color: var(--blog-slate-800);
+}
+
+.wiki-article-body :deep(:is(h1, h2, h3, h4, h5, h6) a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wiki-article-body :deep(:is(h1, h2, h3, h4, h5, h6) a:hover),
+.wiki-article-body :deep(:is(h1, h2, h3, h4, h5, h6) a:visited) {
+  color: inherit;
+  text-decoration: none;
 }
 
 .wiki-article-body :deep(h2:last-child),

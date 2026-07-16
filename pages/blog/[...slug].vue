@@ -977,15 +977,37 @@ watchEffect(() => {
 }
 
 .article-body :deep(h2) {
-  margin: 1.5rem 0 0.5rem;
+  margin: 1.5rem 0 0.65rem;
+  padding-bottom: 0.4rem;
   font-size: 1.25rem;
-  color: var(--blog-slate-900);
+  font-weight: 700;
+  color: var(--blog-link);
+  border-bottom: 1px solid var(--blog-blue-100);
 }
 
 .article-body :deep(h3) {
   margin: 1.25rem 0 0.4rem;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--blog-link);
+}
+
+.article-body :deep(h4) {
+  margin: 1.1rem 0 0.35rem;
+  font-size: 0.98rem;
+  font-weight: 600;
   color: var(--blog-slate-800);
+}
+
+.article-body :deep(:is(h1, h2, h3, h4, h5, h6) a) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.article-body :deep(:is(h1, h2, h3, h4, h5, h6) a:hover),
+.article-body :deep(:is(h1, h2, h3, h4, h5, h6) a:visited) {
+  color: inherit;
+  text-decoration: none;
 }
 
 .article-body :deep(p) {

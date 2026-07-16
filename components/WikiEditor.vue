@@ -558,6 +558,10 @@ async function save() {
 .wiki-preview-content :deep(h1) { font-size: 1.6rem; margin: 0 0 16px; }
 .wiki-preview-content :deep(h2) { font-size: 1.3rem; margin: 24px 0 12px; }
 .wiki-preview-content :deep(h3) { font-size: 1.1rem; margin: 20px 0 8px; }
+.wiki-preview-content :deep(:is(h1, h2, h3, h4, h5, h6) a) {
+  color: inherit;
+  text-decoration: none;
+}
 .wiki-preview-content :deep(p) { margin: 0 0 12px; }
 .wiki-preview-content :deep(ul), .wiki-preview-content :deep(ol) { margin: 0 0 12px; padding-left: 24px; }
 .wiki-preview-content :deep(li) { margin-bottom: 4px; }
