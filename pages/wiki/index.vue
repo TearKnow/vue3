@@ -6,9 +6,9 @@
       <p class="wiki-index-desc">
         记录想法、整理笔记。从左侧目录选择页面开始阅读。
       </p>
-      <div v-if="pageCount > 0" class="wiki-index-stats">
-        <span>{{ pageCount }} 篇文档</span>
-      </div>
+      <p v-if="pageCount > 0" class="wiki-index-meta">
+        已收录 <em>{{ pageCount }}</em> 篇文档
+      </p>
     </header>
 
     <section v-if="pageCount > 0" class="wiki-index-tips" aria-label="使用提示">
@@ -119,23 +119,22 @@ onMounted(() => {
   line-height: 1.65;
 }
 
-.wiki-index-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
+.wiki-index-meta {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--blog-blue-100);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--blog-slate-500);
+  letter-spacing: 0.02em;
 }
 
-.wiki-index-stats span {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--blog-overlay-light);
-  border: 1px solid var(--blog-blue-100);
-  color: var(--blog-blue-800);
-  font-size: 12px;
-  font-weight: 600;
+.wiki-index-meta em {
+  margin: 0 2px;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--blog-blue-700);
 }
 
 .wiki-index-tips {

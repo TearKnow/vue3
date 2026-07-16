@@ -950,22 +950,30 @@ watchEffect(() => {
 .tags {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.38rem 0.55rem;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .mini-tag {
-  display: inline-block;
-  padding: 0.16rem 0.5rem;
-  border-radius: 999px;
-  background: var(--blog-blue-50);
-  color: var(--blog-blue-800);
+  display: inline-flex;
+  align-items: center;
+  padding: 0.14rem 0.5rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--blog-slate-100);
+  color: var(--blog-slate-600);
   text-decoration: none;
   font-size: 0.75rem;
-  border: 1px solid var(--blog-blue-100);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .mini-tag:hover {
-  background: var(--blog-blue-100);
+  color: var(--blog-slate-600);
+  background: var(--blog-slate-200);
+  box-shadow: inset 0 0 0 1px var(--blog-slate-300);
 }
 
 .article-body :deep(h2) {
