@@ -1,4 +1,5 @@
 import {
+  getNewCheckinItemIds,
   getTodayDateString,
   loadCheckinData,
   sanitizeCheckinSave,
@@ -18,9 +19,15 @@ export default defineEventHandler(async (event) => {
     : getTodayDateString()
 
   const { data, sha } = await loadCheckinData()
+  const newItemIds = getNewCheckinItemIds(data, targetDate, itemIds)
 
-  if (Object.prototype.hasOwnProperty.call(data.records, targetDate)) {
-    throw createError({ statusCode: 409, statusMessage: '今日已签到' })
+  if (newItemIds.length === 0) {
+    const existing = data.records[targetDate] || []
+    const allDone = data.items.length > 0 && data.items.every(item => existing.includes(item.id))
+    throw createError({
+      statusCode: 409,
+      statusMessage: allDone ? '今日项目已全部签到' : '请选择尚未签到的项目',
+    })
   }
 
   const nextData = sanitizeCheckinSave(data, targetDate, itemIds)

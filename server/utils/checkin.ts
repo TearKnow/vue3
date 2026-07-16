@@ -78,7 +78,10 @@ export function serializeCheckinData(data: CheckinData) {
 
 export function sanitizeCheckinSave(data: CheckinData, date: string, itemIds: number[]) {
   const validIds = new Set(data.items.map(item => item.id))
-  const nextIds = normalizeItemIds(itemIds).filter(id => validIds.has(id))
+  const existingIds = data.records[date] || []
+  const incomingIds = normalizeItemIds(itemIds).filter(id => validIds.has(id))
+  // 已打卡项不可撤销，只允许追加未打的项
+  const nextIds = normalizeItemIds([...existingIds, ...incomingIds])
 
   return {
     ...data,
@@ -87,6 +90,12 @@ export function sanitizeCheckinSave(data: CheckinData, date: string, itemIds: nu
       [date]: nextIds,
     },
   }
+}
+
+export function getNewCheckinItemIds(data: CheckinData, date: string, itemIds: number[]) {
+  const validIds = new Set(data.items.map(item => item.id))
+  const existing = new Set(data.records[date] || [])
+  return normalizeItemIds(itemIds).filter(id => validIds.has(id) && !existing.has(id))
 }
 
 async function readLocalCheckinFile() {

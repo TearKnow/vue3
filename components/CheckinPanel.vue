@@ -26,13 +26,14 @@
               v-for="item in items"
               :key="item.id"
               class="checkin-item"
+              :class="{ 'checkin-item--locked': isCheckedIn(item.id) }"
             >
               <input
                 v-model="selectedIds"
                 class="checkin-checkbox"
                 type="checkbox"
                 :value="item.id"
-                :disabled="checkedInToday"
+                :disabled="isCheckedIn(item.id)"
               >
               <span>{{ item.label }}</span>
             </label>
@@ -42,10 +43,10 @@
             <button
               type="button"
               class="checkin-save-btn"
-              :disabled="saving || checkedInToday"
+              :disabled="saving || checkedInToday || !hasNewSelection"
               @click="saveCheckin"
             >
-              {{ saving ? '保存中...' : checkedInToday ? '已签到' : '签到' }}
+              {{ saveButtonLabel }}
             </button>
           </div>
         </template>
@@ -138,7 +139,7 @@ const chartDays = ref<CheckinDayOption>(DEFAULT_CHECKIN_DAYS)
 const chartDates = ref<string[]>([])
 const chartSeries = ref<CheckinSeries[]>([])
 const today = ref('')
-const checkedInToday = ref(false)
+const todayItemIds = ref<number[]>([])
 const pending = ref(true)
 const saving = ref(false)
 const loadError = ref('')
@@ -146,6 +147,28 @@ const saveMessage = ref('')
 const saveError = ref(false)
 
 let chart: echarts.ECharts | null = null
+
+const checkedInToday = computed(() => {
+  return items.value.length > 0
+    && items.value.every(item => todayItemIds.value.includes(item.id))
+})
+
+const hasNewSelection = computed(() => {
+  const locked = new Set(todayItemIds.value)
+  return selectedIds.value.some(id => !locked.has(id))
+})
+
+const saveButtonLabel = computed(() => {
+  if (saving.value)
+    return '保存中...'
+  if (checkedInToday.value)
+    return '已全部签到'
+  return '签到'
+})
+
+function isCheckedIn(id: number) {
+  return todayItemIds.value.includes(id)
+}
 
 const todayLabel = computed(() => {
   if (!today.value)
@@ -306,7 +329,7 @@ async function loadCheckin() {
     items.value = data.items
     records.value = data.records
     today.value = data.today
-    checkedInToday.value = data.checkedInToday
+    todayItemIds.value = [...data.todayItemIds]
     selectedIds.value = [...data.todayItemIds]
     updateChartData()
     await nextTick()
@@ -321,7 +344,7 @@ async function loadCheckin() {
 }
 
 async function saveCheckin() {
-  if (checkedInToday.value)
+  if (checkedInToday.value || !hasNewSelection.value)
     return
 
   saveMessage.value = ''
@@ -435,9 +458,10 @@ watch([chartDates, chartSeries], () => {
   cursor: pointer;
 }
 
-.checkin-item:has(.checkin-checkbox:disabled) {
+.checkin-item--locked {
   cursor: default;
   opacity: 0.85;
+  color: var(--blog-slate-500);
 }
 
 .checkin-checkbox {
