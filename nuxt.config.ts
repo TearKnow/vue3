@@ -5,10 +5,13 @@ export default defineNuxtConfig({
   // 触发红色 Pre-transform error（与业务代码无关）。关闭 app manifest 为官方常用规避，见 nuxt/nuxt#30461、#33606。
 
   modules: ['@vant/nuxt', '@nuxt/content'],
-  /** 博客等 Markdown 代码块：Shiki 语法高亮（ 详情页 ContentRenderer）  */
+  /** 博客 / Wiki Markdown 代码块：Shiki 语法高亮 */
   content: {
     highlight: {
       theme: 'github-dark',
+      // 默认已含：js / ts / json / html / css / vue / shell / md / yaml
+      // 额外加载主流语言 Top 10 中其余项：Python Java C++ C# Go Rust PHP SQL
+      langs: ['python', 'java', 'cpp', 'csharp', 'go', 'rust', 'php', 'sql'],
     },
     ignore: [
       '**/wiki/_*',
