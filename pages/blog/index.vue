@@ -47,7 +47,7 @@
           </h2>
           <ul class="tag-list">
             <li
-              v-for="[tag, count] in tagEntries"
+              v-for="[tag, count] in visibleTagEntries"
               :key="tag"
             >
               <NuxtLink
@@ -67,6 +67,14 @@
               </NuxtLink>
             </li>
           </ul>
+          <button
+            v-if="tagEntries.length > TAG_LIST_COLLAPSE_LIMIT"
+            type="button"
+            class="tag-list-toggle"
+            @click="tagsExpanded = !tagsExpanded"
+          >
+            {{ tagsExpanded ? '收起' : `展开全部（${tagEntries.length}）` }}
+          </button>
         </section>
         <section class="aside-block">
           <h2 class="section-header">
@@ -290,6 +298,9 @@ const errorMessage = computed(() => {
   return e?.statusMessage || e?.message || '请查看控制台日志'
 })
 
+const TAG_LIST_COLLAPSE_LIMIT = 10
+const tagsExpanded = ref(false)
+
 const tagEntries = computed(() => {
   const map = new Map<string, number>()
   for (const p of filteredPosts.value ?? []) {
@@ -298,6 +309,13 @@ const tagEntries = computed(() => {
     }
   }
   return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'zh-CN'))
+})
+
+const visibleTagEntries = computed(() => {
+  if (tagsExpanded.value || tagEntries.value.length <= TAG_LIST_COLLAPSE_LIMIT) {
+    return tagEntries.value
+  }
+  return tagEntries.value.slice(0, TAG_LIST_COLLAPSE_LIMIT)
 })
 
 const monthEntries = computed(() => {
@@ -766,6 +784,27 @@ onBeforeUnmount(() => {
 .count {
   font-size: 0.75rem;
   color: var(--blog-slate-500);
+}
+
+.tag-list-toggle {
+  display: block;
+  width: 100%;
+  margin-top: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--blog-slate-500);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tag-list-toggle:hover {
+  background: var(--blog-slate-100);
+  color: var(--blog-slate-700);
 }
 
 .post-list {
