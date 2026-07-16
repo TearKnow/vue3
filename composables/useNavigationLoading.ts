@@ -1,12 +1,15 @@
 import { nextTick, onBeforeUnmount } from 'vue'
-import { useRouter } from '#imports'
+import { useRouter, useNuxtApp, useRoute } from '#imports'
 
 const OVERLAY_ID = 'page-navigation-loading-overlay'
 const SPINNER_STYLE_ID = 'page-navigation-loading-spin-style'
 
-/** Blog 详情等页会在数据就绪后再手动关闭，避免 afterEach 过早摘掉遮罩 */
+/**
+ * 内容页在路由结束后仍可能继续取数 / 渲染正文，
+ * 由页面在就绪时调用 removeNavigationLoadingOverlay。
+ */
 function shouldDeferOverlayRemoval(path: string) {
-  return path.startsWith('/blog')
+  return path.startsWith('/blog') || path.startsWith('/wiki')
 }
 
 function createSpinnerStyle() {
@@ -77,6 +80,16 @@ function removeLoadingOverlay() {
   if (overlay) overlay.remove()
 }
 
+function removeOverlayAfterPaint() {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        removeLoadingOverlay()
+      })
+    })
+  })
+}
+
 /**
  * 站内路由切换时显示全屏 loading，让用户确认点击已生效。
  * 在 app.vue 中调用一次即可。
@@ -85,6 +98,9 @@ export function useNavigationLoading() {
   if (!import.meta.client) return
 
   const router = useRouter()
+  const route = useRoute()
+  const nuxtApp = useNuxtApp()
+
   const removeBefore = router.beforeEach((to, from) => {
     // 跳过首屏初始化导航
     if (!from.matched.length) return true
@@ -93,11 +109,10 @@ export function useNavigationLoading() {
     return true
   })
 
-  const removeAfter = router.afterEach((to) => {
-    if (shouldDeferOverlayRemoval(to.path)) return
-    nextTick(() => {
-      removeLoadingOverlay()
-    })
+  // 用 Nuxt 页面 Suspense 结束时机，而不是 router.afterEach（后者往往早于正文渲染）
+  const stopLoadingEnd = nuxtApp.hook('page:loading:end', () => {
+    if (shouldDeferOverlayRemoval(route.path)) return
+    removeOverlayAfterPaint()
   })
 
   const removeOnError = router.onError(() => {
@@ -106,7 +121,7 @@ export function useNavigationLoading() {
 
   onBeforeUnmount(() => {
     removeBefore()
-    removeAfter()
+    stopLoadingEnd()
     removeOnError()
     removeLoadingOverlay()
   })

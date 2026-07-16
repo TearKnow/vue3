@@ -22,7 +22,7 @@ This is a **Nuxt 3** blog app with `@nuxt/content` for markdown-driven blogging 
 
 - Content lives in `content/blog/` as `.md` files with front matter (`title`, `description`, `date`, `tags`, `pinned`, `draft`).
 - `composables/useBlogPosts.ts` — shared blog query logic: `fetchBlogMetaList()`, slug/path utilities, pagination constant (`BLOG_PAGE_SIZE = 8`). Used by both blog listing and detail pages.
-- `composables/useNavigationLoading.ts` — shows a full-screen loading overlay during in-app route changes via router guards. Called once in `app.vue`. Blog pages that finish loading after the route settles call `removeNavigationLoadingOverlay()` themselves.
+- `composables/useNavigationLoading.ts` — shows a full-screen loading overlay during in-app route changes. Called once in `app.vue`. Blog/wiki pages call `removeNavigationLoadingOverlay()` when content is ready (not on router `afterEach`, which fires too early).
 - `pages/blog/index.vue` — blog list with search (debounced, synced to route query `?q=`), tag sidebar, monthly archive sidebar, calendar widget, pagination (`?page=`).
 - `pages/blog/[...slug].vue` — blog post detail. Supports Shiki syntax highlighting (theme: `github-dark`), TOC (desktop sidebar + mobile slide-out), reading progress bar, code copy buttons, prev/next post navigation, and lazy-loaded comment system.
 - `pages/blog/tag/[tag].vue` and `pages/blog/archive/[month].vue` — filtered blog listings.

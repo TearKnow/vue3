@@ -16,12 +16,12 @@ alwaysApply: true
 
 ## 关闭时机
 
-- 默认：路由 `afterEach` 后关闭（wiki 等页适用）。
-- 若目标页数据在路由完成后仍在加载（如 blog 详情 `pending`），在页面数据就绪 / `onMounted` 时调用 `removeNavigationLoadingOverlay()`，不要过早在 `afterEach` 摘掉。
+- 默认：Nuxt `page:loading:end` 后再等一帧绘制再关（普通页）。
+- **blog / wiki** 等正文异步渲染页：不要依赖路由结束自动关；在 `pending === false` 和/或 `onMounted` 时调用 `removeNavigationLoadingOverlay()`。过早在 `afterEach` 关闭会出现「转圈没了、内容才变」的错位。
 
 ## 示例
 
 ```ts
-// ❌ BAD：wiki / 新板块自己造 loading，或点链接无任何反馈
-// ✅ GOOD：依赖 useNavigationLoading；特殊页再手动 removeNavigationLoadingOverlay()
+// ❌ BAD：目标还是旧正文时就 remove；或 wiki/blog 依赖 afterEach 关遮罩
+// ✅ GOOD：useNavigationLoading + 内容页手动 removeNavigationLoadingOverlay()
 ```

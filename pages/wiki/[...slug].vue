@@ -96,9 +96,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { buildWikiBreadcrumbs, filterWikiPages, isWikiBrowsablePage } from '~/composables/useWikiTree'
 import { useEnhanceCodeBlocks } from '~/composables/useEnhanceCodeBlocks'
+import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 import { normalizeWikiSlug } from '~/utils/wiki-path'
 
 definePageMeta({ layout: 'wiki' })
@@ -128,14 +129,23 @@ const breadcrumbs = computed(() =>
 
 const annotationPageKey = computed(() => `wiki:${slug.value}`)
 
-// 查询 wiki 页面内容
-const { data: page } = await useAsyncData(`wiki-${slug.value}`, () => {
-  if (!isWikiBrowsablePage(`/wiki/${slug.value}`))
-    return Promise.resolve(null)
-  return queryContent(`/wiki/${slug.value}`).findOne()
-})
+// 查询 wiki 页面内容（动态 key + watch，保证同组件切页也会重新取数）
+const { data: page, pending } = await useAsyncData(
+  () => `wiki-${slug.value}`,
+  () => {
+    if (!isWikiBrowsablePage(`/wiki/${slug.value}`))
+      return Promise.resolve(null)
+    return queryContent(`/wiki/${slug.value}`).findOne()
+  },
+  { watch: [slug] },
+)
 
 useEnhanceCodeBlocks('.wiki-article-body', page)
+
+watch(pending, (value) => {
+  if (!value)
+    removeNavigationLoadingOverlay()
+})
 
 // ── 编辑状态 ──
 const editing = ref(false)
@@ -174,6 +184,8 @@ function onSaved() {
 
 // 从「创建并编辑」跳转过来时，直接进入编辑模式
 onMounted(async () => {
+  removeNavigationLoadingOverlay()
+
   if (rawSlug.value && rawSlug.value !== slug.value) {
     await navigateTo({
       path: `/wiki/${slug.value}`,

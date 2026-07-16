@@ -36,7 +36,9 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { filterWikiPages } from '~/composables/useWikiTree'
+import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 
 definePageMeta({ layout: 'wiki' })
 
@@ -50,6 +52,10 @@ const { data: pages } = await useAsyncData('wiki-index', () =>
 )
 
 const pageCount = computed(() => filterWikiPages(pages.value || []).length)
+
+onMounted(() => {
+  removeNavigationLoadingOverlay()
+})
 </script>
 
 <style scoped>
