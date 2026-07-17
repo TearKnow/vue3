@@ -149,6 +149,7 @@ import { buildWikiBreadcrumbs, filterWikiPages, isWikiBrowsablePage } from '~/co
 import { useEnhanceCodeBlocks } from '~/composables/useEnhanceCodeBlocks'
 import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 import { normalizeWikiPath, normalizeWikiSlug } from '~/utils/wiki-path'
+import { recordWikiVisit } from '~/utils/wiki-visit-counts'
 
 definePageMeta({ layout: 'wiki' })
 
@@ -193,11 +194,17 @@ const lastReadPath = useCookie<string | null>('wiki-last-read', {
   sameSite: 'lax',
   path: '/',
 })
+const lastCountedVisitPath = ref('')
 
 watch(page, (value) => {
   const pagePath = normalizeWikiPath(`/wiki/${slug.value}`)
-  if (value && isWikiBrowsablePage(pagePath))
+  if (value && isWikiBrowsablePage(pagePath)) {
     lastReadPath.value = pagePath
+    if (lastCountedVisitPath.value !== pagePath) {
+      recordWikiVisit(pagePath)
+      lastCountedVisitPath.value = pagePath
+    }
+  }
 }, { immediate: true })
 
 useEnhanceCodeBlocks('.wiki-article-body', page)

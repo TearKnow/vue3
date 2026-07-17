@@ -21,8 +21,8 @@ export interface WikiVisitSyncBatch {
 }
 
 export interface WikiVisitsResponse {
-  file: WikiVisitsFile
-  pendingBatch: WikiVisitSyncBatch | null
+  counts: WikiVisitCounts
+  updatedAt: string
 }
 
 function isWikiArticlePath(path: string): boolean {
@@ -30,11 +30,11 @@ function isWikiArticlePath(path: string): boolean {
 }
 
 function isNonNegativeSafeInteger(value: unknown): value is number {
-  return Number.isSafeInteger(value) && Number(value) >= 0
+  return Number.isSafeInteger(value) && (value as number) >= 0
 }
 
 function isPositiveSafeInteger(value: unknown): value is number {
-  return Number.isSafeInteger(value) && Number(value) > 0
+  return Number.isSafeInteger(value) && (value as number) > 0
 }
 
 function assertBatchId(id: string): void {
@@ -53,6 +53,23 @@ function sanitizeWikiCounts(raw: unknown, positiveOnly = false): WikiVisitCounts
 
     if (positiveOnly ? isPositiveSafeInteger(value) : isNonNegativeSafeInteger(value))
       counts[path] = Number(value)
+  }
+  return counts
+}
+
+function assertWikiVisitSyncIncrements(raw: unknown): WikiVisitCounts {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw))
+    throw new Error('Invalid wiki visit sync increments')
+
+  const entries = Object.entries(raw)
+  if (entries.length === 0)
+    throw new Error('Invalid wiki visit sync increments')
+
+  const counts: WikiVisitCounts = {}
+  for (const [path, value] of entries) {
+    if (!isWikiArticlePath(path) || !isPositiveSafeInteger(value))
+      throw new Error('Invalid wiki visit sync increments')
+    counts[path] = value
   }
   return counts
 }
@@ -165,11 +182,11 @@ export function applyWikiVisitSync(
 ): WikiVisitsFile {
   const normalized = normalizeWikiVisitsFile(file)
   assertBatchId(batch.id)
+  const increments = assertWikiVisitSyncIncrements(batch.counts)
 
   if (normalized.appliedSyncIds.includes(batch.id))
     return normalized
 
-  const increments = sanitizeWikiCounts(batch.counts, true)
   const nextCounts: WikiVisitCounts = { ...normalized.counts }
 
   for (const [path, increment] of Object.entries(increments)) {
@@ -202,7 +219,7 @@ function parseWikiVisitSyncBatch(raw: string | null): WikiVisitSyncBatch | null 
       return null
     assertBatchId(batch.id)
 
-    const counts = sanitizeWikiCounts(batch.counts, true)
+    const counts = assertWikiVisitSyncIncrements(batch.counts)
     return { id: batch.id, counts }
   }
   catch {
@@ -210,19 +227,20 @@ function parseWikiVisitSyncBatch(raw: string | null): WikiVisitSyncBatch | null 
   }
 }
 
-function writeWikiVisitSyncBatch(batch: WikiVisitSyncBatch | null): void {
+function writeWikiVisitSyncBatch(batch: WikiVisitSyncBatch | null): boolean {
   if (typeof localStorage === 'undefined')
-    return
+    return false
 
   try {
     if (!batch) {
       localStorage.removeItem(WIKI_VISIT_SYNC_BATCH_STORAGE_KEY)
-      return
+      return true
     }
     localStorage.setItem(WIKI_VISIT_SYNC_BATCH_STORAGE_KEY, JSON.stringify(batch))
+    return true
   }
   catch {
-    // 存储不可用不应影响 Wiki 阅读
+    return false
   }
 }
 
@@ -237,9 +255,20 @@ export function prepareWikiVisitSyncBatch(id: string): WikiVisitSyncBatch | null
       return existing
 
     const counts = readWikiVisitCounts()
+    if (Object.keys(counts).length === 0)
+      return null
+
     const batch: WikiVisitSyncBatch = { id, counts }
-    writeWikiVisitSyncBatch(batch)
-    localStorage.removeItem(WIKI_VISIT_COUNTS_STORAGE_KEY)
+    if (!writeWikiVisitSyncBatch(batch))
+      return null
+
+    try {
+      localStorage.removeItem(WIKI_VISIT_COUNTS_STORAGE_KEY)
+    }
+    catch {
+      writeWikiVisitSyncBatch(null)
+      return null
+    }
     return batch
   }
   catch {
@@ -266,6 +295,18 @@ export function getPendingWikiVisitTotal(): number {
   if (typeof localStorage === 'undefined')
     return 0
 
-  const counts = readWikiVisitCounts()
-  return Object.values(counts).reduce((total, count) => total + count, 0)
+  try {
+    const batch = parseWikiVisitSyncBatch(localStorage.getItem(WIKI_VISIT_SYNC_BATCH_STORAGE_KEY))
+    const counts = [
+      ...Object.values(batch?.counts || {}),
+      ...Object.values(readWikiVisitCounts()),
+    ]
+    return counts.reduce(
+      (total, count) => Math.min(total + count, Number.MAX_SAFE_INTEGER),
+      0,
+    )
+  }
+  catch {
+    return 0
+  }
 }

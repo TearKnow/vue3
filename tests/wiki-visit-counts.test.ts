@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  WIKI_VISIT_COUNTS_STORAGE_KEY,
+  WIKI_VISIT_SYNC_BATCH_STORAGE_KEY,
   applyWikiVisitSync,
   completeWikiVisitSyncBatch,
+  getPendingWikiVisitTotal,
   incrementWikiVisitCount,
   parseWikiVisitCounts,
   prepareWikiVisitSyncBatch,
@@ -89,6 +92,25 @@ function createMemoryStorage() {
   } as Storage
 }
 
+function useTestStorage(storage: Storage) {
+  const originalStorage = globalThis.localStorage
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: storage,
+    configurable: true,
+  })
+
+  return () => {
+    if (originalStorage === undefined) {
+      delete (globalThis as Record<string, unknown>).localStorage
+      return
+    }
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: originalStorage,
+      configurable: true,
+    })
+  }
+}
+
 const NOW = '2026-07-17T12:00:00.000Z'
 const ID_A = 'sync-batch-A-20260717'
 const ID_B = 'sync-batch-B-20260717'
@@ -110,13 +132,10 @@ test('applyWikiVisitSync is idempotent for the same batch id', () => {
 
 test('completing a batch preserves visits recorded during sync', () => {
   const localStorageMock = createMemoryStorage()
-  const originalStorage = globalThis.localStorage
-  Object.defineProperty(globalThis, 'localStorage', {
-    value: localStorageMock,
-    configurable: true,
-  })
+  const restoreStorage = useTestStorage(localStorageMock)
 
   try {
+    recordWikiVisit('/wiki/old-before-sync')
     const batch = prepareWikiVisitSyncBatch(ID_A)
     assert.ok(batch)
     recordWikiVisit('/wiki/new-during-sync')
@@ -124,15 +143,65 @@ test('completing a batch preserves visits recorded during sync', () => {
     assert.equal(readWikiVisitCounts()['/wiki/new-during-sync'], 1)
   }
   finally {
-    if (originalStorage === undefined) {
-      delete (globalThis as Record<string, unknown>).localStorage
-    }
-    else {
-      Object.defineProperty(globalThis, 'localStorage', {
-        value: originalStorage,
-        configurable: true,
-      })
-    }
+    restoreStorage()
+  }
+})
+
+test('prepareWikiVisitSyncBatch preserves source counts when batch storage fails', () => {
+  const storage = createMemoryStorage()
+  storage.setItem(WIKI_VISIT_COUNTS_STORAGE_KEY, JSON.stringify({ '/wiki/a': 2 }))
+  const originalSetItem = storage.setItem.bind(storage)
+  storage.setItem = (key, value) => {
+    if (key === WIKI_VISIT_SYNC_BATCH_STORAGE_KEY)
+      throw new Error('quota exceeded')
+    originalSetItem(key, value)
+  }
+  const restoreStorage = useTestStorage(storage)
+
+  try {
+    assert.equal(prepareWikiVisitSyncBatch(ID_A), null)
+    assert.deepEqual(readWikiVisitCounts(), { '/wiki/a': 2 })
+  }
+  finally {
+    restoreStorage()
+  }
+})
+
+test('prepareWikiVisitSyncBatch reuses an existing batch without consuming new counts', () => {
+  const storage = createMemoryStorage()
+  storage.setItem(WIKI_VISIT_SYNC_BATCH_STORAGE_KEY, JSON.stringify({
+    id: ID_A,
+    counts: { '/wiki/a': 3 },
+  }))
+  storage.setItem(WIKI_VISIT_COUNTS_STORAGE_KEY, JSON.stringify({ '/wiki/b': 2 }))
+  const restoreStorage = useTestStorage(storage)
+
+  try {
+    assert.deepEqual(prepareWikiVisitSyncBatch(ID_B), {
+      id: ID_A,
+      counts: { '/wiki/a': 3 },
+    })
+    assert.deepEqual(readWikiVisitCounts(), { '/wiki/b': 2 })
+  }
+  finally {
+    restoreStorage()
+  }
+})
+
+test('getPendingWikiVisitTotal includes the current batch and new counts', () => {
+  const storage = createMemoryStorage()
+  storage.setItem(WIKI_VISIT_SYNC_BATCH_STORAGE_KEY, JSON.stringify({
+    id: ID_A,
+    counts: { '/wiki/a': 3 },
+  }))
+  storage.setItem(WIKI_VISIT_COUNTS_STORAGE_KEY, JSON.stringify({ '/wiki/b': 2 }))
+  const restoreStorage = useTestStorage(storage)
+
+  try {
+    assert.equal(getPendingWikiVisitTotal(), 5)
+  }
+  finally {
+    restoreStorage()
   }
 })
 
@@ -151,6 +220,39 @@ test('applyWikiVisitSync rejects overflow beyond MAX_SAFE_INTEGER', () => {
     () => applyWikiVisitSync(start, { id: ID_A, counts: { '/wiki/a': 1 } }, NOW),
     /MAX_SAFE_INTEGER/,
   )
+})
+
+test('applyWikiVisitSync rejects invalid or empty increments', () => {
+  const start: WikiVisitsFile = { counts: {}, appliedSyncIds: [], updatedAt: NOW }
+  const invalidCounts = [
+    {},
+    { '/blog/a': 1 },
+    { '/wiki/a': 0 },
+    { '/wiki/a': 1.5 },
+  ]
+
+  for (const counts of invalidCounts) {
+    assert.throws(
+      () => applyWikiVisitSync(start, { id: ID_A, counts }, NOW),
+      /Invalid wiki visit sync increments/,
+    )
+  }
+})
+
+test('applyWikiVisitSync keeps only the most recent 500 sync ids', () => {
+  const appliedSyncIds = Array.from({ length: 500 }, (_, index) => `sync-${String(index).padStart(8, '0')}`)
+  const next = applyWikiVisitSync({
+    counts: {},
+    appliedSyncIds,
+    updatedAt: NOW,
+  }, {
+    id: ID_A,
+    counts: { '/wiki/a': 1 },
+  }, NOW)
+
+  assert.equal(next.appliedSyncIds.length, 500)
+  assert.equal(next.appliedSyncIds[0], appliedSyncIds[1])
+  assert.equal(next.appliedSyncIds.at(-1), ID_A)
 })
 
 test('serializeWikiVisitsFile uses two-space indent and trailing newline', () => {

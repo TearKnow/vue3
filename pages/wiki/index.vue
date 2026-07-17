@@ -122,37 +122,10 @@
         </div>
       </section>
 
-      <section
-        v-if="availableFavoritePages.length > 0"
+      <WikiFrequentPages
+        :pages="wikiPagesWithTopic"
         class="wiki-panel wiki-favorites"
-        aria-labelledby="wiki-favorites-title"
-      >
-        <div class="wiki-panel-heading">
-          <div>
-            <p class="wiki-panel-eyebrow">
-              Shortcuts
-            </p>
-            <h2
-              id="wiki-favorites-title"
-              class="wiki-panel-title"
-            >
-              常用页面
-            </h2>
-          </div>
-        </div>
-        <div class="wiki-favorite-list">
-          <NuxtLink
-            v-for="page in availableFavoritePages"
-            :key="page.path"
-            :to="page.path"
-            no-prefetch
-            class="wiki-favorite-item"
-          >
-            <strong>{{ page.title }}</strong>
-            <span>{{ page.description }}</span>
-          </NuxtLink>
-        </div>
-      </section>
+      />
     </div>
 
     <div
@@ -165,7 +138,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { filterWikiPages } from '~/composables/useWikiTree'
 import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
 
@@ -186,19 +158,6 @@ const { data: pages } = await useAsyncData('wiki-index', () =>
   queryContent('/wiki').only(['_path', 'title', 'date']).find(),
 )
 
-const favoritePages = [
-  {
-    title: '算法学习目标',
-    description: '学习路线、阶段目标与推荐资源。',
-    path: '/wiki/algorithm/start',
-  },
-  {
-    title: '循环数组',
-    description: '循环数组的基本思路与实现记录。',
-    path: '/wiki/algorithm/cycle-array',
-  },
-]
-
 const topicLabels: Record<string, string> = {
   algorithm: '算法',
 }
@@ -208,7 +167,6 @@ const wikiPages = computed(() =>
 )
 
 const lastReadPath = useCookie<string | null>('wiki-last-read')
-const pagePaths = computed(() => new Set(wikiPages.value.map(page => page._path)))
 const pageCount = computed(() => wikiPages.value.length)
 const topicCount = computed(() => new Set(
   wikiPages.value
@@ -240,10 +198,6 @@ const currentLearningPage = computed(() =>
   wikiPagesWithTopic.value.find(page => page._path === lastReadPath.value)
   || recentPages.value[0]
   || null,
-)
-
-const availableFavoritePages = computed(() =>
-  favoritePages.filter(page => pagePaths.value.has(page.path)),
 )
 
 onMounted(() => {
@@ -452,8 +406,7 @@ onMounted(() => {
   box-shadow: 0 10px 24px var(--blog-shadow-brand);
 }
 
-.wiki-recent-list,
-.wiki-favorite-list {
+.wiki-recent-list {
   display: grid;
   gap: 8px;
 }
@@ -501,38 +454,6 @@ onMounted(() => {
 .wiki-recent-no-date {
   flex: none;
   font-variant-numeric: tabular-nums;
-}
-
-.wiki-favorite-list {
-  grid-template-columns: 1fr;
-}
-
-.wiki-favorite-item {
-  display: grid;
-  gap: 5px;
-  padding: 13px;
-  border: 1px solid var(--blog-slate-200);
-  border-radius: 11px;
-  color: inherit;
-  text-decoration: none;
-  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
-}
-
-.wiki-favorite-item:hover {
-  border-color: var(--blog-blue-300);
-  background: var(--blog-blue-50);
-  box-shadow: 0 8px 18px var(--blog-shadow-xs);
-}
-
-.wiki-favorite-item strong {
-  color: var(--blog-slate-800);
-  font-size: 13px;
-}
-
-.wiki-favorite-item span {
-  color: var(--blog-slate-500);
-  font-size: 12px;
-  line-height: 1.5;
 }
 
 @media (max-width: 768px) {
