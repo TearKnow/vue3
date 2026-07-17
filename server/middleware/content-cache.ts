@@ -7,7 +7,7 @@ export default defineEventHandler((event) => {
     setResponseHeader(
       event,
       'Cache-Control',
-      'public, max-age=0, s-maxage=3600, stale-while-revalidate',
+      'public, max-age=0, s-maxage=31536000, stale-while-revalidate',
     )
   }
 })
