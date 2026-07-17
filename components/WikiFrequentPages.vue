@@ -153,7 +153,11 @@ const props = defineProps<{
   pages: WikiFrequentPage[]
 }>()
 
-const { data, error: loadError } = await useFetch<WikiVisitsResponse>('/api/wiki/visits')
+// 客户端异步加载，SSR 期间先按最近更新回退展示，避免阻塞在 GitHub 读取上
+const { data, error: loadError } = useFetch<WikiVisitsResponse>('/api/wiki/visits', {
+  lazy: true,
+  server: false,
+})
 const pendingTotal = ref(0)
 const syncing = ref(false)
 const syncError = ref('')

@@ -278,7 +278,11 @@ import {
   setStoredWikiEditPassword,
 } from '~/utils/wiki-edit-password'
 
-const { data, pending, error: loadError, refresh } = await useFetch<WikiPlansResponse>('/api/wiki/plans')
+// 客户端异步加载，避免首页 SSR 阻塞在 GitHub 读取上
+const { data, pending, error: loadError, refresh } = useFetch<WikiPlansResponse>('/api/wiki/plans', {
+  lazy: true,
+  server: false,
+})
 
 const editing = ref(false)
 const saving = ref(false)
