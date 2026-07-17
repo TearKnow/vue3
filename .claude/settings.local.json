@@ -28,7 +28,8 @@
       "Bash(python3 -m json.tool)",
       "Bash(npx nuxi *)",
       "Bash(grep -v \"^--$\")",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(pnpm lint *)"
     ]
   }
 }
