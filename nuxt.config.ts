@@ -87,11 +87,9 @@ export default defineNuxtConfig({
       '/api/jjshouse/**': {
         proxy: 'https://www.jjshouse.com/api/**',
       },
-      // Nuxt Content 查询走 Vercel 边缘缓存。
-      // Nitro swr → Cache-Control: max-age=0, s-maxage=300, stale-while-revalidate
-      // 首次 ~600ms（serverless 冷启动），5 分钟内边缘直接返回 ~50ms。
-      // 部署后验证：curl -sI <url> | grep -i cache-control 应看到 s-maxage=300
-      '/api/_content/query/**': {
+      // Nuxt Content 查询缓存：serverless 冷启动 + Shiki 高亮导致单次查询 ~600ms，
+      // Vercel SWR 开启后首次正常请求，后续 5 分钟内命中边缘缓存（<50ms）。
+      '/api/_content/**': {
         swr: 300,
       },
     },
