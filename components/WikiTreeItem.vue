@@ -110,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { WikiTreeNode } from '~/composables/useWikiTree'
 
 const props = defineProps<{
@@ -118,7 +118,7 @@ const props = defineProps<{
   depth?: number
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   navigate: []
 }>()
 
@@ -131,11 +131,12 @@ const isFolderOnly = computed(() => hasChildren.value && !props.node.isPage)
 
 const isNodeActive = computed(() => route.path === props.node.urlPath)
 
-if (hasChildren.value) {
-  if (route.path === props.node.urlPath || route.path.startsWith(`${props.node.urlPath}/`)) {
+watch(() => route.path, (path) => {
+  if (!hasChildren.value)
+    return
+  if (path === props.node.urlPath || path.startsWith(`${props.node.urlPath}/`))
     expanded.value = true
-  }
-}
+}, { immediate: true })
 
 function toggle() {
   if (hasChildren.value)
