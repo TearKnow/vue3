@@ -42,7 +42,6 @@
       class="wiki-tree-row"
       :class="{ active: isNodeActive }"
       @click="$emit('navigate')"
-      @pointerenter="prefetchPath(node.urlPath)"
     >
       <span class="wiki-tree-toggle invisible" aria-hidden="true" />
       <span class="wiki-tree-link">
@@ -85,7 +84,6 @@
         no-prefetch
         class="wiki-tree-link"
         @click.stop="$emit('navigate')"
-        @pointerenter="prefetchPath(node.urlPath)"
       >
         {{ node.title || node.name }}
       </NuxtLink>
@@ -114,7 +112,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { WikiTreeNode } from '~/composables/useWikiTree'
-import { useWikiPrefetch } from '~/composables/useWikiPrefetch'
 
 const props = defineProps<{
   node: WikiTreeNode
@@ -124,8 +121,6 @@ const props = defineProps<{
 defineEmits<{
   navigate: []
 }>()
-
-const { prefetchPath } = useWikiPrefetch()
 
 const depth = props.depth ?? 0
 

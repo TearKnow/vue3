@@ -70,7 +70,6 @@
           :to="currentLearningPage._path"
           no-prefetch
           class="wiki-primary-link"
-          @pointerenter="prefetchPath(currentLearningPage._path)"
         >
           继续阅读
           <span aria-hidden="true">→</span>
@@ -106,7 +105,6 @@
             :to="page._path"
             no-prefetch
             class="wiki-recent-item"
-            @pointerenter="prefetchPath(page._path)"
           >
             <span class="wiki-recent-main">
               <strong>{{ page.title || '未命名页面' }}</strong>
@@ -142,7 +140,6 @@
 <script setup lang="ts">
 import { filterWikiPages } from '~/composables/useWikiTree'
 import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
-import { useWikiPrefetch } from '~/composables/useWikiPrefetch'
 
 interface WikiHomePage {
   _path: string
@@ -152,8 +149,6 @@ interface WikiHomePage {
 }
 
 definePageMeta({ layout: 'wiki' })
-
-const { prefetchPath } = useWikiPrefetch()
 
 useSeoMeta({
   title: 'Wiki',
