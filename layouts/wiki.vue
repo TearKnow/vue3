@@ -148,6 +148,9 @@ const { data: wikiPages } = await useAsyncData('wiki-tree', () =>
   queryContent('/wiki').only(['_path', 'title', 'date', 'order']).find(),
 )
 
+// 共享给子页面（如 wiki/index），避免重复 queryContent
+provide('wiki-pages', wikiPages)
+
 const { data: wikiOrder } = await useAsyncData('wiki-order', fetchWikiOrderFile)
 
 const tree = computed(() => {

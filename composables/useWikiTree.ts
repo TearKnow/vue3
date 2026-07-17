@@ -237,11 +237,23 @@ export function moveWikiPathInOrder(
 }
 
 export async function fetchWikiOrderFile(): Promise<WikiOrderFile> {
+  // SSR: 直接读文件系统，跳过内部 HTTP 请求和 git ls-files 的开销
+  if (process.server) {
+    try {
+      const { readFile } = await import('node:fs/promises')
+      const content = await readFile('data/wiki/_order.json', 'utf8')
+      const parsed = JSON.parse(content) as WikiOrderFile
+      if (parsed?.groups && typeof parsed.groups === 'object')
+        return { groups: normalizeWikiOrderGroups(parsed.groups) }
+    }
+    catch {
+      // 文件不存在或解析失败，回退到 API 调用
+    }
+  }
+
+  // 客户端：通过轻量 API 获取（直接读文件，不触发 git ls-files）
   try {
-    const data = await $fetch<{ content: string }>('/project-files/content', {
-      query: { file: 'data/wiki/_order.json' },
-    })
-    const parsed = JSON.parse(data.content) as WikiOrderFile
+    const parsed = await $fetch<WikiOrderFile>('/api/wiki/order')
     if (parsed?.groups && typeof parsed.groups === 'object')
       return { groups: normalizeWikiOrderGroups(parsed.groups) }
   }

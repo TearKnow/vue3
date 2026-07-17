@@ -145,6 +145,7 @@ interface WikiHomePage {
   _path: string
   title?: string
   date?: string
+  order?: number
 }
 
 definePageMeta({ layout: 'wiki' })
@@ -154,9 +155,8 @@ useSeoMeta({
   description: '个人 Wiki 知识库',
 })
 
-const { data: pages } = await useAsyncData('wiki-index', () =>
-  queryContent('/wiki').only(['_path', 'title', 'date']).find(),
-)
+// 重用 layout 已查询的 wiki 页面数据，避免重复 queryContent
+const pages = inject<Ref<WikiHomePage[] | null>>('wiki-pages', ref(null))
 
 const topicLabels: Record<string, string> = {
   algorithm: '算法',
