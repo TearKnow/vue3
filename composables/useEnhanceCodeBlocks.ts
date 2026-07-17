@@ -1,7 +1,8 @@
-import { nextTick, onMounted, watch, type Ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, watch, type Ref } from 'vue'
 
 export function useEnhanceCodeBlocks(rootSelector: string, contentKey?: Ref<unknown>) {
   const copyFeedbackTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>()
+  let observer: MutationObserver | null = null
 
   function enhanceCodeBlocks() {
     if (!import.meta.client)
@@ -74,6 +75,18 @@ export function useEnhanceCodeBlocks(rootSelector: string, contentKey?: Ref<unkn
 
   onMounted(() => {
     scheduleEnhance()
+    // 正文可能在 ClientOnly / 异步组件中晚于 mounted 才插入 DOM，
+    // 监听 DOM 变化确保代码块增强（.code-scroll 包裹 + 复制按钮）不漏跑。
+    observer = new MutationObserver(() => enhanceCodeBlocks())
+    observer.observe(document.querySelector(rootSelector)?.parentElement ?? document.body, {
+      childList: true,
+      subtree: true,
+    })
+  })
+
+  onBeforeUnmount(() => {
+    observer?.disconnect()
+    observer = null
   })
 
   if (contentKey) {
