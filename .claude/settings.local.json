@@ -26,7 +26,9 @@
       "Bash(python3 -c \"import sys,json; vs=json.load\\(sys.stdin\\); print\\([v for v in vs if v.startswith\\('14'\\)]\\)\")",
       "Bash(curl *)",
       "Bash(python3 -m json.tool)",
-      "Bash(npx nuxi *)"
+      "Bash(npx nuxi *)",
+      "Bash(grep -v \"^--$\")",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

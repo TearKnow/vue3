@@ -70,8 +70,19 @@
           <span class="wiki-tree-link">首页</span>
         </NuxtLink>
 
+        <!-- 加载骨架 -->
+        <template v-if="treePending">
+          <div
+            v-for="i in 3"
+            :key="'skeleton-' + i"
+            class="wiki-tree-skeleton"
+            :style="{ animationDelay: `${i * 0.1}s` }"
+          />
+        </template>
+
         <!-- 子节点 -->
         <WikiTreeItem
+          v-else
           v-for="node in tree"
           :key="node.path"
           :node="node"
@@ -144,17 +155,20 @@ import { normalizeWikiSlug } from '~/utils/wiki-path'
 const route = useRoute()
 const sidebarOpen = ref(false)
 
-const { data: wikiPages } = await useAsyncData('wiki-tree', () =>
+// 延迟加载：sidebar 数据不阻塞主内容区渲染，页面内容先到先显示
+const { data: wikiPages, pending: treePending } = useAsyncData('wiki-tree', () =>
   queryContent('/wiki').only(['_path', 'title', 'date', 'order']).find(),
+  { lazy: true },
 )
 
 // 共享给子页面（如 wiki/index），避免重复 queryContent
 provide('wiki-pages', wikiPages)
 
-const { data: wikiOrder } = await useAsyncData('wiki-order', fetchWikiOrderFile)
+const { data: wikiOrder } = useAsyncData('wiki-order', fetchWikiOrderFile, { lazy: true })
 
 const tree = computed(() => {
-  const pages: WikiPageMeta[] = filterWikiPages(wikiPages.value || []).map(page => ({
+  if (!wikiPages.value) return []
+  const pages: WikiPageMeta[] = filterWikiPages(wikiPages.value).map(page => ({
     _path: page._path,
     title: typeof page.title === 'string' ? page.title : undefined,
     date: typeof page.date === 'string' ? page.date : undefined,
@@ -327,8 +341,7 @@ function closeDialogFromMask() {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: var(--blog-overlay-light);
-  backdrop-filter: blur(8px);
+  background: var(--blog-white);
 }
 
 .wiki-sidebar-brand {
@@ -500,6 +513,21 @@ function closeDialogFromMask() {
   list-style: none;
 }
 
+.wiki-tree-skeleton {
+  width: calc(100% - 20px);
+  height: 20px;
+  margin: 8px 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--blog-slate-100) 25%, var(--blog-slate-50) 50%, var(--blog-slate-100) 75%);
+  background-size: 200% 100%;
+  animation: wiki-skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes wiki-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ── 主内容 ── */
 .wiki-main {
   position: relative;
@@ -515,9 +543,7 @@ function closeDialogFromMask() {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 55% 42% at 8% 0%, var(--wiki-ambient-primary) 0%, transparent 70%),
-    radial-gradient(ellipse 48% 38% at 100% 100%, var(--wiki-ambient-secondary) 0%, transparent 72%);
+  background: radial-gradient(ellipse 60% 50% at 8% 0%, var(--wiki-ambient-primary) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }

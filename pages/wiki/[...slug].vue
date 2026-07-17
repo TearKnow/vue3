@@ -168,9 +168,8 @@ const rawSlug = computed(() => {
 
 const isReservedSlug = computed(() => !isWikiBrowsablePage(`/wiki/${slug.value}`))
 
-const { data: wikiPageList } = await useAsyncData('wiki-tree', () =>
-  queryContent('/wiki').only(['_path', 'title']).find(),
-)
+// 重用 layout 已查询的 wiki 页面数据，避免重复 queryContent
+const wikiPageList = inject<Ref<{ _path: string, title?: string }[] | null>>('wiki-pages', ref(null))
 
 const breadcrumbs = computed(() =>
   buildWikiBreadcrumbs(slug.value, filterWikiPages(wikiPageList.value || [])),
