@@ -358,7 +358,7 @@ onMounted(() => {
   border-radius: 8px;
   color: var(--blog-blue-700);
   background: var(--blog-blue-50);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -417,7 +417,7 @@ onMounted(() => {
   justify-content: space-between;
   gap: 18px;
   padding: 12px 13px;
-  border: 1px solid transparent;
+  border: 1px solid var(--blog-slate-200);
   border-radius: 11px;
   color: inherit;
   text-decoration: none;
@@ -425,7 +425,7 @@ onMounted(() => {
 }
 
 .wiki-recent-item:hover {
-  border-color: var(--blog-blue-100);
+  border-color: var(--blog-blue-300);
   background: var(--blog-blue-50);
 }
 

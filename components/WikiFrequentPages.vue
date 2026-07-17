@@ -27,8 +27,8 @@
           viewBox="0 0 24 24"
           aria-hidden="true"
         >
-          <path d="M20 7h-5V2" />
-          <path d="M20 7a8 8 0 1 0 1 7" />
+          <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" />
+          <path d="M21 3v5h-5" />
         </svg>
         {{ syncButtonText }}
       </button>
@@ -407,6 +407,7 @@ onBeforeUnmount(() => {
 .wiki-frequent-sync svg {
   width: 14px;
   height: 14px;
+  margin-top: 2px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
