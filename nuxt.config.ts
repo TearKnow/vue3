@@ -87,6 +87,11 @@ export default defineNuxtConfig({
       '/api/jjshouse/**': {
         proxy: 'https://www.jjshouse.com/api/**',
       },
+      // Nuxt Content 查询缓存：serverless 冷启动 + Shiki 高亮导致单次查询 ~600ms，
+      // Vercel SWR 开启后首次正常请求，后续 5 分钟内命中边缘缓存（<50ms）。
+      '/api/_content/**': {
+        swr: 300,
+      },
     },
   },
 })
