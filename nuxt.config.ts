@@ -87,10 +87,6 @@ export default defineNuxtConfig({
       '/api/jjshouse/**': {
         proxy: 'https://www.jjshouse.com/api/**',
       },
-      // Wiki 文章内容走 Vercel 边缘缓存 1 小时
-      '/api/_content/query/**': {
-        swr: 3600,
-      },
     },
   },
 })
