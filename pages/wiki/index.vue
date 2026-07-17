@@ -55,13 +55,19 @@
           <span class="wiki-learning-status">进行中</span>
         </div>
         <h3 class="wiki-learning-title">
-          {{ currentLearning.title }}
+          {{ currentLearningPage.title || '未命名页面' }}
         </h3>
         <p class="wiki-learning-desc">
-          {{ currentLearning.description }}
+          继续上次的阅读进度
+          <span aria-hidden="true">·</span>
+          {{ currentLearningPage.topic }}
+          <template v-if="currentLearningPage.date">
+            <span aria-hidden="true">·</span>
+            更新于 {{ currentLearningPage.date }}
+          </template>
         </p>
         <NuxtLink
-          :to="currentLearning.path"
+          :to="currentLearningPage._path"
           no-prefetch
           class="wiki-primary-link"
         >
@@ -70,36 +76,9 @@
         </NuxtLink>
       </section>
 
-      <section
+      <WikiPlanCard
         class="wiki-panel wiki-plans"
-        aria-labelledby="wiki-plans-title"
-      >
-        <div class="wiki-panel-heading">
-          <div>
-            <p class="wiki-panel-eyebrow">
-              Up Next
-            </p>
-            <h2
-              id="wiki-plans-title"
-              class="wiki-panel-title"
-            >
-              近期计划
-            </h2>
-          </div>
-        </div>
-        <ul class="wiki-plan-list">
-          <li
-            v-for="plan in upcomingPlans"
-            :key="plan"
-          >
-            <span
-              class="wiki-plan-dot"
-              aria-hidden="true"
-            />
-            <span>{{ plan }}</span>
-          </li>
-        </ul>
-      </section>
+      />
 
       <section
         class="wiki-panel wiki-recent"
@@ -207,12 +186,6 @@ const { data: pages } = await useAsyncData('wiki-index', () =>
   queryContent('/wiki').only(['_path', 'title', 'date']).find(),
 )
 
-const currentLearning = {
-  title: '算法基础',
-  description: '从基础数据结构出发，逐步建立常见算法思想与解题框架。',
-  path: '/wiki/algorithm/start',
-}
-
 const favoritePages = [
   {
     title: '算法学习目标',
@@ -226,12 +199,6 @@ const favoritePages = [
   },
 ]
 
-const upcomingPlans = [
-  '完成数组与链表基础整理',
-  '补充双指针与滑动窗口笔记',
-  '整理算法练习中的典型错题',
-]
-
 const topicLabels: Record<string, string> = {
   algorithm: '算法',
 }
@@ -240,6 +207,7 @@ const wikiPages = computed(() =>
   filterWikiPages((pages.value || []) as WikiHomePage[]),
 )
 
+const lastReadPath = useCookie<string | null>('wiki-last-read')
 const pagePaths = computed(() => new Set(wikiPages.value.map(page => page._path)))
 const pageCount = computed(() => wikiPages.value.length)
 const topicCount = computed(() => new Set(
@@ -251,9 +219,7 @@ const topicCount = computed(() => new Set(
     .filter(Boolean),
 ).size)
 
-const recentPages = computed(() => [...wikiPages.value]
-  .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-  .slice(0, 5)
+const wikiPagesWithTopic = computed(() => wikiPages.value
   .map((page) => {
     const topic = page._path.replace(/^\/wiki\/?/, '').split('/').filter(Boolean)[0] || ''
     return {
@@ -262,12 +228,18 @@ const recentPages = computed(() => [...wikiPages.value]
     }
   }))
 
+const recentPages = computed(() => [...wikiPagesWithTopic.value]
+  .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+  .slice(0, 5))
+
 const latestUpdateDate = computed(() =>
   recentPages.value.find(page => page.date)?.date || '',
 )
 
 const currentLearningPage = computed(() =>
-  pagePaths.value.has(currentLearning.path),
+  wikiPagesWithTopic.value.find(page => page._path === lastReadPath.value)
+  || recentPages.value[0]
+  || null,
 )
 
 const availableFavoritePages = computed(() =>
@@ -478,33 +450,6 @@ onMounted(() => {
   border-color: var(--blog-blue-800);
   background: var(--blog-blue-800);
   box-shadow: 0 10px 24px var(--blog-shadow-brand);
-}
-
-.wiki-plan-list {
-  display: grid;
-  gap: 13px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.wiki-plan-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  color: var(--blog-slate-600);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.wiki-plan-dot {
-  flex: none;
-  width: 7px;
-  height: 7px;
-  margin-top: 7px;
-  border: 2px solid var(--blog-blue-400);
-  border-radius: 50%;
-  background: var(--blog-blue-50);
 }
 
 .wiki-recent-list,

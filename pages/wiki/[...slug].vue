@@ -1,12 +1,32 @@
 <template>
-  <div class="wiki-page" :class="{ 'wiki-page--editing': editing }">
+  <div
+    class="wiki-page"
+    :class="{ 'wiki-page--editing': editing }"
+  >
     <!-- 阅读模式 -->
     <template v-if="!editing">
-      <div v-if="page" class="wiki-article-wrap">
-        <nav v-if="breadcrumbs.length" class="wiki-breadcrumb" aria-label="当前位置">
-          <NuxtLink to="/wiki" class="wiki-breadcrumb-link" no-prefetch>Wiki</NuxtLink>
-          <template v-for="(item, index) in breadcrumbs" :key="item.path">
-            <span class="wiki-breadcrumb-sep" aria-hidden="true">/</span>
+      <div
+        v-if="page"
+        class="wiki-article-wrap"
+      >
+        <nav
+          v-if="breadcrumbs.length"
+          class="wiki-breadcrumb"
+          aria-label="当前位置"
+        >
+          <NuxtLink
+            to="/wiki"
+            class="wiki-breadcrumb-link"
+            no-prefetch
+          >Wiki</NuxtLink>
+          <template
+            v-for="item in breadcrumbs"
+            :key="item.path"
+          >
+            <span
+              class="wiki-breadcrumb-sep"
+              aria-hidden="true"
+            >/</span>
             <NuxtLink
               v-if="!item.isCurrent && item.isPage"
               :to="item.path"
@@ -21,57 +41,85 @@
             >
               {{ item.label }}
             </span>
-            <span v-else class="wiki-breadcrumb-current">{{ item.label }}</span>
+            <span
+              v-else
+              class="wiki-breadcrumb-current"
+            >{{ item.label }}</span>
           </template>
         </nav>
 
         <div class="wiki-article">
-        <header class="wiki-article-header">
-          <div class="wiki-article-head-main">
-            <h1 class="wiki-article-title">
-              {{ page.title || slug }}
-            </h1>
-            <div v-if="page.date" class="wiki-article-meta">
-              <time class="wiki-article-date" :datetime="String(page.date)">
-                更新于 {{ page.date }}
-              </time>
+          <header class="wiki-article-header">
+            <div class="wiki-article-head-main">
+              <h1 class="wiki-article-title">
+                {{ page.title || slug }}
+              </h1>
+              <div
+                v-if="page.date"
+                class="wiki-article-meta"
+              >
+                <time
+                  class="wiki-article-date"
+                  :datetime="String(page.date)"
+                >
+                  更新于 {{ page.date }}
+                </time>
+              </div>
             </div>
-          </div>
-          <button
-            type="button"
-            class="wiki-action-btn"
-            title="编辑此页"
-            @click="startEdit"
-          >
-            <svg class="wiki-action-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
-            <span>编辑</span>
-          </button>
-        </header>
-        <ClientOnly>
-          <InlineAnnotations :page-key="annotationPageKey">
-            <div class="wiki-article-body">
-              <ContentRenderer :value="page" />
-            </div>
-          </InlineAnnotations>
-          <template #fallback>
-            <div class="wiki-article-body">
-              <ContentRenderer :value="page" />
-            </div>
-          </template>
-        </ClientOnly>
+            <button
+              type="button"
+              class="wiki-action-btn"
+              title="编辑此页"
+              @click="startEdit"
+            >
+              <svg
+                class="wiki-action-btn-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+              <span>编辑</span>
+            </button>
+          </header>
+          <ClientOnly>
+            <InlineAnnotations :page-key="annotationPageKey">
+              <div class="wiki-article-body">
+                <ContentRenderer :value="page" />
+              </div>
+            </InlineAnnotations>
+            <template #fallback>
+              <div class="wiki-article-body">
+                <ContentRenderer :value="page" />
+              </div>
+            </template>
+          </ClientOnly>
         </div>
       </div>
-      <div v-else-if="isReservedSlug" class="wiki-empty">
+      <div
+        v-else-if="isReservedSlug"
+        class="wiki-empty"
+      >
         <h2>页面不存在</h2>
         <p>该路径不可访问。</p>
       </div>
-      <div v-else class="wiki-empty">
+      <div
+        v-else
+        class="wiki-empty"
+      >
         <h2>此页面不存在</h2>
         <p>「{{ slug }}」尚未创建。</p>
-        <button type="button" class="wiki-text-btn" @click="startEdit">
+        <button
+          type="button"
+          class="wiki-text-btn"
+          @click="startEdit"
+        >
           创建此页面
         </button>
       </div>
@@ -100,7 +148,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { buildWikiBreadcrumbs, filterWikiPages, isWikiBrowsablePage } from '~/composables/useWikiTree'
 import { useEnhanceCodeBlocks } from '~/composables/useEnhanceCodeBlocks'
 import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoading'
-import { normalizeWikiSlug } from '~/utils/wiki-path'
+import { normalizeWikiPath, normalizeWikiSlug } from '~/utils/wiki-path'
 
 definePageMeta({ layout: 'wiki' })
 
@@ -139,6 +187,18 @@ const { data: page, pending } = await useAsyncData(
   },
   { watch: [slug] },
 )
+
+const lastReadPath = useCookie<string | null>('wiki-last-read', {
+  maxAge: 365 * 24 * 60 * 60,
+  sameSite: 'lax',
+  path: '/',
+})
+
+watch(page, (value) => {
+  const pagePath = normalizeWikiPath(`/wiki/${slug.value}`)
+  if (value && isWikiBrowsablePage(pagePath))
+    lastReadPath.value = pagePath
+}, { immediate: true })
 
 useEnhanceCodeBlocks('.wiki-article-body', page)
 

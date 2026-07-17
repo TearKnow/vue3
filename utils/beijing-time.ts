@@ -36,6 +36,25 @@ export function getTodayDateString(date: Date = new Date()): string {
   return formatBeijingDate(date)
 }
 
+/** 北京时间戳，格式 YYYY-MM-DDTHH:mm:ss+08:00 */
+export function formatBeijingDateTime(date: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: BEIJING_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+
+  const read = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find(part => part.type === type)?.value || ''
+
+  return `${read('year')}-${read('month')}-${read('day')}T${read('hour')}:${read('minute')}:${read('second')}+08:00`
+}
+
 /**
  * 以北京日历日为终点，向前生成连续日期键（YYYY-MM-DD）。
  * 中国无夏令时，按固定 24h 步进日历日安全。

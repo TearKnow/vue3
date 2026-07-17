@@ -1,0 +1,23 @@
+{
+  "plans": [
+    {
+      "id": "plan_wrong_answers",
+      "text": "整理算法练习中的典型错题",
+      "status": "active",
+      "createdAt": "2026-07-17T15:00:00+08:00"
+    },
+    {
+      "id": "plan_two_pointers",
+      "text": "补充双指针与滑动窗口笔记",
+      "status": "active",
+      "createdAt": "2026-07-17T15:00:00+08:00"
+    },
+    {
+      "id": "plan_array_basics",
+      "text": "完成数组与链表基础整理",
+      "status": "active",
+      "createdAt": "2026-07-17T15:00:00+08:00"
+    }
+  ],
+  "updatedAt": "2026-07-17T15:20:44+08:00"
+}
