@@ -9,9 +9,11 @@ export default defineNuxtConfig({
   content: {
     highlight: {
       theme: 'github-dark',
-      // 默认已含：js / ts / json / html / css / vue / shell / md / yaml
-      // 额外加载主流语言 Top 10 中其余项：Python Java C++ C# Go Rust PHP SQL
-      langs: ['python', 'java', 'cpp', 'csharp', 'go', 'rust', 'php', 'sql'],
+      // 显式配置 langs 会覆盖默认列表，因此默认语言也必须保留。
+      langs: [
+        'js', 'ts', 'json', 'html', 'css', 'vue', 'shell', 'md', 'yaml',
+        'python', 'java', 'cpp', 'csharp', 'go', 'rust', 'php', 'sql',
+      ],
     },
     ignore: [
       '**/wiki/_*',

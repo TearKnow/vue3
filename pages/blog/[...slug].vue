@@ -258,6 +258,7 @@ const commentsReady = ref(false)
 const commentsVisible = ref(false)
 const commentsSectionRef = ref<HTMLElement | null>(null)
 let scrollRafId = 0
+let codeBlockObserver: MutationObserver | null = null
 const copyFeedbackTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>()
 
 /** 与 utteranc.es 及 giscus client.js 的 pathname 规则一致（issue / Discussion 标题或检索 term） */
@@ -654,6 +655,8 @@ onBeforeUnmount(() => {
       window.cancelAnimationFrame(scrollRafId)
       scrollRafId = 0
     }
+    codeBlockObserver?.disconnect()
+    codeBlockObserver = null
     window.removeEventListener('scroll', onScroll)
   }
 })
@@ -664,6 +667,11 @@ onMounted(() => {
   updateReadingProgress()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
+  codeBlockObserver = new MutationObserver(() => enhanceCodeBlocks())
+  codeBlockObserver.observe(document.querySelector('.blog-article article') ?? document.body, {
+    childList: true,
+    subtree: true,
+  })
 
   scheduleCommentsMount()
 
