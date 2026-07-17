@@ -5,30 +5,8 @@
   >
     <!-- 阅读模式 -->
     <template v-if="!editing">
-      <!-- 加载骨架 -->
       <div
-        v-if="pending && !page"
-        class="wiki-article-wrap"
-      >
-        <div class="wiki-article wiki-article--skeleton">
-          <div class="wiki-article-header">
-            <div class="wiki-article-head-main">
-              <div class="wiki-skeleton-bar wiki-skeleton-bar--title" />
-              <div class="wiki-skeleton-bar wiki-skeleton-bar--date" />
-            </div>
-          </div>
-          <div class="wiki-article-body">
-            <div
-              v-for="i in 5"
-              :key="i"
-              class="wiki-skeleton-bar wiki-skeleton-bar--text"
-              :style="{ width: `${[85, 92, 70, 88, 55][i - 1]}%`, animationDelay: `${i * 0.1}s` }"
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        v-else-if="page"
+        v-if="page"
         class="wiki-article-wrap"
       >
         <nav
@@ -199,15 +177,15 @@ const breadcrumbs = computed(() =>
 
 const annotationPageKey = computed(() => `wiki:${slug.value}`)
 
-// 延迟加载：内容区不阻塞页面渲染，先显示骨架屏
-const { data: page, pending } = useAsyncData(
+// 查询 wiki 页面内容（动态 key + watch，保证同组件切页也会重新取数）
+const { data: page, pending } = await useAsyncData(
   () => `wiki-${slug.value}`,
   () => {
     if (!isWikiBrowsablePage(`/wiki/${slug.value}`))
       return Promise.resolve(null)
     return queryContent(`/wiki/${slug.value}`).findOne()
   },
-  { watch: [slug], lazy: true },
+  { watch: [slug] },
 )
 
 const lastReadPath = useCookie<string | null>('wiki-last-read', {
@@ -284,8 +262,7 @@ onMounted(async () => {
   }
 
   const titleFromQuery = route.query.title
-  // pending 为 true 时 page 也为 null（延迟加载中），需确认查询已完成、页面确实不存在
-  if (typeof titleFromQuery === 'string' && titleFromQuery.trim() && !pending.value && !page.value) {
+  if (typeof titleFromQuery === 'string' && titleFromQuery.trim() && !page.value) {
     await startEdit()
     await navigateTo({ path: route.path, replace: true })
   }
@@ -439,43 +416,6 @@ onMounted(async () => {
 .wiki-action-btn:focus-visible {
   outline: 2px solid var(--blog-blue-200);
   outline-offset: 2px;
-}
-
-/* ── 加载骨架屏 ── */
-.wiki-article--skeleton .wiki-article-header {
-  padding-bottom: 20px;
-}
-
-.wiki-skeleton-bar {
-  height: 16px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--blog-slate-100) 25%, var(--blog-slate-50) 50%, var(--blog-slate-100) 75%);
-  background-size: 200% 100%;
-  animation: wiki-skeleton-shimmer 1.5s infinite;
-  margin-bottom: 12px;
-}
-
-.wiki-skeleton-bar--title {
-  height: 28px;
-  width: 55%;
-  margin-bottom: 14px;
-  border-radius: 8px;
-}
-
-.wiki-skeleton-bar--date {
-  width: 30%;
-  height: 14px;
-  margin-bottom: 0;
-}
-
-.wiki-skeleton-bar--text {
-  height: 15px;
-}
-
-/* 复用 layout 里的 keyframes，这里补一份以防加载顺序问题 */
-@keyframes wiki-skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }
 
 .wiki-article-body {
