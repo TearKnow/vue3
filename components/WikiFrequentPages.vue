@@ -56,6 +56,7 @@
         :to="page._path"
         no-prefetch
         class="wiki-frequent-item"
+        @pointerenter="prefetchPath(page._path)"
       >
         <strong>{{ page.title || '未命名页面' }}</strong>
         <span>
@@ -141,6 +142,9 @@ import {
   getStoredWikiEditPassword,
   setStoredWikiEditPassword,
 } from '~/utils/wiki-edit-password'
+import { useWikiPrefetch } from '~/composables/useWikiPrefetch'
+
+const { prefetchPath } = useWikiPrefetch()
 
 interface WikiFrequentPage {
   _path: string
