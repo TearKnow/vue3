@@ -1,0 +1,28 @@
+---
+description: 徽标/按钮样式偏好：禁用描边胶囊样式，用现代软色块样式
+alwaysApply: true
+---
+
+# 徽标与按钮样式
+
+用户不喜欢「细描边 + 胶囊圆角 + 浅底」的徽标/按钮样式（bordered pill）。新写或修改徽标、状态标签、计数标签、次级按钮时遵循：
+
+```css
+/* ❌ BAD：描边胶囊 */
+.badge {
+  border: 1px solid var(--blog-blue-200);
+  border-radius: 999px;
+  background: var(--blog-blue-50);
+}
+
+/* ✅ GOOD：无边框软色块，小圆角（6-10px），可配状态圆点 */
+.badge {
+  border-radius: 8px;
+  background: var(--blog-blue-50);
+  color: var(--blog-blue-700);
+}
+```
+
+- 徽标/标签：无边框，浅色底 + 深色文字，圆角 6–10px；状态类徽标可在文字前加实心小圆点。
+- 主按钮：实心底色 + 明显圆角（8–12px），不用描边空心按钮作主操作。
+- 颜色一律用 `--blog-` CSS 变量，遵循项目既有规范。
