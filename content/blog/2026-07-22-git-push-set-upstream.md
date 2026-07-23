@@ -1,6 +1,6 @@
 ---
-title: git push -u 是干什么的？
-description: 解释 git push -u / --set-upstream，以及 origin 远程别名是什么、为什么需要它。
+title: git push -u、origin、upstream 分别是什么？
+description: 解释 git push -u、origin 远程别名，以及 fork 场景下 origin / upstream 多个 remote 是怎么回事。
 date: 2026-07-22
 tags: [Git]
 ---
@@ -75,7 +75,58 @@ origin  https://github.com/you/project.git (fetch)
 origin  https://github.com/you/project.git (push)
 ```
 
-补充：`origin` 只是约定俗成的默认名，不是硬性规定。你也可以叫 `github`、`upstream`、`company`。多人协作里常见两个远程：`origin` 推自己的仓库，`upstream` 同步原作者仓库。
+补充：`origin` 只是约定俗成的默认名，不是硬性规定。你也可以叫 `github`、`upstream`、`company`。
+
+## 什么时候会有多个 remote（origin + upstream）
+
+最典型的场景是：**你 fork 了别人的仓库，自己改，再提 PR**。
+
+1. 在 GitHub 上 fork 原作者仓库 → 你账号下多了一份副本
+2. `clone` 自己的副本 → 默认远程叫 `origin`（指向你的 fork）
+3. 为了能拉到原作者的最新代码，再加一个远程，习惯叫 `upstream`：
+
+```bash
+git remote add upstream https://github.com/原作者/项目.git
+```
+
+这时本地就有两个远程：
+
+| 名字 | 通常指向 | 你拿它干什么 |
+|------|----------|--------------|
+| `origin` | 你自己的 fork | `push` 自己的改动、开 PR |
+| `upstream` | 原作者仓库 | `fetch` / `pull` 同步官方最新代码 |
+
+`git remote -v` 大概会是：
+
+```text
+origin    https://github.com/你/项目.git (fetch)
+origin    https://github.com/你/项目.git (push)
+upstream  https://github.com/原作者/项目.git (fetch)
+upstream  https://github.com/原作者/项目.git (push)
+```
+
+日常用法示例：
+
+```bash
+# 拉官方最新
+git fetch upstream
+git merge upstream/main
+# 或：git rebase upstream/main
+
+# 推到自己的 fork
+git push origin my-feature
+```
+
+然后在 GitHub 上从你的 fork 向原作者仓库提 Pull Request。
+
+有两个 remote 时，分支也要写清楚来源：
+
+- `origin/develop` → 你 fork 上的 develop
+- `upstream/develop` → 官方仓库上的 develop
+
+两者不一定一样。只写 `develop`，工具可能猜错你要哪边；写全 `origin/develop` / `upstream/develop` 就不会混。
+
+（公司内也可能 `origin` 推内部 GitLab、另加 `mirror` / `github` 做镜像，道理相同：一个本地仓库可以关联多台远程。）
 
 ## 加 -u 和不加 -u
 
