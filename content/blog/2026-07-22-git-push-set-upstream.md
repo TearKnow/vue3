@@ -1,6 +1,6 @@
 ---
 title: git push -u 是干什么的？
-description: 解释 git push -u / --set-upstream：本地分支如何绑定远程上游，以及为什么首次推送建议加上 -u。
+description: 解释 git push -u / --set-upstream，以及 origin 远程别名是什么、为什么需要它。
 date: 2026-07-22
 tags: [Git]
 ---
@@ -9,7 +9,8 @@ tags: [Git]
 
 - `-u` 全称是 `--set-upstream`
 - 作用是建立「本地分支 ↔ 远程分支」的追踪关系
-- **首次推送建议加上**；绑定之后，日常直接 `git push` / `git pull` 就行
+- `origin` 是远程仓库的默认别名，不是什么神秘关键字
+- **首次推送建议加上 `-u`**；绑定之后，日常直接 `git push` / `git pull` 就行
 
 ## 直白一点
 
@@ -30,6 +31,51 @@ git push -u origin main
 | `-u` | 同时绑定两者的上游追踪关系 |
 
 没有这层绑定，Git 就不知道你下次说的「推一下 / 拉一下」到底对谁操作。
+
+## origin 是什么？为什么要有它
+
+Git 是分布式的：你电脑上有一份完整仓库，GitHub / GitLab 上也有一份。推送、拉取时，Git 必须知道「对哪一台远程仓库说话」。
+
+远程仓库地址往往很长，例如：
+
+```bash
+git push https://github.com/you/project.git main
+```
+
+每次都写 URL 又长又容易写错，所以 Git 允许给远程起一个短名字。`clone` 或第一次添加远程时，默认通常就叫 `origin`（来源 / 起源）：
+
+```bash
+git remote add origin https://github.com/you/project.git
+```
+
+之后就可以简写：
+
+```bash
+git push origin main
+```
+
+因此：
+
+| 写法 | 实际指向 |
+|------|----------|
+| `origin` | 远程仓库的名字（别名），不是命令 |
+| `origin/main` | 这个远程上的 `main` 在本地的镜像引用 |
+| `[origin/main]` | 当前本地分支的上游设成了它 |
+
+想确认 `origin` 对应哪个地址：
+
+```bash
+git remote -v
+```
+
+会看到类似：
+
+```text
+origin  https://github.com/you/project.git (fetch)
+origin  https://github.com/you/project.git (push)
+```
+
+补充：`origin` 只是约定俗成的默认名，不是硬性规定。你也可以叫 `github`、`upstream`、`company`。多人协作里常见两个远程：`origin` 推自己的仓库，`upstream` 同步原作者仓库。
 
 ## 加 -u 和不加 -u
 
@@ -73,7 +119,13 @@ git pull origin main
 git branch -vv
 ```
 
-输出里能看到类似 `[origin/main]` 的标记，就是上游。
+常见输出类似：
+
+```text
+main  bf1737a  [origin/main]
+```
+
+可以拆成：本地分支名 `main` → 当前提交短哈希 `bf1737a` → 上游 `[origin/main]`（远程 `origin` 上的 `main`）。
 
 ## 配套：改名 + 首次推送
 
@@ -88,4 +140,4 @@ git push -u origin main     # 推到远程 main，并建立追踪
 
 ## 一句话
 
-`-u` = 设置上游追踪；**首次推送建议加上**，绑定后以后直接 `git push` / `git pull` 即可。
+`origin` = 远程仓库的默认短名；`-u` = 设置上游追踪。**首次推送建议加上 `-u`**，绑定后以后直接 `git push` / `git pull` 即可。
