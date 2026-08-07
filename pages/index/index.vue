@@ -29,6 +29,10 @@
       <ClientOnly>
         <CheckinPanel />
       </ClientOnly>
+
+      <ClientOnly>
+        <WeightTracker />
+      </ClientOnly>
     </div>
   </div>
 </template>
