@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { getTodayDateString } from '../../utils/beijing-time'
-import type { WeightData } from '../../utils/weight-chart'
+import type { WeightData, WeightPerson } from '../../utils/weight-chart'
 import { getWikiGitHubConfig, readGithubFile, writeGithubFile } from './wiki-github'
 
 export { getTodayDateString }
@@ -11,25 +11,45 @@ export const WEIGHT_FILE_PATH = 'data/weight/weight.json'
 const workspaceRoot = process.cwd()
 
 const EMPTY_WEIGHT_DATA: WeightData = {
+  people: [],
   records: {},
 }
 
 export function parseWeightData(raw: string): WeightData {
   try {
     const parsed = JSON.parse(raw) as Partial<WeightData>
-    const records: Record<string, number> = {}
 
+    const people: WeightPerson[] = Array.isArray(parsed.people)
+      ? parsed.people
+          .map((p) => {
+            const id = Number((p as WeightPerson).id)
+            const label = String((p as WeightPerson).label || '').trim()
+            if (!Number.isInteger(id) || id <= 0 || !label)
+              return null
+            return { id, label }
+          })
+          .filter((p): p is WeightPerson => p !== null)
+      : []
+
+    const records: Record<string, Record<string, number>> = {}
     if (parsed.records && typeof parsed.records === 'object') {
-      for (const [date, weight] of Object.entries(parsed.records)) {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      for (const [date, dayRecord] of Object.entries(parsed.records)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !dayRecord || typeof dayRecord !== 'object')
+          continue
+
+        const personWeights: Record<string, number> = {}
+        for (const [personId, weight] of Object.entries(dayRecord as Record<string, unknown>)) {
           const num = Number(weight)
-          if (Number.isFinite(num) && num > 0)
-            records[date] = num
+          if (Number.isFinite(num) && num > 0 && num <= 500)
+            personWeights[personId] = Math.round(num * 10) / 10
         }
+
+        if (Object.keys(personWeights).length > 0)
+          records[date] = personWeights
       }
     }
 
-    return { records }
+    return { people, records }
   }
   catch {
     return { ...EMPTY_WEIGHT_DATA }

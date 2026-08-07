@@ -26,6 +26,7 @@ html {
   --blog-blue-100: #dbeafe;
   --blog-blue-50: #eff6ff;
   --blog-cyan-500: #06b6d4;
+  --blog-pink-600: #db2777;
   --blog-calendar-bg-start: #eef2ff;
   --blog-calendar-bg-end: #f8fbff;
   --blog-calendar-today-bg: #94b8e7;
@@ -89,6 +90,7 @@ html.dark {
   --blog-blue-100: #1e3a8a;
   --blog-blue-50: #172554;
   --blog-cyan-500: #22d3ee;
+  --blog-pink-600: #f472b6;
   --blog-calendar-bg-start: #0b1120;
   --blog-calendar-bg-end: #0f172a;
   --blog-calendar-today-bg: #3b82f6;

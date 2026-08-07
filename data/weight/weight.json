@@ -1,3 +1,7 @@
 {
+  "people": [
+    { "id": 1, "label": "我" },
+    { "id": 2, "label": "皮球" }
+  ],
   "records": {}
 }

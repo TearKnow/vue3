@@ -21,31 +21,41 @@
           {{ loadError }}
         </div>
         <template v-else>
-          <div class="weight-input-row">
-            <input
-              v-model="weightInput"
-              class="weight-input"
-              type="number"
-              inputmode="decimal"
-              step="0.1"
-              min="0"
-              max="500"
-              placeholder="输入体重"
-              :disabled="saving"
-              @keyup.enter="saveWeight"
-            >
-            <span class="weight-unit">kg</span>
-          </div>
-
-          <div class="weight-actions">
-            <button
-              type="button"
-              class="weight-save-btn"
-              :disabled="saving || !canSave"
-              @click="saveWeight"
-            >
-              {{ saveButtonLabel }}
-            </button>
+          <div
+            v-for="person in people"
+            :key="person.id"
+            class="weight-person-row"
+          >
+            <div class="weight-person-head">
+              <span class="weight-person-label">{{ person.label }}</span>
+              <span
+                v-if="todayWeights[person.id] !== undefined"
+                class="weight-person-today"
+              >今日: {{ todayWeights[person.id] }} kg</span>
+            </div>
+            <div class="weight-input-row">
+              <input
+                v-model="inputs[person.id]"
+                class="weight-input"
+                type="number"
+                inputmode="decimal"
+                step="0.1"
+                min="0"
+                max="500"
+                placeholder="输入体重"
+                :disabled="savingId === person.id"
+                @keyup.enter="saveWeight(person.id)"
+              >
+              <span class="weight-unit">kg</span>
+              <button
+                type="button"
+                class="weight-save-btn"
+                :disabled="savingId === person.id || !canSave(person.id)"
+                @click="saveWeight(person.id)"
+              >
+                {{ savingId === person.id ? '...' : (todayWeights[person.id] !== undefined ? '更新' : '记录') }}
+              </button>
+            </div>
           </div>
         </template>
       </div>
@@ -88,40 +98,88 @@
         </template>
       </ClientOnly>
     </div>
+
+    <!-- 密码锁定遮罩 -->
+    <div v-if="locked" class="weight-lock-overlay">
+      <div class="weight-lock-card">
+        <span class="weight-lock-icon">🔒</span>
+        <p class="weight-lock-title">请输入密码查看体重记录</p>
+        <div class="weight-lock-row">
+          <input
+            v-model="lockPassword"
+            class="weight-lock-input"
+            type="password"
+            placeholder="输入密码"
+            :disabled="lockPending"
+            @keyup.enter="unlock"
+          >
+          <button
+            type="button"
+            class="weight-save-btn"
+            :disabled="lockPending || !lockPassword"
+            @click="unlock"
+          >
+            {{ lockPending ? '验证中...' : '解锁' }}
+          </button>
+        </div>
+        <p v-if="lockError" class="weight-message weight-message--error">{{ lockError }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type ComponentPublicInstance } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch, type ComponentPublicInstance } from 'vue'
 import * as echarts from 'echarts/core'
 import { LineChart } from 'echarts/charts'
 import {
   GridComponent,
+  LegendComponent,
   TooltipComponent,
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useTheme } from '~/composables/useTheme'
 import {
+  getStoredWikiEditPassword,
+  setStoredWikiEditPassword,
+  clearStoredWikiEditPassword,
+} from '~/utils/wiki-edit-password'
+import {
   buildWeightSeries,
   WEIGHT_DAY_OPTIONS,
   DEFAULT_WEIGHT_DAYS,
   type WeightDayOption,
-  type WeightChartData,
+  type WeightPerson,
+  type WeightSeriesItem,
   parseWeightDays,
 } from '~/utils/weight-chart'
 
-echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer])
+echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
+
+const CHART_COLORS = [
+  '--blog-blue-600',
+  '--blog-pink-600',
+  '--blog-green-600',
+  '--blog-orange-600',
+]
 
 const WEIGHT_DAYS_STORAGE_KEY = 'weight-chart-days'
 const dayOptions = [...WEIGHT_DAY_OPTIONS]
 
 interface WeightResponse {
-  records: Record<string, number>
+  people: WeightPerson[]
+  records: Record<string, Record<string, number>>
   today: string
-  todayWeight: number | null
+  todayRecord: Record<string, number>
 }
 
 const { isDark } = useTheme()
+
+const locked = ref(true)
+const lockPassword = ref('')
+const lockPending = ref(false)
+const lockError = ref('')
+let currentPassword = ''
 
 const chartRef = ref<HTMLElement | null>(null)
 const rangeGroupRef = ref<HTMLElement | null>(null)
@@ -131,33 +189,71 @@ const rangeThumbStyle = ref({
   transform: 'translateX(0px)',
 })
 const rangeBtnRefs = new Map<WeightDayOption, HTMLButtonElement>()
-const records = ref<Record<string, number>>({})
-const weightInput = ref('')
+const people = ref<WeightPerson[]>([])
+const records = ref<Record<string, Record<string, number>>>({})
+const inputs = reactive<Record<string, string>>({})
+const todayWeights = reactive<Record<string, number>>({})
 const chartDays = ref<WeightDayOption>(DEFAULT_WEIGHT_DAYS)
 const chartDates = ref<string[]>([])
-const chartValues = ref<(number | null)[]>([])
+const chartSeries = ref<WeightSeriesItem[]>([])
 const today = ref('')
-const todayWeight = ref<number | null>(null)
 const pending = ref(true)
-const saving = ref(false)
+const savingId = ref<number | null>(null)
 const loadError = ref('')
 const saveMessage = ref('')
 const saveError = ref(false)
 
 let chart: echarts.ECharts | null = null
 
-const canSave = computed(() => {
-  const val = Number.parseFloat(weightInput.value)
-  return Number.isFinite(val) && val > 0 && val <= 500
-})
+async function verifyPassword(password: string): Promise<boolean> {
+  try {
+    await $fetch('/api/wiki/verify', {
+      method: 'POST',
+      body: { password },
+    })
+    return true
+  }
+  catch {
+    return false
+  }
+}
 
-const saveButtonLabel = computed(() => {
-  if (saving.value)
-    return '保存中...'
-  if (todayWeight.value !== null)
-    return '更新体重'
-  return '记录体重'
-})
+async function unlock() {
+  const pw = lockPassword.value.trim()
+  if (!pw)
+    return
+
+  lockPending.value = true
+  lockError.value = ''
+
+  const ok = await verifyPassword(pw)
+  if (!ok) {
+    lockError.value = '密码错误'
+    lockPending.value = false
+    return
+  }
+
+  setStoredWikiEditPassword(pw)
+  currentPassword = pw
+  locked.value = false
+  lockPassword.value = ''
+  lockPending.value = false
+  lockError.value = ''
+
+  await loadWeight()
+}
+
+function handleUnauthorized() {
+  clearStoredWikiEditPassword()
+  currentPassword = ''
+  locked.value = true
+  loadError.value = ''
+}
+
+function canSave(personId: number) {
+  const val = Number.parseFloat(inputs[personId])
+  return Number.isFinite(val) && val > 0 && val <= 500
+}
 
 const todayLabel = computed(() => {
   if (!today.value)
@@ -187,6 +283,11 @@ function readCssVar(name: string, fallback: string) {
 
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
   return value || fallback
+}
+
+function getChartColors() {
+  const fallbacks = ['#2563eb', '#db2777', '#16a34a', '#ea580c']
+  return CHART_COLORS.map((name, index) => readCssVar(name, fallbacks[index]))
 }
 
 function readStoredChartDays() {
@@ -238,9 +339,12 @@ function updateRangeThumb() {
 }
 
 function updateChartData() {
-  const chart = buildWeightSeries({ records: records.value }, chartDays.value)
+  const chart = buildWeightSeries(
+    { people: people.value, records: records.value },
+    chartDays.value,
+  )
   chartDates.value = chart.dates
-  chartValues.value = chart.values
+  chartSeries.value = chart.series
 }
 
 function setChartDays(days: WeightDayOption) {
@@ -276,31 +380,46 @@ function renderChart() {
   const textColor = readCssVar('--blog-slate-600', '#475569')
   const axisLineColor = readCssVar('--blog-slate-200', '#e2e8f0')
   const splitLineColor = readCssVar('--blog-slate-100', '#f1f5f9')
-  const lineColor = readCssVar('--blog-blue-600', '#2563eb')
-  const areaColorTop = readCssVar('--blog-blue-200', '#bfdbfe')
-  const areaColorBottom = readCssVar('--blog-white', '#ffffff')
+  const colors = getChartColors()
 
-  // Filter out null values for min/max calculation
-  const validValues = chartValues.value.filter((v): v is number => v !== null)
-  const yMin = validValues.length > 0 ? Math.floor(Math.min(...validValues) - 2) : 40
-  const yMax = validValues.length > 0 ? Math.ceil(Math.max(...validValues) + 2) : 100
+  // Calculate y-axis range from all series
+  let yMin = 40
+  let yMax = 100
+  const allValues: number[] = []
+  for (const s of chartSeries.value) {
+    for (const v of s.values) {
+      if (v !== null)
+        allValues.push(v)
+    }
+  }
+  if (allValues.length > 0) {
+    yMin = Math.floor(Math.min(...allValues) - 2)
+    yMax = Math.ceil(Math.max(...allValues) + 2)
+  }
 
   chart.setOption({
+    color: colors,
     tooltip: {
       trigger: 'axis',
       backgroundColor: readCssVar('--blog-white', '#ffffff'),
       borderColor: axisLineColor,
       textStyle: { color: textColor },
       formatter: (params: any) => {
-        const item = Array.isArray(params) ? params[0] : params
-        if (!item || item.value == null)
-          return ''
-        const date = chartDates.value[item.dataIndex]
-        return `${date}<br/>体重: <b>${item.value} kg</b>`
+        const items = Array.isArray(params) ? params : [params]
+        const idx = items[0]?.dataIndex
+        const date = chartDates.value[idx] || ''
+        const lines = items
+          .filter((p: any) => p.value != null)
+          .map((p: any) => `${p.marker} ${p.seriesName}: <b>${p.value} kg</b>`)
+        return lines.length ? `${date}<br/>${lines.join('<br/>')}` : date
       },
     },
+    legend: {
+      top: 0,
+      textStyle: { color: textColor },
+    },
     grid: {
-      top: 16,
+      top: 36,
       left: 12,
       right: 12,
       bottom: 12,
@@ -328,22 +447,16 @@ function renderChart() {
       },
       splitLine: { lineStyle: { color: splitLineColor } },
     },
-    series: [{
-      name: '体重',
+    series: chartSeries.value.map((item, index) => ({
+      name: item.label,
       type: 'line',
       smooth: true,
       showSymbol: false,
-      lineStyle: { width: 2, color: lineColor },
-      itemStyle: { color: lineColor },
-      areaStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: areaColorTop },
-          { offset: 1, color: areaColorBottom },
-        ]),
-      },
+      lineStyle: { width: 2 },
       connectNulls: false,
-      data: chartValues.value,
-    }],
+      data: item.values,
+      color: colors[index % colors.length],
+    })),
   }, true)
 }
 
@@ -352,13 +465,26 @@ async function loadWeight() {
   loadError.value = ''
 
   try {
-    const data = await $fetch<WeightResponse>('/api/weight')
+    const data = await $fetch<WeightResponse>('/api/weight', {
+      query: { password: currentPassword },
+    })
+    people.value = data.people
     records.value = data.records
     today.value = data.today
-    todayWeight.value = data.todayWeight
 
-    if (data.todayWeight !== null) {
-      weightInput.value = String(data.todayWeight)
+    // 初始化每个人的输入和今日值
+    for (const person of data.people) {
+      const pid = String(person.id)
+      const todayVal = data.todayRecord[pid]
+      if (todayVal !== undefined) {
+        todayWeights[person.id] = todayVal
+        inputs[person.id] = String(todayVal)
+      }
+      else {
+        delete todayWeights[person.id]
+        if (!inputs[person.id])
+          inputs[person.id] = ''
+      }
     }
 
     updateChartData()
@@ -368,6 +494,10 @@ async function loadWeight() {
     updateRangeThumb()
   }
   catch (error) {
+    if (error && typeof error === 'object' && 'statusCode' in error && (error as any).statusCode === 401) {
+      handleUnauthorized()
+      return
+    }
     loadError.value = error instanceof Error ? error.message : '加载体重数据失败'
   }
   finally {
@@ -375,30 +505,35 @@ async function loadWeight() {
   }
 }
 
-async function saveWeight() {
-  if (!canSave.value)
+async function saveWeight(personId: number) {
+  if (!canSave(personId))
     return
 
   saveMessage.value = ''
   saveError.value = false
-  saving.value = true
+  savingId.value = personId
 
   try {
-    const weight = Number.parseFloat(weightInput.value)
+    const weight = Number.parseFloat(inputs[personId])
     await $fetch('/api/weight/save', {
       method: 'POST',
-      body: { weight },
+      body: { personId, weight, password: currentPassword },
     })
 
     saveMessage.value = '体重已保存'
+    setTimeout(() => { saveMessage.value = '' }, 2000)
     await loadWeight()
   }
   catch (error) {
+    if (error && typeof error === 'object' && 'statusCode' in error && (error as any).statusCode === 401) {
+      handleUnauthorized()
+      return
+    }
     saveMessage.value = error instanceof Error ? error.message : '保存失败'
     saveError.value = true
   }
   finally {
-    saving.value = false
+    savingId.value = null
   }
 }
 
@@ -407,9 +542,23 @@ function handleResize() {
   chart?.resize()
 }
 
-onMounted(() => {
+onMounted(async () => {
   chartDays.value = readStoredChartDays()
-  loadWeight()
+
+  // 尝试用已存储的密码静默解锁
+  const storedPw = getStoredWikiEditPassword()
+  if (storedPw) {
+    const ok = await verifyPassword(storedPw)
+    if (ok) {
+      currentPassword = storedPw
+      locked.value = false
+      loadWeight()
+    }
+    else {
+      clearStoredWikiEditPassword()
+    }
+  }
+
   window.addEventListener('resize', handleResize)
   nextTick(() => updateRangeThumb())
 })
@@ -430,7 +579,7 @@ watch(chartDays, () => {
   nextTick(() => updateRangeThumb())
 })
 
-watch([chartDates, chartValues], () => {
+watch([chartDates, chartSeries], () => {
   renderChart()
 }, { deep: true })
 </script>
@@ -438,11 +587,12 @@ watch([chartDates, chartValues], () => {
 <style scoped>
 .weight-panel {
   margin-top: 16px;
+  position: relative;
 }
 
 .weight-body {
   display: grid;
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
   gap: 0;
 }
 
@@ -482,18 +632,45 @@ watch([chartDates, chartValues], () => {
   color: var(--blog-danger-700);
 }
 
+.weight-person-row {
+  margin-bottom: 14px;
+}
+
+.weight-person-row:last-child {
+  margin-bottom: 0;
+}
+
+.weight-person-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.weight-person-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--blog-slate-700);
+}
+
+.weight-person-today {
+  font-size: 0.78rem;
+  color: var(--blog-slate-500);
+}
+
 .weight-input-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .weight-input {
   flex: 1;
-  padding: 10px 12px;
+  min-width: 0;
+  padding: 8px 10px;
   border: 1px solid var(--blog-slate-300);
   border-radius: 10px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--blog-slate-800);
   background: var(--blog-white);
@@ -519,28 +696,23 @@ watch([chartDates, chartValues], () => {
 }
 
 .weight-unit {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--blog-slate-500);
   white-space: nowrap;
 }
 
-.weight-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
-}
-
 .weight-save-btn {
-  padding: 8px 16px;
+  flex-shrink: 0;
+  padding: 8px 12px;
   border: 1px solid var(--blog-blue-200);
   border-radius: 10px;
   background: var(--blog-blue-50);
   color: var(--blog-blue-700);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -652,5 +824,65 @@ watch([chartDates, chartValues], () => {
     border-right: 0;
     border-bottom: 1px solid var(--blog-slate-200);
   }
+}
+
+/* 密码锁遮罩 */
+.weight-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blog-overlay-light);
+  backdrop-filter: blur(4px);
+  border-radius: 14px;
+  z-index: 10;
+}
+
+.weight-lock-card {
+  text-align: center;
+  padding: 28px 24px;
+  background: var(--blog-white);
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px var(--blog-shadow-md);
+  max-width: 300px;
+  width: 90%;
+}
+
+.weight-lock-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.weight-lock-title {
+  margin: 0 0 16px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--blog-slate-700);
+}
+
+.weight-lock-row {
+  display: flex;
+  gap: 8px;
+}
+
+.weight-lock-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--blog-slate-300);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--blog-slate-800);
+  background: var(--blog-white);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.weight-lock-input:focus {
+  border-color: var(--blog-blue-400);
+  box-shadow: 0 0 0 3px var(--blog-blue-100);
 }
 </style>
