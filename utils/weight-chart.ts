@@ -45,6 +45,17 @@ export function buildWeightSeries(data: WeightData, days: WeightDayOption = DEFA
       return val !== undefined && Number.isFinite(val) ? val : null
     })
 
+    // forward fill：空缺日期取最近一次有效值向右填充，让曲线连续
+    let lastValid: number | null = null
+    for (let i = 0; i < values.length; i++) {
+      if (values[i] !== null) {
+        lastValid = values[i]
+      }
+      else if (lastValid !== null) {
+        values[i] = lastValid
+      }
+    }
+
     return {
       id: person.id,
       label: person.label,
