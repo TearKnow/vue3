@@ -1,6 +1,6 @@
 import { buildBeijingRecentDateKeys } from './beijing-time'
 
-export const WEIGHT_DAY_OPTIONS = [30, 60, 90] as const
+export const WEIGHT_DAY_OPTIONS = [30, 60, 90, 180, 270, 360] as const
 export const DEFAULT_WEIGHT_DAYS = 30
 
 export type WeightDayOption = typeof WEIGHT_DAY_OPTIONS[number]
