@@ -1,5 +1,5 @@
+import { getTodayDateString } from '../../../utils/beijing-time'
 import {
-  getTodayDateString,
   loadCheckinData,
 } from '../../utils/checkin'
 

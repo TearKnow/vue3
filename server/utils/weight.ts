@@ -4,8 +4,6 @@ import { getTodayDateString } from '../../utils/beijing-time'
 import type { WeightData, WeightPerson } from '../../utils/weight-chart'
 import { getWikiGitHubConfig, readGithubFile, writeGithubFile } from './wiki-github'
 
-export { getTodayDateString }
-
 export const WEIGHT_FILE_PATH = 'data/weight/weight.json'
 
 const workspaceRoot = process.cwd()

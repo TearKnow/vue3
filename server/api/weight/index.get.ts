@@ -1,5 +1,5 @@
+import { getTodayDateString } from '../../../utils/beijing-time'
 import {
-  getTodayDateString,
   loadWeightData,
 } from '../../utils/weight'
 import { assertWikiPassword } from '../../utils/wiki-github'

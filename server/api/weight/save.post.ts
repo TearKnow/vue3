@@ -1,5 +1,5 @@
+import { getTodayDateString } from '../../../utils/beijing-time'
 import {
-  getTodayDateString,
   loadWeightData,
   writeWeightFile,
 } from '../../utils/weight'

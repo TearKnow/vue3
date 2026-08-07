@@ -1,6 +1,6 @@
+import { getTodayDateString } from '../../../utils/beijing-time'
 import {
   getNewCheckinItemIds,
-  getTodayDateString,
   loadCheckinData,
   sanitizeCheckinSave,
   writeCheckinFile,

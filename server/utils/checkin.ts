@@ -13,8 +13,6 @@ import {
 } from '../../utils/checkin-chart'
 import { getWikiGitHubConfig, readGithubFile, writeGithubFile } from './wiki-github'
 
-export { getTodayDateString }
-
 export const CHECKIN_FILE_PATH = 'data/checkin/checkin.json'
 export const CHECKIN_DAYS = DEFAULT_CHECKIN_DAYS
 
