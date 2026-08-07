@@ -56,6 +56,17 @@ export function buildWeightSeries(data: WeightData, days: WeightDayOption = DEFA
       }
     }
 
+    // backward fill：开头空缺用第一个有效值往回填，保证少量数据也能看到曲线
+    let firstValid: number | null = null
+    for (let i = values.length - 1; i >= 0; i--) {
+      if (values[i] !== null) {
+        firstValid = values[i]
+      }
+      else if (firstValid !== null) {
+        values[i] = firstValid
+      }
+    }
+
     return {
       id: person.id,
       label: person.label,
