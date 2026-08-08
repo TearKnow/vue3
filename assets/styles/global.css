@@ -27,6 +27,8 @@ html {
   --blog-blue-50: #eff6ff;
   --blog-cyan-500: #06b6d4;
   --blog-pink-600: #db2777;
+  --blog-orange-600: #ea580c;
+  --blog-orange-300: #fdba74;
   --blog-calendar-bg-start: #eef2ff;
   --blog-calendar-bg-end: #f8fbff;
   --blog-calendar-today-bg: #94b8e7;
@@ -91,6 +93,8 @@ html.dark {
   --blog-blue-50: #172554;
   --blog-cyan-500: #22d3ee;
   --blog-pink-600: #f472b6;
+  --blog-orange-600: #fb923c;
+  --blog-orange-300: #c2410c;
   --blog-calendar-bg-start: #0b1120;
   --blog-calendar-bg-end: #0f172a;
   --blog-calendar-today-bg: #3b82f6;

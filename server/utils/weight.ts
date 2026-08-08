@@ -11,6 +11,7 @@ const workspaceRoot = process.cwd()
 const EMPTY_WEIGHT_DATA: WeightData = {
   people: [],
   records: {},
+  notes: {},
 }
 
 export function parseWeightData(raw: string): WeightData {
@@ -47,7 +48,24 @@ export function parseWeightData(raw: string): WeightData {
       }
     }
 
-    return { people, records }
+    const notes: Record<string, Record<string, string>> = {}
+    if (parsed.notes && typeof parsed.notes === 'object') {
+      for (const [date, dayNotes] of Object.entries(parsed.notes)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !dayNotes || typeof dayNotes !== 'object')
+          continue
+
+        const personNotes: Record<string, string> = {}
+        for (const [personId, note] of Object.entries(dayNotes as Record<string, unknown>)) {
+          if (typeof note === 'string' && note.trim())
+            personNotes[personId] = note.trim()
+        }
+
+        if (Object.keys(personNotes).length > 0)
+          notes[date] = personNotes
+      }
+    }
+
+    return { people, records, notes }
   }
   catch {
     return { ...EMPTY_WEIGHT_DATA }

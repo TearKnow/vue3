@@ -1,4 +1,5 @@
 import { getTodayDateString } from '../../../utils/beijing-time'
+import type { WeightData } from '../../../utils/weight-chart'
 import {
   loadWeightData,
   writeWeightFile,
@@ -7,7 +8,7 @@ import { assertWikiPassword } from '../../utils/wiki-github'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { weight, personId, date, password } = body || {}
+  const { weight, personId, date, note, password } = body || {}
 
   assertWikiPassword(password || '')
 
@@ -34,8 +35,9 @@ export default defineEventHandler(async (event) => {
 
   const roundedWeight = Math.round(weightNum * 10) / 10
   const personLabel = data.people.find(p => p.id === pid)?.label || `ID:${pid}`
+  const trimmedNote = typeof note === 'string' ? note.trim() : ''
 
-  const nextData = {
+  const nextData: WeightData = {
     people: data.people,
     records: {
       ...data.records,
@@ -44,14 +46,41 @@ export default defineEventHandler(async (event) => {
         [String(pid)]: roundedWeight,
       },
     },
+    notes: {
+      ...data.notes,
+    },
   }
 
-  await writeWeightFile(nextData, sha, `weight: ${targetDate} ${personLabel} ${roundedWeight}kg`)
+  // 更新备注
+  if (trimmedNote) {
+    nextData.notes[targetDate] = {
+      ...(data.notes[targetDate] || {}),
+      [String(pid)]: trimmedNote,
+    }
+  }
+  else if (data.notes[targetDate]) {
+    // 空备注则删除该人当天的备注
+    const dayNotes = { ...data.notes[targetDate] }
+    const pidStr = String(pid)
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete dayNotes[pidStr]
+    if (Object.keys(dayNotes).length > 0) {
+      nextData.notes[targetDate] = dayNotes
+    }
+    else {
+      const { [targetDate]: _remove, ...restNotes } = nextData.notes
+      nextData.notes = restNotes as Record<string, Record<string, string>>
+    }
+  }
+
+  const commitNote = trimmedNote ? ` (${trimmedNote})` : ''
+  await writeWeightFile(nextData, sha, `weight: ${targetDate} ${personLabel} ${roundedWeight}kg${commitNote}`)
 
   return {
     success: true,
     date: targetDate,
     personId: pid,
     weight: roundedWeight,
+    note: trimmedNote || undefined,
   }
 })

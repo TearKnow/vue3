@@ -31,7 +31,10 @@
               <span
                 v-if="todayWeights[person.id] !== undefined"
                 class="weight-person-today"
-              >今日: {{ todayWeights[person.id] }} kg</span>
+              >
+                今日: {{ todayWeights[person.id] }} kg
+                <span v-if="todayNotes[person.id]" class="weight-person-note"> 💬{{ todayNotes[person.id] }}</span>
+              </span>
             </div>
             <div class="weight-input-row">
               <input
@@ -55,6 +58,17 @@
               >
                 {{ savingId === person.id ? '...' : (todayWeights[person.id] !== undefined ? '更新' : '记录') }}
               </button>
+            </div>
+            <div class="weight-note-row">
+              <input
+                v-model="noteInputs[person.id]"
+                class="weight-note-input"
+                type="text"
+                maxlength="50"
+                placeholder="添加备注 (选填)"
+                :disabled="savingId === person.id"
+                @keyup.enter="saveWeight(person.id)"
+              >
             </div>
           </div>
         </template>
@@ -169,8 +183,10 @@ const dayOptions = [...WEIGHT_DAY_OPTIONS]
 interface WeightResponse {
   people: WeightPerson[]
   records: Record<string, Record<string, number>>
+  notes: Record<string, Record<string, string>>
   today: string
   todayRecord: Record<string, number>
+  todayNotes: Record<string, string>
 }
 
 const { isDark } = useTheme()
@@ -191,8 +207,11 @@ const rangeThumbStyle = ref({
 const rangeBtnRefs = new Map<WeightDayOption, HTMLButtonElement>()
 const people = ref<WeightPerson[]>([])
 const records = ref<Record<string, Record<string, number>>>({})
+const notes = ref<Record<string, Record<string, string>>>({})
 const inputs = reactive<Record<string, string>>({})
+const noteInputs = reactive<Record<string, string>>({})
 const todayWeights = reactive<Record<string, number>>({})
+const todayNotes = reactive<Record<string, string>>({})
 const chartDays = ref<WeightDayOption>(DEFAULT_WEIGHT_DAYS)
 const chartDates = ref<string[]>([])
 const chartSeries = ref<WeightSeriesItem[]>([])
@@ -408,9 +427,16 @@ function renderChart() {
         const items = Array.isArray(params) ? params : [params]
         const idx = items[0]?.dataIndex
         const date = chartDates.value[idx] || ''
+        const dayNotes = notes.value[date] || {}
         const lines = items
           .filter((p: any) => p.value != null)
-          .map((p: any) => `${p.marker} ${p.seriesName}: <b>${p.value} kg</b>`)
+          .map((p: any) => {
+            const seriesItem = chartSeries.value[p.seriesIndex]
+            const personId = seriesItem ? String(seriesItem.id) : ''
+            const note = dayNotes[personId] || ''
+            const noteTag = note ? ` 💬${note}` : ''
+            return `${p.marker} ${p.seriesName}: <b>${p.value} kg</b>${noteTag}`
+          })
         return lines.length ? `${date}<br/>${lines.join('<br/>')}` : date
       },
     },
@@ -470,6 +496,7 @@ async function loadWeight() {
     })
     people.value = data.people
     records.value = data.records
+    notes.value = data.notes
     today.value = data.today
 
     // 初始化每个人的输入和今日值
@@ -481,9 +508,22 @@ async function loadWeight() {
         inputs[person.id] = String(todayVal)
       }
       else {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete todayWeights[person.id]
         if (!inputs[person.id])
           inputs[person.id] = ''
+      }
+      // 备注
+      const todayNote = data.todayNotes[pid]
+      if (todayNote) {
+        todayNotes[person.id] = todayNote
+        noteInputs[person.id] = todayNote
+      }
+      else {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete todayNotes[person.id]
+        if (!noteInputs[person.id])
+          noteInputs[person.id] = ''
       }
     }
 
@@ -515,9 +555,10 @@ async function saveWeight(personId: number) {
 
   try {
     const weight = Number.parseFloat(inputs[personId])
+    const note = (noteInputs[personId] || '').trim()
     await $fetch('/api/weight/save', {
       method: 'POST',
-      body: { personId, weight, password: currentPassword },
+      body: { personId, weight, note: note || undefined, password: currentPassword },
     })
 
     saveMessage.value = '体重已保存'
@@ -884,5 +925,43 @@ watch([chartDates, chartSeries], () => {
 .weight-lock-input:focus {
   border-color: var(--blog-blue-400);
   box-shadow: 0 0 0 3px var(--blog-blue-100);
+}
+
+/* 备注 */
+.weight-person-note {
+  font-size: 0.75rem;
+  color: var(--blog-orange-600);
+  margin-left: 2px;
+}
+
+.weight-note-row {
+  margin-top: 6px;
+}
+
+.weight-note-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border: 1px solid var(--blog-slate-200);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--blog-slate-700);
+  background: var(--blog-slate-50);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.weight-note-input:focus {
+  border-color: var(--blog-orange-300);
+  background: var(--blog-white);
+}
+
+.weight-note-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.weight-note-input::placeholder {
+  color: var(--blog-slate-400);
 }
 </style>

@@ -13,6 +13,7 @@ export interface WeightPerson {
 export interface WeightData {
   people: WeightPerson[]
   records: Record<string, Record<string, number>> // date -> { personId: weight }
+  notes: Record<string, Record<string, string>> // date -> { personId: note }
 }
 
 export interface WeightSeriesItem {

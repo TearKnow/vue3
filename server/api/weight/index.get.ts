@@ -13,11 +13,14 @@ export default defineEventHandler(async (event) => {
   const { data } = await loadWeightData()
   const today = getTodayDateString()
   const todayRecord = data.records[today] || {}
+  const todayNotes = data.notes[today] || {}
 
   return {
     people: data.people,
     records: data.records,
+    notes: data.notes,
     today,
     todayRecord,
+    todayNotes,
   }
 })
