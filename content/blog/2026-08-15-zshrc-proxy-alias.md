@@ -121,7 +121,7 @@ alias unproxy="
 3. 验证是否生效：
 
 ```bash
-curl ifconfog.me
+curl ifconfig.me
 ```
 
 4. 不需要代理了：`unproxy`
