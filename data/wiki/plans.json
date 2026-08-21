@@ -1,12 +1,6 @@
 {
   "plans": [
     {
-      "id": "5078be4c-ab8d-404c-ad6c-e587a45ef437",
-      "text": "首页加入体重的功能",
-      "status": "active",
-      "createdAt": "2026-08-07T22:16:55+08:00"
-    },
-    {
       "id": "plan_wrong_answers",
       "text": "整理算法练习中的典型错题",
       "status": "active",
@@ -23,7 +17,14 @@
       "text": "完成数组与链表基础整理",
       "status": "active",
       "createdAt": "2026-07-17T15:00:00+08:00"
+    },
+    {
+      "id": "5078be4c-ab8d-404c-ad6c-e587a45ef437",
+      "text": "首页加入体重的功能",
+      "status": "completed",
+      "createdAt": "2026-08-07T22:16:55+08:00",
+      "completedAt": "2026-08-21T22:35:17+08:00"
     }
   ],
-  "updatedAt": "2026-08-07T22:16:55+08:00"
+  "updatedAt": "2026-08-21T22:35:17+08:00"
 }
