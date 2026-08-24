@@ -39,13 +39,22 @@
           <p class="weight-date">
             {{ todayLabel }}
           </p>
-          <p v-if="saveMessage" class="weight-message" :class="{ 'weight-message--error': saveError }">
-            {{ saveMessage }}
+          <p
+            class="weight-message"
+            :class="{
+              'weight-message--error': saveError,
+              'weight-message--empty': !saveMessage,
+            }"
+            :aria-hidden="!saveMessage"
+          >
+            {{ saveMessage || '\u00A0' }}
           </p>
         </div>
 
-        <div v-if="pending" class="weight-loading">
-          加载中...
+        <div v-if="pending" class="weight-loading weight-loading--reserve">
+          <div class="weight-loading-line" />
+          <div class="weight-loading-block" />
+          <div class="weight-loading-block" />
         </div>
         <div v-else-if="loadError" class="weight-error">
           {{ loadError }}
@@ -104,43 +113,36 @@
         </template>
       </div>
 
-      <ClientOnly>
-        <div class="weight-chart-wrap">
-          <div class="weight-chart-toolbar">
-            <div
-              ref="rangeGroupRef"
-              class="weight-range-group"
-              :class="{ 'weight-range-group--ready': rangeThumbReady }"
-              role="group"
-              aria-label="统计范围"
+      <div class="weight-chart-wrap">
+        <div class="weight-chart-toolbar">
+          <div
+            ref="rangeGroupRef"
+            class="weight-range-group"
+            :class="{ 'weight-range-group--ready': rangeThumbReady }"
+            role="group"
+            aria-label="统计范围"
+          >
+            <span
+              class="weight-range-thumb"
+              :style="rangeThumbStyle"
+              aria-hidden="true"
+            />
+            <button
+              v-for="option in dayOptions"
+              :key="option"
+              :ref="(el) => setRangeBtnRef(option, el)"
+              type="button"
+              class="weight-range-btn"
+              :class="{ 'weight-range-btn--active': chartDays === option }"
+              :aria-pressed="chartDays === option"
+              @click="setChartDays(option)"
             >
-              <span
-                class="weight-range-thumb"
-                :style="rangeThumbStyle"
-                aria-hidden="true"
-              />
-              <button
-                v-for="option in dayOptions"
-                :key="option"
-                :ref="(el) => setRangeBtnRef(option, el)"
-                type="button"
-                class="weight-range-btn"
-                :class="{ 'weight-range-btn--active': chartDays === option }"
-                :aria-pressed="chartDays === option"
-                @click="setChartDays(option)"
-              >
-                {{ option }}天
-              </button>
-            </div>
+              {{ option }}天
+            </button>
           </div>
-          <div ref="chartRef" class="weight-chart" />
         </div>
-        <template #fallback>
-          <div class="weight-chart-wrap weight-chart-wrap--fallback">
-            图表加载中...
-          </div>
-        </template>
-      </ClientOnly>
+        <div ref="chartRef" class="weight-chart" />
+      </div>
     </div>
 
     <!-- 密码弹框：仅在主动查看时出现 -->
@@ -822,7 +824,6 @@ watch(dataVisible, (visible) => {
   grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
   gap: 0;
   min-width: 0;
-  min-height: 360px;
 }
 
 .weight-body--hidden {
@@ -835,22 +836,28 @@ watch(dataVisible, (visible) => {
   padding: 16px;
   border-right: 1px solid var(--blog-slate-200);
   min-width: 0;
+  /* 两人表单 + 日期/提示，避免 pending→内容或空态→有人时变高 */
+  min-height: 300px;
   box-sizing: border-box;
 }
 
 .weight-form-head {
   margin-bottom: 12px;
+  /* 预留日期 + 一行提示，避免保存提示出现时顶高 */
+  min-height: 44px;
 }
 
 .weight-date {
   margin: 0;
+  min-height: 1.35em;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--blog-slate-800);
 }
 
 .weight-message {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
+  min-height: 1.2em;
   font-size: 0.82rem;
   color: var(--blog-blue-600);
 }
@@ -859,10 +866,37 @@ watch(dataVisible, (visible) => {
   color: var(--blog-danger-700);
 }
 
+.weight-message--empty {
+  visibility: hidden;
+}
+
 .weight-loading,
 .weight-error {
   font-size: 0.9rem;
   color: var(--blog-slate-500);
+}
+
+.weight-loading--reserve {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 220px;
+}
+
+.weight-loading-line,
+.weight-loading-block {
+  border-radius: 8px;
+  background: var(--blog-slate-100);
+}
+
+.weight-loading-line {
+  height: 14px;
+  width: 48%;
+}
+
+.weight-loading-block {
+  height: 56px;
+  width: 100%;
 }
 
 .weight-error {
@@ -967,7 +1001,8 @@ watch(dataVisible, (visible) => {
 }
 
 .weight-chart-wrap {
-  min-height: 280px;
+  /* padding + 工具栏 + 图表，固定总高避免空图→有图跳动 */
+  height: 358px;
   min-width: 0;
   padding: 12px 16px 16px;
   box-sizing: border-box;
@@ -1055,14 +1090,6 @@ watch(dataVisible, (visible) => {
   outline-offset: 1px;
 }
 
-.weight-chart-wrap--fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--blog-slate-500);
-  font-size: 0.9rem;
-}
-
 .weight-chart {
   width: 100%;
   height: 280px;
@@ -1077,6 +1104,7 @@ watch(dataVisible, (visible) => {
     border-right: 0;
     border-bottom: 1px solid var(--blog-slate-200);
     padding: 12px;
+    min-height: 280px;
   }
 
   .weight-input-row {
@@ -1098,7 +1126,7 @@ watch(dataVisible, (visible) => {
   }
 
   .weight-chart-wrap {
-    min-height: 240px;
+    height: 314px;
     padding: 12px;
   }
 

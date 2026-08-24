@@ -2,6 +2,8 @@
 html {
   background: var(--blog-white);
   color: var(--blog-slate-800);
+  /* 预留纵向滚动条槽，避免内容变高后滚动条突然出现把整页挤窄 */
+  scrollbar-gutter: stable;
 }
 
 :root {
