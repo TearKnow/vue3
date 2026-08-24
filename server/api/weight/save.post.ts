@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
     ? date
     : getTodayDateString()
 
-  const { data, sha } = await loadWeightData()
+  const { data, sha } = await loadWeightData({ needRemoteSha: true })
 
   const validIds = new Set(data.people.map(p => p.id))
   if (!validIds.has(pid)) {

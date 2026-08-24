@@ -180,14 +180,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch, type ComponentPublicInstance } from 'vue'
-import * as echarts from 'echarts/core'
-import { LineChart } from 'echarts/charts'
-import {
-  GridComponent,
-  LegendComponent,
-  TooltipComponent,
-} from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
+import type { ECharts } from 'echarts/core'
 import { useTheme } from '~/composables/useTheme'
 import { getTodayDateString } from '~/utils/beijing-time'
 import {
@@ -205,12 +198,10 @@ import {
   parseWeightDays,
 } from '~/utils/weight-chart'
 
-echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
-
 const CHART_COLORS = [
   '--blog-blue-600',
   '--blog-pink-600',
-  '--blog-green-600',
+  '--blog-green-500',
   '--blog-orange-600',
 ]
 
@@ -298,10 +289,11 @@ function toggleDataVisible() {
     return
   }
 
-  // 已有本地密码（含正在校验）时直接显示，校验失败会在 onMounted 里收回
+  // 已有本地密码（含隐藏态）时直接显示；数据按需加载
   if (currentPassword) {
     dataVisible.value = true
     storeDataVisible(true)
+    void ensureWeightLoaded()
     return
   }
 
@@ -327,24 +319,42 @@ const chartDays = ref<WeightDayOption>(DEFAULT_WEIGHT_DAYS)
 const chartDates = ref<string[]>([])
 const chartSeries = ref<WeightSeriesItem[]>([])
 const today = ref(getTodayDateString())
-const pending = ref(Boolean(storedPasswordOnInit))
+const pending = ref(Boolean(storedPasswordOnInit) && preferVisibleOnInit)
+const weightLoaded = ref(false)
 const savingId = ref<number | null>(null)
 const loadError = ref('')
 const saveMessage = ref('')
 const saveError = ref(false)
 
-let chart: echarts.ECharts | null = null
+let chart: ECharts | null = null
+let echartsLoader: Promise<typeof import('echarts/core')> | null = null
 
-async function verifyPassword(password: string): Promise<boolean> {
-  try {
-    await $fetch('/api/wiki/verify', {
-      method: 'POST',
-      body: { password },
-    })
-    return true
+async function loadEcharts() {
+  if (!echartsLoader) {
+    echartsLoader = (async () => {
+      const echarts = await import('echarts/core')
+      const { LineChart } = await import('echarts/charts')
+      const {
+        GridComponent,
+        LegendComponent,
+        TooltipComponent,
+      } = await import('echarts/components')
+      const { CanvasRenderer } = await import('echarts/renderers')
+      echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
+      return echarts
+    })()
   }
-  catch {
-    return false
+  return echartsLoader
+}
+
+async function ensureWeightLoaded() {
+  if (weightLoaded.value || !currentPassword)
+    return
+
+  const ok = await loadWeight()
+  if (ok) {
+    weightLoaded.value = true
+    isAuthenticated.value = true
   }
 }
 
@@ -356,31 +366,37 @@ async function unlock() {
   lockPending.value = true
   lockError.value = ''
 
-  const ok = await verifyPassword(pw)
-  if (!ok) {
-    lockError.value = '密码错误'
-    lockPending.value = false
-    return
-  }
-
+  // 直接拉体重数据校验密码，少一次 /api/wiki/verify 往返
   setStoredWikiEditPassword(pw)
   currentPassword = pw
-  isAuthenticated.value = true
   dataVisible.value = true
   storeDataVisible(true)
-  closePasswordDialog()
 
-  await loadWeight()
+  const ok = await loadWeight()
+  if (ok) {
+    weightLoaded.value = true
+    isAuthenticated.value = true
+    closePasswordDialog()
+  }
+  else {
+    lockError.value = '密码错误'
+    lockPassword.value = ''
+    dataVisible.value = false
+    showPasswordDialog.value = true
+  }
+  lockPending.value = false
 }
 
 function handleUnauthorized() {
   clearStoredWikiEditPassword()
   currentPassword = ''
   isAuthenticated.value = false
+  weightLoaded.value = false
   dataVisible.value = false
   storeDataVisible(false)
   showPasswordDialog.value = false
   loadError.value = ''
+  pending.value = false
 }
 
 function canSave(personId: number) {
@@ -489,7 +505,7 @@ function setChartDays(days: WeightDayOption) {
   updateChartData()
   nextTick(() => {
     updateRangeThumb()
-    renderChart()
+    void renderChart()
   })
 }
 
@@ -503,10 +519,11 @@ function getAxisLabelInterval(days: number) {
   return Math.max(0, Math.ceil(days / targetLabels) - 1)
 }
 
-function renderChart() {
-  if (!chartRef.value)
+async function renderChart() {
+  if (!chartRef.value || !dataVisible.value)
     return
 
+  const echarts = await loadEcharts()
   if (!chart)
     chart = echarts.init(chartRef.value)
 
@@ -643,16 +660,18 @@ async function loadWeight() {
 
     updateChartData()
     await nextTick()
-    renderChart()
+    await renderChart()
     await nextTick()
     updateRangeThumb()
+    return true
   }
   catch (error) {
     if (error && typeof error === 'object' && 'statusCode' in error && (error as any).statusCode === 401) {
       handleUnauthorized()
-      return
+      return false
     }
     loadError.value = error instanceof Error ? error.message : '加载体重数据失败'
+    return false
   }
   finally {
     pending.value = false
@@ -703,28 +722,27 @@ onMounted(async () => {
   const storedPw = getStoredWikiEditPassword()
   const preferVisible = readStoredDataVisible()
 
-  if (storedPw) {
-    const ok = await verifyPassword(storedPw)
-    if (ok) {
-      currentPassword = storedPw
-      isAuthenticated.value = true
-      dataVisible.value = preferVisible
-      await loadWeight()
-    }
-    else {
-      clearStoredWikiEditPassword()
-      currentPassword = ''
-      isAuthenticated.value = false
-      dataVisible.value = false
-      storeDataVisible(false)
-      pending.value = false
-    }
-  }
-  else {
+  if (!storedPw) {
     currentPassword = ''
     isAuthenticated.value = false
     dataVisible.value = false
     pending.value = false
+  }
+  else {
+    currentPassword = storedPw
+    dataVisible.value = preferVisible
+    // 隐藏态不预拉体重/echarts，点开眼睛再加载
+    if (preferVisible) {
+      const ok = await loadWeight()
+      if (ok) {
+        weightLoaded.value = true
+        isAuthenticated.value = true
+      }
+    }
+    else {
+      isAuthenticated.value = true
+      pending.value = false
+    }
   }
 
   window.addEventListener('resize', handleResize)
@@ -739,7 +757,7 @@ onBeforeUnmount(() => {
 })
 
 watch(isDark, () => {
-  renderChart()
+  void renderChart()
   nextTick(() => updateRangeThumb())
 })
 
@@ -748,8 +766,13 @@ watch(chartDays, () => {
 })
 
 watch([chartDates, chartSeries], () => {
-  renderChart()
+  void renderChart()
 }, { deep: true })
+
+watch(dataVisible, (visible) => {
+  if (visible)
+    void renderChart()
+})
 </script>
 
 <style scoped>

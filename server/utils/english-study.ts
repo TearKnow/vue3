@@ -80,8 +80,17 @@ export async function writeEnglishStudyFile(data: EnglishStudyData, sha = '', me
   await writeLocalEnglishStudyFile(content)
 }
 
-export async function loadEnglishStudyData() {
+export async function loadEnglishStudyData(options: { needRemoteSha?: boolean } = {}) {
   const local = await readLocalEnglishStudyFile()
+
+  // 读优先本地，避免每次首页请求都等 GitHub（明显拖慢 SSR）
+  if (local?.content && !options.needRemoteSha) {
+    return {
+      data: parseEnglishStudyData(local.content),
+      sha: '',
+    }
+  }
+
   const remote = await readGithubFile(ENGLISH_STUDY_FILE_PATH)
   const content = local?.content || remote?.content || serializeEnglishStudyData(EMPTY_ENGLISH_STUDY_DATA)
 

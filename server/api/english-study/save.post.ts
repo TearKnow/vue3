@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     ? date
     : getTodayDateString()
 
-  const { data, sha } = await loadEnglishStudyData()
+  const { data, sha } = await loadEnglishStudyData({ needRemoteSha: true })
   if (data.records[targetDate]) {
     throw createError({ statusCode: 409, statusMessage: '今天已经打卡了，继续保持！' })
   }

@@ -120,8 +120,17 @@ export async function writeWeightFile(data: WeightData, sha = '', message?: stri
   await writeLocalWeightFile(content)
 }
 
-export async function loadWeightData() {
+export async function loadWeightData(options: { needRemoteSha?: boolean } = {}) {
   const local = await readLocalWeightFile()
+
+  // 读取优先本地，避免每次请求都等 GitHub
+  if (local?.content && !options.needRemoteSha) {
+    return {
+      data: parseWeightData(local.content),
+      sha: '',
+    }
+  }
+
   const remote = await readGithubFile(WEIGHT_FILE_PATH)
   const content = local?.content || remote?.content || serializeWeightData(EMPTY_WEIGHT_DATA)
 
