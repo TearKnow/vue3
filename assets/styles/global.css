@@ -52,6 +52,10 @@ html {
   --blog-scrollbar-thumb: rgb(100 116 139 / 0.45);
   --blog-scrollbar-thumb-hover: rgb(148 163 184 / 0.7);
   --blog-danger-700: #b91c1c;
+  --blog-danger-50: #fef2f2;
+  --blog-green-700: #15803d;
+  --blog-green-500: #22c55e;
+  --blog-green-50: #f0fdf4;
   --blog-link: #3b6fc0;
   --blog-link-hover: #2b5aa0;
   --wiki-main-gradient-start: var(--blog-calendar-bg-start);
@@ -118,6 +122,10 @@ html.dark {
   --blog-scrollbar-thumb: rgb(71 85 105 / 0.55);
   --blog-scrollbar-thumb-hover: rgb(100 116 139 / 0.8);
   --blog-danger-700: #f87171;
+  --blog-danger-50: #450a0a;
+  --blog-green-700: #86efac;
+  --blog-green-500: #22c55e;
+  --blog-green-50: #052e16;
   --blog-link: #60a5fa;
   --blog-link-hover: #93c5fd;
   --wiki-main-gradient-start: #0b1120;

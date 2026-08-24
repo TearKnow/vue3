@@ -204,7 +204,7 @@ const todayLabel = computed(() => {
     month: 'long',
     day: 'numeric',
   })
-  const weekdayPart = date.toLocaleDateString('en-US', {
+  const weekdayPart = date.toLocaleDateString('zh-CN', {
     ...opts,
     weekday: 'short',
   })
@@ -454,7 +454,7 @@ watch([chartDates, chartSeries], () => {
 
 <style scoped>
 .checkin-panel {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .checkin-body {

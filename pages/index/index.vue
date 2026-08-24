@@ -27,7 +27,7 @@
       </div>
 
       <ClientOnly>
-        <CheckinPanel />
+        <EnglishStudyPanel />
       </ClientOnly>
 
       <ClientOnly>
@@ -44,6 +44,12 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
 <style>
 .page-nav {
   padding: 24px;
+}
+
+@media (max-width: 720px) {
+  .page-nav {
+    padding: 16px 12px;
+  }
 }
 
 .page-header {

@@ -1,9 +1,40 @@
 <template>
   <div class="action-group weight-panel">
-    <h3 class="action-group-title">
-      体重记录
+    <h3 class="action-group-title weight-title">
+      <span>体重记录</span>
+      <button
+        v-if="!locked"
+        type="button"
+        class="weight-visibility-btn"
+        :aria-label="dataVisible ? '隐藏体重数据' : '显示体重数据'"
+        :title="dataVisible ? '隐藏' : '显示'"
+        @click="toggleDataVisible"
+      >
+        <svg
+          v-if="dataVisible"
+          class="weight-visibility-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            fill="currentColor"
+            d="M12 5c-5 0-9.27 3.11-11 7.5C2.73 16.89 7 20 12 20s9.27-3.11 11-7.5C21.27 8.11 17 5 12 5Zm0 12.5A5 5 0 1 1 12 7.5a5 5 0 0 1 0 10Zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"
+          />
+        </svg>
+        <svg
+          v-else
+          class="weight-visibility-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            fill="currentColor"
+            d="M3.28 2.22 2.22 3.28l3.12 3.12C3.3 8.04 1.84 9.98 1 12.5 2.73 16.89 7 20 12 20c1.82 0 3.53-.41 5.06-1.13l3.66 3.66 1.06-1.06L3.28 2.22ZM12 18.5c-4.2 0-7.74-2.46-9.3-6 1.02-2.3 2.93-4.04 5.24-4.9l1.8 1.8A4.98 4.98 0 0 0 7 12.5a5 5 0 0 0 6.6 4.74l1.55 1.55c-1 .45-2.1.71-3.15.71Zm9.3-6c-.63 1.42-1.65 2.66-2.9 3.6l-1.52-1.52A4.98 4.98 0 0 0 17 12.5c0-.9-.24-1.74-.66-2.46l-4.9-4.9C12.3 5.05 13.1 5 14 5c5 0 9.27 3.11 11 7.5-.42.95-.98 1.82-1.64 2.6l-1.06-1.06c.4-.46.74-.97 1-1.54Z"
+          />
+        </svg>
+      </button>
     </h3>
-    <div class="weight-body">
+    <div class="weight-body" :class="{ 'weight-body--hidden': !locked && !dataVisible }">
       <div class="weight-form">
         <div class="weight-form-head">
           <p class="weight-date">
@@ -46,14 +77,14 @@
                 min="0"
                 max="500"
                 placeholder="输入体重"
-                :disabled="savingId === person.id"
+                :disabled="savingId === person.id || !dataVisible"
                 @keyup.enter="saveWeight(person.id)"
               >
               <span class="weight-unit">kg</span>
               <button
                 type="button"
                 class="weight-save-btn"
-                :disabled="savingId === person.id || !canSave(person.id)"
+                :disabled="savingId === person.id || !canSave(person.id) || !dataVisible"
                 @click="saveWeight(person.id)"
               >
                 {{ savingId === person.id ? '...' : (todayWeights[person.id] !== undefined ? '更新' : '记录') }}
@@ -66,7 +97,7 @@
                 type="text"
                 maxlength="50"
                 placeholder="添加备注 (选填)"
-                :disabled="savingId === person.id"
+                :disabled="savingId === person.id || !dataVisible"
                 @keyup.enter="saveWeight(person.id)"
               >
             </div>
@@ -178,6 +209,7 @@ const CHART_COLORS = [
 ]
 
 const WEIGHT_DAYS_STORAGE_KEY = 'weight-chart-days'
+const WEIGHT_VISIBLE_STORAGE_KEY = 'weight-data-visible'
 const dayOptions = [...WEIGHT_DAY_OPTIONS]
 
 interface WeightResponse {
@@ -192,10 +224,43 @@ interface WeightResponse {
 const { isDark } = useTheme()
 
 const locked = ref(true)
+const dataVisible = ref(readStoredDataVisible())
 const lockPassword = ref('')
 const lockPending = ref(false)
 const lockError = ref('')
 let currentPassword = ''
+
+function readStoredDataVisible() {
+  if (typeof localStorage === 'undefined')
+    return true
+
+  try {
+    const stored = localStorage.getItem(WEIGHT_VISIBLE_STORAGE_KEY)
+    if (stored === null)
+      return true
+    return stored !== '0' && stored !== 'false'
+  }
+  catch {
+    return true
+  }
+}
+
+function storeDataVisible(visible: boolean) {
+  if (typeof localStorage === 'undefined')
+    return
+
+  try {
+    localStorage.setItem(WEIGHT_VISIBLE_STORAGE_KEY, visible ? '1' : '0')
+  }
+  catch {
+    // ignore
+  }
+}
+
+function toggleDataVisible() {
+  dataVisible.value = !dataVisible.value
+  storeDataVisible(dataVisible.value)
+}
 
 const chartRef = ref<HTMLElement | null>(null)
 const rangeGroupRef = ref<HTMLElement | null>(null)
@@ -289,7 +354,7 @@ const todayLabel = computed(() => {
     month: 'long',
     day: 'numeric',
   })
-  const weekdayPart = date.toLocaleDateString('en-US', {
+  const weekdayPart = date.toLocaleDateString('zh-CN', {
     ...opts,
     weekday: 'short',
   })
@@ -629,17 +694,60 @@ watch([chartDates, chartSeries], () => {
 .weight-panel {
   margin-top: 16px;
   position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.weight-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.weight-visibility-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--blog-slate-500);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.weight-visibility-btn:hover {
+  color: var(--blog-slate-700);
+  background: var(--blog-slate-100);
+}
+
+.weight-visibility-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .weight-body {
   display: grid;
   grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
   gap: 0;
+  min-width: 0;
+}
+
+.weight-body--hidden {
+  filter: blur(8px);
+  user-select: none;
+  pointer-events: none;
 }
 
 .weight-form {
   padding: 16px;
   border-right: 1px solid var(--blog-slate-200);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .weight-form-head {
@@ -703,10 +811,12 @@ watch([chartDates, chartSeries], () => {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 
 .weight-input {
-  flex: 1;
+  flex: 1 1 0;
+  width: 0;
   min-width: 0;
   padding: 8px 10px;
   border: 1px solid var(--blog-slate-300);
@@ -718,6 +828,7 @@ watch([chartDates, chartSeries], () => {
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   -moz-appearance: textfield;
+  box-sizing: border-box;
 }
 
 .weight-input::-webkit-outer-spin-button,
@@ -769,7 +880,10 @@ watch([chartDates, chartSeries], () => {
 
 .weight-chart-wrap {
   min-height: 280px;
+  min-width: 0;
   padding: 12px 16px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .weight-chart-toolbar {
@@ -777,6 +891,15 @@ watch([chartDates, chartSeries], () => {
   align-items: center;
   justify-content: flex-end;
   margin-bottom: 10px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.weight-chart-toolbar::-webkit-scrollbar {
+  display: none;
 }
 
 .weight-range-group {
@@ -788,6 +911,7 @@ watch([chartDates, chartSeries], () => {
   border: 1px solid var(--blog-slate-200);
   border-radius: 10px;
   background: var(--blog-slate-100);
+  flex-shrink: 0;
 }
 
 .weight-range-thumb {
@@ -858,12 +982,50 @@ watch([chartDates, chartSeries], () => {
 
 @media (max-width: 900px) {
   .weight-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .weight-form {
     border-right: 0;
     border-bottom: 1px solid var(--blog-slate-200);
+    padding: 12px;
+  }
+
+  .weight-input-row {
+    gap: 4px;
+  }
+
+  .weight-input {
+    padding: 8px;
+    font-size: 0.95rem;
+  }
+
+  .weight-unit {
+    font-size: 0.8rem;
+  }
+
+  .weight-save-btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .weight-chart-wrap {
+    min-height: 240px;
+    padding: 12px;
+  }
+
+  .weight-chart-toolbar {
+    justify-content: flex-start;
+  }
+
+  .weight-range-btn {
+    min-width: 44px;
+    padding: 0 8px;
+    font-size: 0.78rem;
+  }
+
+  .weight-chart {
+    height: 240px;
   }
 }
 
