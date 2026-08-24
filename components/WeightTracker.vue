@@ -3,7 +3,6 @@
     <h3 class="action-group-title weight-title">
       <span>体重记录</span>
       <button
-        v-if="!locked"
         type="button"
         class="weight-visibility-btn"
         :aria-label="dataVisible ? '隐藏体重数据' : '显示体重数据'"
@@ -34,7 +33,7 @@
         </svg>
       </button>
     </h3>
-    <div class="weight-body" :class="{ 'weight-body--hidden': !locked && !dataVisible }">
+    <div class="weight-body" :class="{ 'weight-body--hidden': !dataVisible }">
       <div class="weight-form">
         <div class="weight-form-head">
           <p class="weight-date">
@@ -144,8 +143,14 @@
       </ClientOnly>
     </div>
 
-    <!-- 密码锁定遮罩 -->
-    <div v-if="locked" class="weight-lock-overlay">
+    <!-- 密码弹框：仅在主动查看时出现 -->
+    <div
+      v-if="showPasswordDialog"
+      class="weight-lock-overlay"
+      @pointerdown.self="onLockOverlayPointerDown"
+      @pointerup.self="onLockOverlayPointerUp"
+      @pointercancel="onLockOverlayPointerCancel"
+    >
       <div class="weight-lock-card">
         <span class="weight-lock-icon">🔒</span>
         <p class="weight-lock-title">请输入密码查看体重记录</p>
@@ -184,6 +189,7 @@ import {
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useTheme } from '~/composables/useTheme'
+import { getTodayDateString } from '~/utils/beijing-time'
 import {
   getStoredWikiEditPassword,
   setStoredWikiEditPassword,
@@ -223,25 +229,18 @@ interface WeightResponse {
 
 const { isDark } = useTheme()
 
-const locked = ref(true)
-const dataVisible = ref(readStoredDataVisible())
-const lockPassword = ref('')
-const lockPending = ref(false)
-const lockError = ref('')
-let currentPassword = ''
-
 function readStoredDataVisible() {
   if (typeof localStorage === 'undefined')
-    return true
+    return false
 
   try {
     const stored = localStorage.getItem(WEIGHT_VISIBLE_STORAGE_KEY)
     if (stored === null)
-      return true
+      return false
     return stored !== '0' && stored !== 'false'
   }
   catch {
-    return true
+    return false
   }
 }
 
@@ -257,9 +256,56 @@ function storeDataVisible(visible: boolean) {
   }
 }
 
+// ClientOnly 下首屏即可读本地偏好，避免「先隐藏再打开」闪一下
+const storedPasswordOnInit = import.meta.client ? getStoredWikiEditPassword() : null
+const preferVisibleOnInit = import.meta.client ? readStoredDataVisible() : false
+
+const isAuthenticated = ref(false)
+const showPasswordDialog = ref(false)
+const dataVisible = ref(Boolean(storedPasswordOnInit) && preferVisibleOnInit)
+const lockPassword = ref('')
+const lockPending = ref(false)
+const lockError = ref('')
+let currentPassword = storedPasswordOnInit || ''
+let lockOverlayPointerDownOnBackdrop = false
+
+function closePasswordDialog() {
+  showPasswordDialog.value = false
+  lockPassword.value = ''
+  lockError.value = ''
+  lockPending.value = false
+  lockOverlayPointerDownOnBackdrop = false
+}
+
+function onLockOverlayPointerDown() {
+  lockOverlayPointerDownOnBackdrop = true
+}
+
+function onLockOverlayPointerUp() {
+  if (lockOverlayPointerDownOnBackdrop)
+    closePasswordDialog()
+  lockOverlayPointerDownOnBackdrop = false
+}
+
+function onLockOverlayPointerCancel() {
+  lockOverlayPointerDownOnBackdrop = false
+}
+
 function toggleDataVisible() {
-  dataVisible.value = !dataVisible.value
-  storeDataVisible(dataVisible.value)
+  if (dataVisible.value) {
+    dataVisible.value = false
+    storeDataVisible(false)
+    return
+  }
+
+  // 已有本地密码（含正在校验）时直接显示，校验失败会在 onMounted 里收回
+  if (currentPassword) {
+    dataVisible.value = true
+    storeDataVisible(true)
+    return
+  }
+
+  showPasswordDialog.value = true
 }
 
 const chartRef = ref<HTMLElement | null>(null)
@@ -280,8 +326,8 @@ const todayNotes = reactive<Record<string, string>>({})
 const chartDays = ref<WeightDayOption>(DEFAULT_WEIGHT_DAYS)
 const chartDates = ref<string[]>([])
 const chartSeries = ref<WeightSeriesItem[]>([])
-const today = ref('')
-const pending = ref(true)
+const today = ref(getTodayDateString())
+const pending = ref(Boolean(storedPasswordOnInit))
 const savingId = ref<number | null>(null)
 const loadError = ref('')
 const saveMessage = ref('')
@@ -319,10 +365,10 @@ async function unlock() {
 
   setStoredWikiEditPassword(pw)
   currentPassword = pw
-  locked.value = false
-  lockPassword.value = ''
-  lockPending.value = false
-  lockError.value = ''
+  isAuthenticated.value = true
+  dataVisible.value = true
+  storeDataVisible(true)
+  closePasswordDialog()
 
   await loadWeight()
 }
@@ -330,7 +376,10 @@ async function unlock() {
 function handleUnauthorized() {
   clearStoredWikiEditPassword()
   currentPassword = ''
-  locked.value = true
+  isAuthenticated.value = false
+  dataVisible.value = false
+  storeDataVisible(false)
+  showPasswordDialog.value = false
   loadError.value = ''
 }
 
@@ -651,18 +700,31 @@ function handleResize() {
 onMounted(async () => {
   chartDays.value = readStoredChartDays()
 
-  // 尝试用已存储的密码静默解锁
   const storedPw = getStoredWikiEditPassword()
+  const preferVisible = readStoredDataVisible()
+
   if (storedPw) {
     const ok = await verifyPassword(storedPw)
     if (ok) {
       currentPassword = storedPw
-      locked.value = false
-      loadWeight()
+      isAuthenticated.value = true
+      dataVisible.value = preferVisible
+      await loadWeight()
     }
     else {
       clearStoredWikiEditPassword()
+      currentPassword = ''
+      isAuthenticated.value = false
+      dataVisible.value = false
+      storeDataVisible(false)
+      pending.value = false
     }
+  }
+  else {
+    currentPassword = ''
+    isAuthenticated.value = false
+    dataVisible.value = false
+    pending.value = false
   }
 
   window.addEventListener('resize', handleResize)
@@ -703,6 +765,8 @@ watch([chartDates, chartSeries], () => {
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
+  min-height: 48px;
+  box-sizing: border-box;
 }
 
 .weight-visibility-btn {
@@ -735,6 +799,7 @@ watch([chartDates, chartSeries], () => {
   grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
   gap: 0;
   min-width: 0;
+  min-height: 360px;
 }
 
 .weight-body--hidden {

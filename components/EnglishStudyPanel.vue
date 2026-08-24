@@ -13,14 +13,11 @@
         </p>
       </div>
 
-      <div v-if="pending" class="english-study-loading">
-        加载中...
-      </div>
-      <div v-else-if="loadError" class="english-study-error">
+      <div v-if="loadError" class="english-study-error">
         {{ loadError }}
       </div>
       <template v-else>
-        <div class="english-study-main">
+        <div class="english-study-main" :aria-busy="pending">
           <div class="english-study-stats-grid">
             <div class="english-study-stat-card">
               <p class="english-study-stat-label">
@@ -67,7 +64,7 @@
           <button
             type="button"
             class="english-study-save-btn"
-            :disabled="saving || checkedInToday"
+            :disabled="pending || saving || checkedInToday"
             @click="saveCheckin"
           >
             {{ saveButtonLabel }}
@@ -83,7 +80,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
+import { getTodayDateString } from '~/utils/beijing-time'
 
 interface EnglishStudyResponse {
   records: Record<string, boolean>
@@ -93,19 +91,44 @@ interface EnglishStudyResponse {
   bestStreak: number
 }
 
-const today = ref('')
-const records = ref<Record<string, boolean>>({})
-const checkedInToday = ref(false)
-const currentStreak = ref(0)
-const bestStreak = ref(0)
+function emptyEnglishStudy(): EnglishStudyResponse {
+  return {
+    records: {},
+    today: getTodayDateString(),
+    checkedInToday: false,
+    currentStreak: 0,
+    bestStreak: 0,
+  }
+}
 
-const pending = ref(true)
+const {
+  data,
+  pending,
+  error,
+  refresh,
+} = await useAsyncData('home-english-study', () => $fetch<EnglishStudyResponse>('/api/english-study'), {
+  default: emptyEnglishStudy,
+})
+
+const study = computed(() => data.value || emptyEnglishStudy())
+const today = computed(() => study.value.today || getTodayDateString())
+const records = computed(() => study.value.records || {})
+const checkedInToday = computed(() => Boolean(study.value.checkedInToday))
+const currentStreak = computed(() => study.value.currentStreak || 0)
+const bestStreak = computed(() => study.value.bestStreak || 0)
+const loadError = computed(() => {
+  if (!error.value)
+    return ''
+  return error.value instanceof Error ? error.value.message : '加载英文打卡失败'
+})
+
 const saving = ref(false)
-const loadError = ref('')
 const saveMessage = ref('')
 const saveError = ref(false)
 
 const saveButtonLabel = computed(() => {
+  if (pending.value)
+    return '加载中...'
   if (saving.value)
     return '打卡中...'
   if (checkedInToday.value)
@@ -157,45 +180,17 @@ const todayLabel = computed(() => {
   if (!today.value)
     return ''
 
-  const date = new Date(`${today.value}T12:00:00+08:00`)
-  if (Number.isNaN(date.getTime()))
+  const [year, month, day] = today.value.split('-').map(Number)
+  if (!year || !month || !day)
     return today.value
 
-  const options = { timeZone: 'Asia/Shanghai' } as const
-  const datePart = date.toLocaleDateString('zh-CN', {
-    ...options,
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-  const weekdayPart = date.toLocaleDateString('zh-CN', {
-    ...options,
-    weekday: 'short',
-  })
-  return `${datePart} ${weekdayPart}`
+  const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
+  const weekday = weekdayLabels[new Date(Date.UTC(year, month - 1, day)).getUTCDay()]
+  return `${year}年${month}月${day}日 周${weekday}`
 })
 
-async function loadData() {
-  pending.value = true
-  loadError.value = ''
-  try {
-    const data = await $fetch<EnglishStudyResponse>('/api/english-study')
-    today.value = data.today
-    records.value = data.records || {}
-    checkedInToday.value = data.checkedInToday
-    currentStreak.value = data.currentStreak
-    bestStreak.value = data.bestStreak
-  }
-  catch (error) {
-    loadError.value = error instanceof Error ? error.message : '加载英文打卡失败'
-  }
-  finally {
-    pending.value = false
-  }
-}
-
 async function saveCheckin() {
-  if (checkedInToday.value)
+  if (checkedInToday.value || pending.value)
     return
 
   saveMessage.value = ''
@@ -204,20 +199,16 @@ async function saveCheckin() {
   try {
     await $fetch('/api/english-study/save', { method: 'POST' })
     saveMessage.value = '今天打卡成功，继续加油！'
-    await loadData()
+    await refresh()
   }
-  catch (error) {
-    saveMessage.value = error instanceof Error ? error.message : '保存失败'
+  catch (err) {
+    saveMessage.value = err instanceof Error ? err.message : '保存失败'
     saveError.value = true
   }
   finally {
     saving.value = false
   }
 }
-
-onMounted(() => {
-  loadData()
-})
 </script>
 
 <style scoped>
@@ -231,6 +222,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 12px;
   padding: 12px 14px 14px;
+  min-height: 220px;
+  box-sizing: border-box;
 }
 
 .english-study-main {
@@ -244,10 +237,12 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-height: 2.6em;
 }
 
 .english-study-date {
   margin: 0;
+  min-height: 1.35em;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--blog-slate-800);
@@ -255,6 +250,7 @@ onMounted(() => {
 
 .english-study-tip {
   margin: 0;
+  min-height: 1.2em;
   font-size: 0.82rem;
   color: var(--blog-slate-500);
 }

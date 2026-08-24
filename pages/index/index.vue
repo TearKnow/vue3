@@ -26,12 +26,19 @@
         </div>
       </div>
 
-      <ClientOnly>
-        <EnglishStudyPanel />
-      </ClientOnly>
+      <EnglishStudyPanel />
 
       <ClientOnly>
         <WeightTracker />
+        <template #fallback>
+          <div class="action-group weight-panel">
+            <h3 class="action-group-title weight-title">
+              <span>体重记录</span>
+              <span class="weight-visibility-placeholder" aria-hidden="true" />
+            </h3>
+            <div class="weight-panel-fallback-body" aria-hidden="true" />
+          </div>
+        </template>
       </ClientOnly>
     </div>
   </div>
@@ -65,6 +72,30 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
 
 .action-panels {
   margin: 16px 0 20px;
+}
+
+.weight-panel {
+  margin-top: 16px;
+}
+
+.weight-panel .weight-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.weight-visibility-placeholder {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+}
+
+.weight-panel-fallback-body {
+  min-height: 360px;
+  box-sizing: border-box;
 }
 
 .action-group {
