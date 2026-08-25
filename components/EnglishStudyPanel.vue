@@ -11,6 +11,9 @@
         <p class="english-study-tip">
           每天完成一次英文学习后记得打卡
         </p>
+        <p class="english-study-quote">
+          Whether you do it or not — the choice is yours.
+        </p>
       </div>
 
       <div v-if="loadError" class="english-study-error">
@@ -256,6 +259,14 @@ async function saveCheckin() {
   color: var(--blog-slate-500);
 }
 
+.english-study-quote {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--blog-slate-400);
+  line-height: 1.4;
+}
+
 .english-study-loading,
 .english-study-error {
   font-size: 0.9rem;
@@ -343,6 +354,10 @@ async function saveCheckin() {
   font-size: 0.68rem;
 }
 
+.english-study-day-week::before {
+  content: '周';
+}
+
 .english-study-day-dot {
   width: 7px;
   height: 7px;
@@ -423,6 +438,10 @@ async function saveCheckin() {
 
   .english-study-day {
     padding: 6px 0;
+  }
+
+  .english-study-day-week::before {
+    content: none;
   }
 }
 </style>
