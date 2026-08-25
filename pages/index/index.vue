@@ -29,7 +29,7 @@
       <EnglishStudyPanel />
 
       <ClientOnly>
-        <WeightTracker />
+        <LazyWeightTracker />
         <template #fallback>
           <div class="action-group weight-panel">
             <h3 class="action-group-title weight-title">
