@@ -11,6 +11,9 @@
         <p class="english-study-quote">
           Whether you do it or not — the choice is yours.
         </p>
+        <p class="english-study-quote">
+          Whether you do it or not — the choice is yours.
+        </p>
       </div>
 
       <div v-if="loadError" class="english-study-error">
@@ -247,6 +250,14 @@ async function saveCheckin() {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--blog-slate-800);
+}
+
+.english-study-quote {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--blog-slate-400);
+  line-height: 1.4;
 }
 
 .english-study-quote {
