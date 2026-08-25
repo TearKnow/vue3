@@ -152,17 +152,17 @@ const recentWeek = computed(() => {
     return []
 
   const todayDate = new Date(`${today.value}T12:00:00+08:00`)
-  const dayOfWeek = todayDate.getUTCDay()
-  const mondayOffset = (dayOfWeek + 6) % 7
-  const mondayKey = shiftDateKey(today.value, -mondayOffset)
+  // 周日为一周起点：日 一 二 三 四 五 六
+  const sundayOffset = todayDate.getUTCDay()
+  const sundayKey = shiftDateKey(today.value, -sundayOffset)
 
-  const keys = Array.from({ length: 7 }, (_, index) => shiftDateKey(mondayKey, index))
-  const weekdayLabels = ['一', '二', '三', '四', '五', '六', '日']
+  const keys = Array.from({ length: 7 }, (_, index) => shiftDateKey(sundayKey, index))
+  const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
 
   return keys.map((dateKey) => {
     const date = new Date(`${dateKey}T12:00:00+08:00`)
     const shortDate = dateKey.slice(5)
-    const weekday = weekdayLabels[(date.getUTCDay() + 6) % 7]
+    const weekday = weekdayLabels[date.getUTCDay()]
     const checked = Boolean(records.value[dateKey])
     const isToday = dateKey === today.value
     const isPast = dateKey < today.value
