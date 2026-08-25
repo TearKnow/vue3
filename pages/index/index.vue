@@ -28,21 +28,7 @@
 
       <EnglishStudyPanel />
 
-      <ClientOnly>
-        <LazyWeightTracker />
-        <template #fallback>
-          <div class="action-group weight-panel">
-            <h3 class="action-group-title weight-title">
-              <span>体重记录</span>
-              <span class="weight-visibility-placeholder" aria-hidden="true" />
-            </h3>
-            <div class="weight-body weight-body--fallback" aria-hidden="true">
-              <div class="weight-form weight-form--fallback" />
-              <div class="weight-chart-wrap weight-chart-wrap--fallback" />
-            </div>
-          </div>
-        </template>
-      </ClientOnly>
+      <WeightTracker />
     </div>
   </div>
 </template>
@@ -75,59 +61,6 @@ import { quickEntryLinks } from '~/constants/quick-entry-links'
 
 .action-panels {
   margin: 16px 0 20px;
-}
-
-.weight-panel {
-  margin-top: 16px;
-}
-
-.weight-panel .weight-title {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-  min-height: 48px;
-  box-sizing: border-box;
-}
-
-.weight-visibility-placeholder {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-}
-
-.weight-body {
-  display: grid;
-  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
-  gap: 0;
-  min-width: 0;
-}
-
-.weight-form--fallback {
-  min-height: 300px;
-  border-right: 1px solid var(--blog-slate-200);
-  box-sizing: border-box;
-}
-
-.weight-chart-wrap--fallback {
-  height: 358px;
-  box-sizing: border-box;
-}
-
-@media (max-width: 900px) {
-  .weight-body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .weight-form--fallback {
-    border-right: 0;
-    border-bottom: 1px solid var(--blog-slate-200);
-    min-height: 280px;
-  }
-
-  .weight-chart-wrap--fallback {
-    height: 314px;
-  }
 }
 
 .action-group {

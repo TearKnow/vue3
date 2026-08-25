@@ -101,13 +101,13 @@ function emptyEnglishStudy(): EnglishStudyResponse {
   }
 }
 
-// lazy：不阻塞首页导航；先渲染默认态，数据回来再填（之前 await 会整页等接口）
+// lazy 会先空态再填数，线上首屏容易「闪一下」；首页用阻塞拉取保证 SSR 带真实数据
 const {
   data,
   pending,
   error,
   refresh,
-} = await useLazyAsyncData('home-english-study', () => $fetch<EnglishStudyResponse>('/api/english-study'), {
+} = await useAsyncData('home-english-study', () => $fetch<EnglishStudyResponse>('/api/english-study'), {
   default: emptyEnglishStudy,
 })
 

@@ -249,17 +249,14 @@ function storeDataVisible(visible: boolean) {
   }
 }
 
-// ClientOnly 下首屏即可读本地偏好，避免「先隐藏再打开」闪一下
-const storedPasswordOnInit = import.meta.client ? getStoredWikiEditPassword() : null
-const preferVisibleOnInit = import.meta.client ? readStoredDataVisible() : false
-
+// SSR / 首帧统一隐藏态，避免 ClientOnly 整块替换闪动；本地偏好在 onMounted 再应用
 const isAuthenticated = ref(false)
 const showPasswordDialog = ref(false)
-const dataVisible = ref(Boolean(storedPasswordOnInit) && preferVisibleOnInit)
+const dataVisible = ref(false)
 const lockPassword = ref('')
 const lockPending = ref(false)
 const lockError = ref('')
-let currentPassword = storedPasswordOnInit || ''
+let currentPassword = ''
 let lockOverlayPointerDownOnBackdrop = false
 
 function closePasswordDialog() {
@@ -321,7 +318,7 @@ const chartDays = ref<WeightDayOption>(DEFAULT_WEIGHT_DAYS)
 const chartDates = ref<string[]>([])
 const chartSeries = ref<WeightSeriesItem[]>([])
 const today = ref(getTodayDateString())
-const pending = ref(Boolean(storedPasswordOnInit) && preferVisibleOnInit)
+const pending = ref(false)
 const weightLoaded = ref(false)
 const savingId = ref<number | null>(null)
 const loadError = ref('')
@@ -732,17 +729,18 @@ onMounted(async () => {
   }
   else {
     currentPassword = storedPw
-    dataVisible.value = preferVisible
-    // 隐藏态不预拉体重/echarts，点开眼睛再加载
+    // 隐藏态不预拉；曾选显示时先拉完再揭开，避免「空壳→骨架→数据」连闪
     if (preferVisible) {
       const ok = await loadWeight()
       if (ok) {
         weightLoaded.value = true
         isAuthenticated.value = true
+        dataVisible.value = true
       }
     }
     else {
       isAuthenticated.value = true
+      dataVisible.value = false
       pending.value = false
     }
   }
