@@ -7,7 +7,7 @@
           {{ todayLabel }}
         </p>
         <p class="english-study-quote">
-          Whether you do it or not — the choice is yours.
+          It’s your choice whether to study or not.
         </p>
       </div>
 
