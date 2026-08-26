@@ -300,7 +300,7 @@ async function saveCheckin() {
 .english-study-week-list {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+  gap: 8px;
   margin-top: 8px;
 }
 
@@ -313,16 +313,19 @@ async function saveCheckin() {
   padding: 5px 1px;
   background: var(--blog-white);
   color: var(--blog-slate-500);
+  box-shadow: inset 0 0 0 1px var(--blog-slate-200);
 }
 
 .english-study-day--checked {
   background: var(--blog-green-50);
   color: var(--blog-green-700);
+  box-shadow: inset 0 0 0 1px var(--blog-green-200);
 }
 
 .english-study-day--missed {
   background: var(--blog-danger-50);
   color: var(--blog-danger-700);
+  box-shadow: inset 0 0 0 1px var(--blog-danger-200);
 }
 
 .english-study-day--today {
