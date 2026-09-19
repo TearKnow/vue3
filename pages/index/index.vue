@@ -177,4 +177,16 @@ html.dark .card-wiki {
   border-color: #b45309;
   color: #fde68a;
 }
+
+.card-baijiajiangtan {
+  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+html.dark .card-baijiajiangtan {
+  background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+  border-color: #3b82f6;
+  color: #bfdbfe;
+}
 </style>

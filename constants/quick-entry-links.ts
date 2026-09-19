@@ -33,4 +33,11 @@ export const quickEntryLinks: QuickEntryLinkItem[] = [
     openInNewTab: true,
     cardClass: 'card-route-tree',
   },
+  {
+    label: '百家讲坛',
+    to: '/baijiajiangtan.html',
+    icon: '📺',
+    openInNewTab: true,
+    cardClass: 'card-baijiajiangtan',
+  },
 ]
