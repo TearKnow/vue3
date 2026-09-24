@@ -17,6 +17,15 @@
       "pageKey": "blog:site-ai-assistant-deepseek",
       "comment": "来自手机",
       "createdAt": "2026-07-09"
+    },
+    {
+      "id": "ann_muewrimh_n0pacs",
+      "pageKey": "blog:elasticsearch-bool-query-guide",
+      "quote": "做法",
+      "prefix": "个需求都要：搜索框能搜关键词，又要能整句精确匹配、排序、统计。\n",
+      "suffix": "：同一份 title，mapping 里配 text + key",
+      "comment": "需要自己试下，怎么可以同时建立，需要_mapping看下结果keyword有了没",
+      "createdAt": "2026-09-24"
     }
   ]
 }
