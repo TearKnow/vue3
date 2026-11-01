@@ -189,4 +189,16 @@ html.dark .card-baijiajiangtan {
   border-color: #3b82f6;
   color: #bfdbfe;
 }
+
+.card-words {
+  background: linear-gradient(180deg, var(--blog-orange-50) 0%, var(--blog-orange-100) 100%);
+  border-color: var(--blog-orange-200);
+  color: var(--blog-orange-800);
+}
+
+html.dark .card-words {
+  background: linear-gradient(180deg, var(--blog-orange-50) 0%, var(--blog-orange-100) 100%);
+  border-color: var(--blog-orange-200);
+  color: var(--blog-orange-800);
+}
 </style>

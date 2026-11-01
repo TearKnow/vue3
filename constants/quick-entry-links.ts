@@ -40,4 +40,11 @@ export const quickEntryLinks: QuickEntryLinkItem[] = [
     openInNewTab: true,
     cardClass: 'card-baijiajiangtan',
   },
+  {
+    label: '词汇学习',
+    to: '/words.html',
+    icon: '📖',
+    openInNewTab: true,
+    cardClass: 'card-words',
+  },
 ]
