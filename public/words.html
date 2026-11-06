@@ -102,12 +102,16 @@ body.quiz .word.reveal .w-me{filter:none}
   .lhead .nw{width:100%}
 }
 /* words-features-extra */
+
+#content .word.playing{border-color:var(--accent);box-shadow:0 0 0 2px rgba(207,77,58,.22)}
+#content .word.playing .vbtn{background:var(--accent);color:#fff;border-color:var(--accent)}
+
 .lesson{scroll-margin-top:0}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
 .toolbar .search{flex:1 1 280px;max-width:none}
 .trybox{display:flex;align-items:center;gap:0;flex:1 1 220px;max-width:360px;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
 .trybox:focus-within{border-color:var(--accent2)}
-.trybox input{flex:1;min-width:0;border:0;background:transparent;padding:10px 12px;font-size:14px;color:var(--ink);outline:none}
+.trybox input{flex:1;min-width:0;border:0;background:transparent;padding:10px 12px;font-size:16px;color:var(--ink);outline:none}
 .trybox .trybtn{flex:none;border:0;border-left:1px solid var(--line);background:var(--paper2);color:var(--accent);padding:0 14px;height:100%;min-height:40px;font-size:13px;font-weight:600;cursor:pointer}
 .trybox .trybtn:hover{background:var(--accent);color:#fff;border-left-color:var(--accent)}
 .ctrl-btn{border:0;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
@@ -211,6 +215,7 @@ body.quiz .word.reveal .w-me{filter:none}
     <div class="sub" id="randSub">当前册随机 10 词 · 点击卡片显示释义</div>
     <div class="rw" id="randList"></div>
     <div class="actions">
+      <button type="button" class="secondary" id="randReveal">显示翻译</button>
       <button type="button" class="secondary" id="randClose">关闭</button>
       <button type="button" class="primary" id="randAgain">换一批</button>
     </div>
@@ -238,10 +243,26 @@ try{ var _sb = parseInt(ls.getItem("nce4book"),10); if(_sb>=1&&_sb<=4) bk=_sb; }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 function jsq(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'")}
 function vurl(w){return "https://dict.youdao.com/dictvoice?type="+vType+"&audio="+encodeURIComponent(w)}
+function clearPlaying(){
+  document.querySelectorAll("#content .word.playing").forEach(function(el){ el.classList.remove("playing"); });
+}
+function revealPlaying(el){
+  clearPlaying();
+  if(!el) return;
+  el.classList.add("playing");
+  var rect = el.getBoundingClientRect();
+  var topPad = headerOffset();
+  var bottomPad = 28;
+  var vh = window.innerHeight || document.documentElement.clientHeight;
+  if(rect.top >= topPad && rect.bottom <= vh - bottomPad) return;
+  var target = rect.top + window.pageYOffset - Math.max(topPad + 8, Math.min((vh - rect.height) / 3, vh * 0.28));
+  jumpScroll(target);
+}
 function stopChain(){
   if(chainTimer){ clearTimeout(chainTimer); chainTimer=null; }
   chainQueue=[]; chainIdx=0;
   player.onended=null;
+  clearPlaying();
   try{ player.pause(); }catch(e){}
 }
 function playOne(w, onEnded){
@@ -251,8 +272,10 @@ function playOne(w, onEnded){
 }
 function playChainStep(){
   if(!autoPlay || chainIdx >= chainQueue.length){ stopChain(); return; }
-  var w = chainQueue[chainIdx];
-  playOne(w, function(){
+  var el = chainQueue[chainIdx];
+  if(!el || !el.isConnected){ stopChain(); return; }
+  revealPlaying(el);
+  playOne(el.getAttribute("data-w"), function(){
     chainIdx++;
     if(!autoPlay || chainIdx >= chainQueue.length){ stopChain(); return; }
     chainTimer = setTimeout(function(){ playChainStep(); }, 2000);
@@ -261,10 +284,11 @@ function playChainStep(){
 function playMain(w){
   if(!autoPlay){ stopChain(); playOne(w); return; }
   stopChain();
-  var words = Array.prototype.map.call(document.querySelectorAll("#content .word"), function(n){ return n.getAttribute("data-w"); });
-  var i = words.indexOf(w);
+  var nodes = Array.prototype.slice.call(document.querySelectorAll("#content .word"));
+  var i = -1;
+  for(var k=0;k<nodes.length;k++){ if(nodes[k].getAttribute("data-w")===w){ i=k; break; } }
   if(i < 0){ playOne(w); return; }
-  chainQueue = words.slice(i);
+  chainQueue = nodes.slice(i);
   chainIdx = 0;
   playChainStep();
 }
@@ -438,6 +462,8 @@ function renderRandList(items){
   }).join("");
   document.getElementById("randList").innerHTML = html || '<div class="empty">当前册没有单词</div>';
   document.getElementById("randSub").textContent = "当前册随机 "+items.length+" 词 · 点击卡片显示释义";
+  var revealBtn = document.getElementById("randReveal");
+  if(revealBtn){ revealBtn.textContent = "显示翻译"; revealBtn.dataset.on = "0"; }
 }
 function openRand(){
   renderRandList(sampleBook(10));
@@ -462,6 +488,15 @@ document.getElementById("tryWord").addEventListener("keydown", function(e){
 });
 document.getElementById("randBtn").addEventListener("click", openRand);
 document.getElementById("randAgain").addEventListener("click", function(){ renderRandList(sampleBook(10)); });
+document.getElementById("randReveal").addEventListener("click", function(){
+  var btn = document.getElementById("randReveal");
+  var on = btn.dataset.on === "1";
+  document.querySelectorAll("#randList .word").forEach(function(el){
+    el.classList.toggle("reveal", !on);
+  });
+  btn.dataset.on = on ? "0" : "1";
+  btn.textContent = on ? "显示翻译" : "隐藏翻译";
+});
 document.getElementById("randClose").addEventListener("click", closeRand);
 (function(){
   var mask = document.getElementById("randMask");
