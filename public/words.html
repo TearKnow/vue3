@@ -134,13 +134,15 @@ body.quiz .word.reveal .w-me{filter:none}
 .modal{width:min(640px,100%);max-height:min(80vh,720px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;box-shadow:0 12px 40px rgba(31,47,77,.18)}
 .modal h2{font-family:Georgia,"Songti SC",serif;font-size:18px;margin-bottom:4px}
 .modal .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
-.modal .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal .actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin:0 0 12px}
 .modal .actions button{border:0;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
 .modal .actions .primary{background:var(--accent);color:#fff}
 .modal .actions .secondary{background:var(--chip);color:var(--ink)}
 .modal .rw{display:grid;gap:8px}
 .modal .word .w-me{filter:blur(6px);user-select:none;transition:.15s}
 .modal .word.reveal .w-me{filter:none}
+.modal .w-lesson{display:inline-block;margin-left:2px;padding:1px 7px;border-radius:6px;background:var(--chip);color:var(--ink2);font-size:11px;font-weight:600;font-family:Georgia,serif;vertical-align:middle}
+
 @media(max-width:720px){
   .trybox{max-width:none;flex:1 1 100%}
 }
@@ -213,12 +215,12 @@ body.quiz .word.reveal .w-me{filter:none}
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="randTitle">
     <h2 id="randTitle">随机练习</h2>
     <div class="sub" id="randSub">当前册随机 10 词 · 点击卡片显示释义</div>
-    <div class="rw" id="randList"></div>
     <div class="actions">
       <button type="button" class="secondary" id="randReveal">显示翻译</button>
       <button type="button" class="secondary" id="randClose">关闭</button>
       <button type="button" class="primary" id="randAgain">换一批</button>
     </div>
+    <div class="rw" id="randList"></div>
   </div>
 </div>
 
@@ -453,7 +455,7 @@ function renderRandList(items){
     return '<div class="word" data-w="'+esc(r.w)+'">'+
       '<button class="vbtn" aria-label="播放 '+esc(r.w)+'" onclick="playTry(\''+jsq(r.w)+'\')">'+ICON_V+'</button>'+
       '<div class="w-main">'+
-        '<div class="w-word">'+esc(r.w)+' <span class="w-ph">'+esc(r.p)+'</span></div>'+
+        '<div class="w-word">'+esc(r.w)+' <span class="w-ph">'+esc(r.p)+'</span> <span class="w-lesson">第'+esc(r.g)+'课</span></div>'+
         '<div class="w-me">'+esc(r.m)+'</div>'+
         (r.e ? '<div class="w-ex">'+esc(r.e)+'</div>' : '')+
       '</div>'+
