@@ -93,6 +93,8 @@ body.quiz .word.reveal .w-me{filter:none}
   .rail .n .tt{max-width:150px}
   .words{grid-template-columns:1fr}
   .brand .t2{display:none}
+  /* 手机上搜索/试听占屏多、用得少，先藏起 */
+  .searchbar{display:none}
 }
 @media(max-width:480px){
   .hd{gap:8px 10px}
@@ -170,9 +172,6 @@ body.quiz .word.reveal .w-me{filter:none}
 .modal .word.reveal .w-me{filter:none}
 .modal .w-lesson{display:inline-block;margin-left:2px;padding:1px 7px;border-radius:6px;background:var(--chip);color:var(--ink2);font-size:11px;font-weight:600;font-family:Georgia,serif;vertical-align:middle}
 
-@media(max-width:720px){
-  .trybox{max-width:none;flex:1 1 100%}
-}
 </style>
 </head>
 <body>
@@ -689,9 +688,17 @@ function switchBook(n){
   setPrefsOpen(false);
   closeRand();
   document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===n); });
-  updateStats(); render();
+  updateStats();
+  // 先藏内容再渲染+定位，避免 iPhone 上「旧滚动被夹住 → 再跳到目标课」的双次跳动
+  var layout = document.querySelector(".layout");
+  if(layout) layout.style.visibility = "hidden";
+  jumpScroll(0);
+  render();
   restoreLessonView();
-  railBooting = false;
+  requestAnimationFrame(function(){
+    if(layout) layout.style.visibility = "";
+    railBooting = false;
+  });
 }
 
 /* ---------- 交互 ---------- */
