@@ -12,7 +12,7 @@
   --muted:#7a879b; --line:#e3dccc; --accent:#cf4d3a; --accent2:#1f6f8b;
   --chip:#e8e1d2; --chip-on:#1f2f4d; --ok:#1f7a4d; --card:#fffdf8;
 }
-html{scroll-behavior:auto}
+html{scroll-behavior:auto;overflow-anchor:none}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
 .wrap{max-width:1240px;margin:0 auto;padding:0 16px}
 /* ===== header ===== */
@@ -86,7 +86,7 @@ body.quiz .word.reveal .w-me{filter:none}
 /* ===== responsive ===== */
 @media(max-width:860px){
   .layout{grid-template-columns:1fr;padding:16px 12px 70px}
-  .rail{position:static;max-height:none;display:flex;flex-wrap:wrap;gap:6px;border-radius:12px;padding:8px;margin-bottom:6px}
+  .rail{position:static;max-height:none;overflow:visible;display:flex;flex-wrap:wrap;gap:6px;border-radius:12px;padding:8px;margin-bottom:6px}
   .rail h3{width:100%}
   .rail .all{order:-1;margin-bottom:0}
   .rail .n{flex:0 0 auto;max-width:168px}
@@ -552,6 +552,9 @@ function saveLessonPref(){
     if(ls) ls.setItem("nce4lessons", JSON.stringify(lessonMap));
   }catch(e){}
 }
+function isMobileLayout(){
+  return window.matchMedia && window.matchMedia("(max-width: 860px)").matches;
+}
 function setRailActive(l, scrollChip){
   var next = String(l);
   var changed = String(cur) !== next;
@@ -562,10 +565,30 @@ function setRailActive(l, scrollChip){
   });
   var allBtn = document.querySelector(".rail .all");
   if(allBtn) allBtn.className = "all"+(next==="all"?" on":"");
-  if(scrollChip !== false && next !== "all"){
+  // 手机侧栏在页面顶部、阅读时看不到，不必跟滚居中
+  if(scrollChip !== false && next !== "all" && !isMobileLayout()){
     var chip = document.querySelector('.rail .n[data-l="'+next+'"]');
     ensureRailChipVisible(chip);
   }
+}
+function scrollToLesson(lno){
+  if(lno === "all"){ jumpScroll(0); return; }
+  var el = document.getElementById("L"+lno);
+  if(!el) return;
+  var off = headerOffset();
+  el.style.scrollMarginTop = off + "px";
+  try{
+    el.scrollIntoView({block:"start", inline:"nearest", behavior:"auto"});
+  }catch(e){
+    jumpScroll(el.getBoundingClientRect().top + window.pageYOffset - off);
+  }
+  requestAnimationFrame(function(){
+    var expected = headerOffset();
+    var actual = el.getBoundingClientRect().top;
+    if(Math.abs(actual - expected) > 6){
+      jumpScroll(actual + window.pageYOffset - expected);
+    }
+  });
 }
 function restoreLessonView(){
   if(cur === "all"){
@@ -578,18 +601,20 @@ function restoreLessonView(){
     cur = "all";
     saveLessonPref();
     setRailActive("all", false);
+    jumpScroll(0);
     return;
   }
   lockRailBriefly();
-  setRailActive(cur, true);
-  var top = el.getBoundingClientRect().top + window.pageYOffset - headerOffset();
-  jumpScroll(top);
+  setRailActive(cur, false);
+  scrollToLesson(cur);
 }
 function rectInView(r, top, bottom){
   return r.bottom > top && r.top < bottom;
 }
 function syncRailFromScroll(){
   if(railLock || railBooting) return;
+  // 手机上看不见侧栏跟滚，跳过整段计算
+  if(isMobileLayout()) return;
   var lessons = document.querySelectorAll("#content .lesson");
   if(!lessons.length){
     if(cur !== "all") setRailActive("all");
@@ -612,7 +637,6 @@ function syncRailFromScroll(){
     var lr = les.getBoundingClientRect();
     if(!rectInView(lr, top, bottom)) continue;
     if(!firstVisible) firstVisible = id;
-    // 标题滚走后：仍用「盖住顶栏下沿」的那一课作主选兜底
     if(lr.top <= top + 8 && lr.bottom > top + 8) coverPrimary = id;
 
     var no = les.querySelector(".lhead .no");
@@ -636,9 +660,9 @@ function syncRailFromScroll(){
     return;
   }
   if(String(cur) !== String(primary)) setRailActive(primary);
-  // 主选未变时不要每帧 ensureRailChipVisible，否则会反复改 rail.scrollTop、触发多余布局
 }
 function onWindowScrollRail(){
+  if(isMobileLayout()) return;
   if(railScrollRaf) return;
   railScrollRaf = requestAnimationFrame(function(){
     railScrollRaf = 0;
@@ -654,23 +678,15 @@ function lockRailBriefly(){
   }, 450);
 }
 function jumpScroll(top){
-  var root = document.documentElement;
-  var prev = root.style.scrollBehavior;
-  root.style.scrollBehavior = "auto";
-  window.scrollTo(0, Math.max(0, top));
-  root.style.scrollBehavior = prev;
+  var y = Math.max(0, top);
+  try{ window.scrollTo({top:y, left:0, behavior:"auto"}); }
+  catch(e){ window.scrollTo(0, y); }
 }
 function pick(l){
   lockRailBriefly();
-  setRailActive(l);
-  if(l==="all"){
-    jumpScroll(0);
-    return;
-  }
-  var el = document.getElementById("L"+l);
-  if(!el) return;
-  var top = el.getBoundingClientRect().top + window.pageYOffset - headerOffset();
-  jumpScroll(top);
+  setRailActive(l, false);
+  if(l==="all"){ jumpScroll(0); return; }
+  scrollToLesson(l);
 }
 function switchBook(n){
   railBooting = true;
@@ -689,15 +705,10 @@ function switchBook(n){
   closeRand();
   document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===n); });
   updateStats();
-  // 先藏内容再渲染+定位，避免 iPhone 上「旧滚动被夹住 → 再跳到目标课」的双次跳动
-  var layout = document.querySelector(".layout");
-  if(layout) layout.style.visibility = "hidden";
-  jumpScroll(0);
   render();
-  restoreLessonView();
   requestAnimationFrame(function(){
-    if(layout) layout.style.visibility = "";
-    railBooting = false;
+    restoreLessonView();
+    requestAnimationFrame(function(){ railBooting = false; });
   });
 }
 
@@ -866,8 +877,10 @@ window.addEventListener("scroll", onWindowScrollRail, {passive:true});
 
 updateStats();
 render();
-restoreLessonView();
-railBooting = false;
+requestAnimationFrame(function(){
+  restoreLessonView();
+  requestAnimationFrame(function(){ railBooting = false; });
+});
 </script>
 </body>
 </html>
