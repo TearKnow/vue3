@@ -488,11 +488,59 @@ function prefetchChainWord(w){
 }
 function playOne(w, onEnded){
   try{ player.onended = null; }catch(e){}
-  // 同一词连读：直接从头播，不再请求网络
+
+  function bindEnded(){
+    var startedAt = Date.now();
+    var finished = false;
+    var kick = 0;
+    player.onended = function(){
+      if(finished) return;
+      // seek 未生效时 ended 会立刻再响，最多补踢一次真实重播
+      if(kick < 1 && Date.now() - startedAt < 200 && player.currentTime < 0.2){
+        kick++;
+        startedAt = Date.now();
+        try{ player.currentTime = 0; }catch(e){}
+        player.play().then(function(){}, function(){
+          if(finished) return;
+          finished = true;
+          if(onEnded) onEnded();
+        });
+        return;
+      }
+      finished = true;
+      if(onEnded) onEnded();
+    };
+  }
+  function startPlayback(){
+    bindEnded();
+    player.play().then(function(){}, function(){
+      try{ player.currentTime = 0; }catch(e){}
+      player.play().then(function(){}, function(){ if(onEnded) onEnded(); });
+    });
+  }
+
+  // 同一词连读：seek 到开头重播（等 seeked，避免只播一次）
   if(player._nceWord === w && player.src){
-    player.onended = onEnded || null;
-    try{ player.currentTime = 0; }catch(e){}
-    player.play().then(function(){}, function(){ if(onEnded) onEnded(); });
+    try{ player.pause(); }catch(e){}
+    var started = false;
+    function afterSeek(){
+      if(started) return;
+      started = true;
+      startPlayback();
+    }
+    try{
+      if(player.currentTime > 0.01 || player.ended){
+        var onSeeked = function(){
+          player.removeEventListener("seeked", onSeeked);
+          afterSeek();
+        };
+        player.addEventListener("seeked", onSeeked);
+        player.currentTime = 0;
+        setTimeout(afterSeek, 80);
+        return;
+      }
+    }catch(e){}
+    afterSeek();
     return;
   }
   // 若该词已预加载，换到预加载实例
@@ -506,8 +554,7 @@ function playOne(w, onEnded){
     player.src = vurl(w);
   }
   player._nceWord = w;
-  player.onended = onEnded || null;
-  player.play().then(function(){}, function(){ if(onEnded) onEnded(); });
+  startPlayback();
 }
 function scheduleNextChain(){
   if(chainTimer){ clearTimeout(chainTimer); chainTimer=null; }
