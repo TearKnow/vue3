@@ -16,7 +16,7 @@ html{scroll-behavior:auto}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
 .wrap{max-width:1240px;margin:0 auto;padding:0 16px}
 /* ===== header ===== */
-.site-header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,rgba(246,241,231,.98),rgba(246,241,231,.96));border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+.site-header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,rgba(246,241,231,.98),rgba(246,241,231,.96));border-bottom:1px solid var(--line)}
 .hd{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:14px 16px}
 .brand{display:flex;gap:10px;align-items:center}
 .brand .logo{width:34px;height:34px;flex:none}
@@ -116,10 +116,37 @@ body.quiz .word.reveal .w-me{filter:none}
 .trybox .trybtn:hover{background:var(--accent);color:#fff;border-left-color:var(--accent)}
 .ctrl-btn{border:0;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
 .ctrl-btn:hover{background:var(--ink)}
+.prefs{position:relative;flex:none}
+.prefs-btn{display:inline-flex;align-items:center;gap:4px;width:132px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:6px 7px;background:var(--card);color:var(--ink);cursor:pointer;font-size:13px}
+.prefs-btn:hover{border-color:var(--accent2)}
+.prefs.open .prefs-btn{border-color:var(--ink);background:var(--paper2)}
+.prefs-btn .prefs-label{font-weight:600;flex:none}
+.prefs-btn .prefs-sum{flex:1;min-width:0;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.prefs-btn .prefs-caret{flex:none;width:12px;height:12px;color:var(--ink2);transition:transform .15s}
+.prefs-btn .prefs-caret svg{display:block;width:100%;height:100%}
+.prefs.open .prefs-caret{transform:rotate(180deg)}
+.prefs-panel{position:fixed;z-index:200;box-sizing:border-box;width:280px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 10px 28px rgba(31,47,77,.14);display:none}
+.prefs.open .prefs-panel{display:block}
+.prefs-panel .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.prefs-panel .row + .row{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.prefs-panel .hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4}
 .toggles{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.toggle{padding:5px 10px;border-radius:8px;background:var(--chip);gap:7px}
+.toggle{display:inline-flex;align-items:center;width:auto;padding:5px 10px;border-radius:8px;background:var(--chip);gap:7px}
 .toggle:has(input:checked){background:var(--ink);color:#fff}
 .toggle:has(input:checked) input{accent-color:#fff}
+.chain-block{display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:100%;box-sizing:border-box;padding:10px;border-radius:10px;background:var(--paper2);border:1px solid var(--line)}
+.chain-block.is-idle{opacity:.72}
+.chain-block > .toggle{flex:none}
+.chain-opts{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%}
+.stepper{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink2);user-select:none}
+.stepper .slabel{flex:none;white-space:nowrap}
+.stepper .sctrl{display:inline-flex;align-items:center;border-radius:8px;background:var(--chip);overflow:hidden}
+.stepper .sbtn{border:0;background:transparent;width:28px;height:30px;font-size:15px;line-height:1;color:var(--ink);cursor:pointer}
+.stepper .sbtn:hover{background:rgba(31,47,77,.08)}
+.stepper .sbtn:disabled{opacity:.35;cursor:default}
+.stepper .sbtn:disabled:hover{background:transparent}
+.stepper .sval{min-width:1.6em;text-align:center;font-weight:700;font-family:Georgia,serif;font-size:13px;color:var(--ink)}
+.chain-block.is-idle .stepper{opacity:.55}
 .srch-count{margin-top:8px}
 
 .to-top{position:fixed;right:20px;bottom:24px;z-index:60;width:44px;height:44px;border:0;border-radius:12px;background:var(--ink);color:#fff;cursor:pointer;display:grid;place-items:center;opacity:0;pointer-events:none;box-shadow:0 6px 18px rgba(31,47,77,.22);transition:opacity .2s,background .15s}
@@ -173,10 +200,44 @@ body.quiz .word.reveal .w-me{filter:none}
         <button data-v="1" id="vBr" onclick="setVoice(1)">英音</button>
         <button data-v="2" class="on" id="vAm" onclick="setVoice(2)">美音</button>
       </div>
-      <div class="toggles">
-        <label class="toggle"><input type="checkbox" id="quizBox"> 自测</label>
-        <label class="toggle"><input type="checkbox" id="masterBox"> 只看易忘</label>
-        <label class="toggle"><input type="checkbox" id="autoPlayBox"> 自动连播</label>
+      <div class="prefs" id="prefsWrap">
+        <button type="button" class="prefs-btn" id="prefsBtn" aria-expanded="false" aria-controls="prefsPanel">
+          <span class="prefs-label">设置</span>
+          <span class="prefs-sum" id="prefsSum"></span>
+          <span class="prefs-caret" aria-hidden="true"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M2.1 4.2a1.1 1.1 0 0 1 1.56-.08L6 6.2l2.34-2.08a1.1 1.1 0 1 1 1.44 1.66l-3.06 2.72a1.1 1.1 0 0 1-1.44 0L2.22 5.78a1.1 1.1 0 0 1-.12-1.58z"/></svg></span>
+        </button>
+        <div class="prefs-panel" id="prefsPanel" role="dialog" aria-label="学习设置">
+          <div class="row toggles">
+            <label class="toggle"><input type="checkbox" id="quizBox"> 自测</label>
+            <label class="toggle"><input type="checkbox" id="masterBox"> 只看易忘</label>
+          </div>
+          <div class="row">
+            <div class="chain-block is-idle" id="chainOpts" title="勾选「连播」后，间隔与连读才生效">
+              <label class="toggle"><input type="checkbox" id="autoPlayBox"> 连播</label>
+              <div class="chain-opts">
+                <div class="stepper" data-step="gap" aria-label="连播间隔秒数">
+                  <span class="slabel">间隔</span>
+                  <span class="sctrl">
+                    <button type="button" class="sbtn" data-dir="-1" aria-label="减少间隔">−</button>
+                    <span class="sval" id="chainGapVal">2</span>
+                    <button type="button" class="sbtn" data-dir="1" aria-label="增加间隔">+</button>
+                  </span>
+                  <span class="slabel">秒</span>
+                </div>
+                <div class="stepper" data-step="repeat" aria-label="每词连读次数">
+                  <span class="slabel">连读</span>
+                  <span class="sctrl">
+                    <button type="button" class="sbtn" data-dir="-1" aria-label="减少连读次数">−</button>
+                    <span class="sval" id="chainRepeatVal">1</span>
+                    <button type="button" class="sbtn" data-dir="1" aria-label="增加连读次数">+</button>
+                  </span>
+                  <span class="slabel">次</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hint">间隔 / 连读会记住；需打开「连播」后才生效。</div>
+        </div>
       </div>
       <button type="button" class="ctrl-btn" id="randBtn">随机练习</button>
     </div>
@@ -231,7 +292,8 @@ var RAW = [{"b": 1, "l": 1, "g": "1&2", "t": "Excuse me! 对不起！", "w": "ex
 var PER = {"1": [72, 1108], "2": [96, 876], "3": [60, 1064], "4": [48, 794]};
 var cur = "all", q = "", quiz = false, onlyMaster = false, autoPlay = false, vType = 2;
 var player = new Audio();
-var chainTimer = null, chainQueue = [], chainIdx = 0;
+var chainTimer = null, chainQueue = [], chainIdx = 0, chainWordCount = 0;
+var chainGap = 2, chainRepeat = 1;
 var randMaskPtrDown = false;
 /* 安全 localStorage（file:// 或禁用时返回 null，不白屏） */
 var ls = (function(){try{return window.localStorage;}catch(e){return null;}})();
@@ -260,9 +322,82 @@ function revealPlaying(el){
   var target = rect.top + window.pageYOffset - Math.max(topPad + 8, Math.min((vh - rect.height) / 3, vh * 0.28));
   jumpScroll(target);
 }
+function clampInt(n, min, max, fallback){
+  n = parseInt(n, 10);
+  if(isNaN(n)) n = fallback;
+  return Math.max(min, Math.min(max, n));
+}
+function loadChainPrefs(){
+  try{
+    if(ls){
+      chainGap = clampInt(ls.getItem("nceChainGap"), 1, 5, 2);
+      chainRepeat = clampInt(ls.getItem("nceChainRepeat"), 1, 5, 1);
+      vType = clampInt(ls.getItem("nceVoice"), 1, 2, 2);
+      onlyMaster = ls.getItem("nceOnlyMaster") === "1";
+    }
+  }catch(e){}
+}
+function saveChainPrefs(){
+  try{
+    if(ls){
+      ls.setItem("nceChainGap", String(chainGap));
+      ls.setItem("nceChainRepeat", String(chainRepeat));
+    }
+  }catch(e){}
+}
+function updatePrefsSummary(){
+  var parts = [];
+  if(quiz) parts.push("测");
+  if(onlyMaster) parts.push("忘");
+  parts.push(autoPlay ? "开" : "关");
+  parts.push(chainGap + "秒");
+  parts.push(chainRepeat + "次");
+  var sum = document.getElementById("prefsSum");
+  if(sum) sum.textContent = parts.join(" ");
+}
+function placePrefsPanel(){
+  var wrap = document.getElementById("prefsWrap");
+  var btn = document.getElementById("prefsBtn");
+  var panel = document.getElementById("prefsPanel");
+  if(!wrap || !btn || !panel || !wrap.classList.contains("open")) return;
+  var r = btn.getBoundingClientRect();
+  var width = Math.min(280, window.innerWidth - 24);
+  var left = r.left;
+  if(left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+  if(left < 12) left = 12;
+  panel.style.width = width + "px";
+  panel.style.left = left + "px";
+  panel.style.top = (r.bottom + 8) + "px";
+  panel.style.right = "auto";
+}
+function setPrefsOpen(open){
+  var wrap = document.getElementById("prefsWrap");
+  var btn = document.getElementById("prefsBtn");
+  if(!wrap || !btn) return;
+  wrap.classList.toggle("open", !!open);
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if(open) placePrefsPanel();
+}
+function syncChainSteppers(){
+  var gapEl = document.getElementById("chainGapVal");
+  var repEl = document.getElementById("chainRepeatVal");
+  if(gapEl) gapEl.textContent = String(chainGap);
+  if(repEl) repEl.textContent = String(chainRepeat);
+  document.querySelectorAll("#chainOpts .stepper").forEach(function(box){
+    var kind = box.getAttribute("data-step");
+    var val = kind === "repeat" ? chainRepeat : chainGap;
+    box.querySelectorAll(".sbtn").forEach(function(btn){
+      var dir = +btn.getAttribute("data-dir");
+      btn.disabled = (dir < 0 && val <= 1) || (dir > 0 && val >= 5);
+    });
+  });
+  var opts = document.getElementById("chainOpts");
+  if(opts) opts.classList.toggle("is-idle", !autoPlay);
+  updatePrefsSummary();
+}
 function stopChain(){
   if(chainTimer){ clearTimeout(chainTimer); chainTimer=null; }
-  chainQueue=[]; chainIdx=0;
+  chainQueue=[]; chainIdx=0; chainWordCount=0;
   player.onended=null;
   clearPlaying();
   try{ player.pause(); }catch(e){}
@@ -272,15 +407,28 @@ function playOne(w, onEnded){
   player.src = vurl(w);
   player.play().then(function(){}, function(){ if(onEnded) onEnded(); });
 }
+function scheduleNextChain(){
+  if(chainTimer){ clearTimeout(chainTimer); chainTimer=null; }
+  var ms = clampInt(chainGap, 1, 5, 2) * 1000;
+  chainTimer = setTimeout(function(){ playChainStep(); }, ms);
+}
 function playChainStep(){
   if(!autoPlay || chainIdx >= chainQueue.length){ stopChain(); return; }
   var el = chainQueue[chainIdx];
   if(!el || !el.isConnected){ stopChain(); return; }
   revealPlaying(el);
   playOne(el.getAttribute("data-w"), function(){
+    if(!autoPlay){ stopChain(); return; }
+    chainWordCount++;
+    var need = clampInt(chainRepeat, 1, 5, 1);
+    if(chainWordCount < need){
+      scheduleNextChain();
+      return;
+    }
+    chainWordCount = 0;
     chainIdx++;
-    if(!autoPlay || chainIdx >= chainQueue.length){ stopChain(); return; }
-    chainTimer = setTimeout(function(){ playChainStep(); }, 2000);
+    if(chainIdx >= chainQueue.length){ stopChain(); return; }
+    scheduleNextChain();
   });
 }
 function playMain(w){
@@ -292,6 +440,7 @@ function playMain(w){
   if(i < 0){ playOne(w); return; }
   chainQueue = nodes.slice(i);
   chainIdx = 0;
+  chainWordCount = 0;
   playChainStep();
 }
 function playTry(w){
@@ -402,13 +551,15 @@ function pick(l){
 }
 function switchBook(n){
   bk = n; try{ ls.setItem("nce4book", String(n)); }catch(e){}
-  cur="all"; q=""; onlyMaster=false; quiz=false;
+  cur="all"; q=""; quiz=false;
   stopChain();
   document.getElementById("q").value="";
-  document.getElementById("masterBox").checked=false;
   document.getElementById("quizBox").checked=false;
   document.getElementById("autoPlayBox").checked=false; autoPlay=false;
+  document.getElementById("masterBox").checked=onlyMaster;
+  syncChainSteppers();
   document.body.classList.remove("quiz");
+  setPrefsOpen(false);
   closeRand();
   document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===n); });
   updateStats(); render();
@@ -428,11 +579,25 @@ document.addEventListener("click",function(e){
   if(w && !e.target.closest("button")) w.classList.add("reveal");
 });
 document.getElementById("q").addEventListener("input",function(e){ q=e.target.value.trim(); render(); });
-document.getElementById("quizBox").addEventListener("change",function(e){ quiz=e.target.checked; document.body.classList.toggle("quiz",quiz); render(); });
-document.getElementById("masterBox").addEventListener("change",function(e){ onlyMaster=e.target.checked; render(); });
-function setVoice(t){ vType=t; document.querySelectorAll("#voiceSeg button").forEach(function(x){x.classList.toggle("on", +x.dataset.v===t);}); }
+document.getElementById("quizBox").addEventListener("change",function(e){
+  quiz=e.target.checked;
+  document.body.classList.toggle("quiz",quiz);
+  updatePrefsSummary();
+  render();
+});
+document.getElementById("masterBox").addEventListener("change",function(e){
+  onlyMaster=e.target.checked;
+  try{ if(ls) ls.setItem("nceOnlyMaster", onlyMaster ? "1" : "0"); }catch(err){}
+  updatePrefsSummary();
+  render();
+});
+function setVoice(t){
+  vType=t;
+  try{ if(ls) ls.setItem("nceVoice", String(t)); }catch(e){}
+  document.querySelectorAll("#voiceSeg button").forEach(function(x){x.classList.toggle("on", +x.dataset.v===t);});
+}
 document.querySelector(".rail .all").addEventListener("click",function(){ pick("all"); });
-/* 刷新后以 localStorage 中的册为准，同步 tab 选中态 */
+/* 册别 tab 先按当前 bk 同步；口音 / 易忘等在 loadChainPrefs 之后再刷 */
 document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===bk); });
 
 /* ---------- 随机练习 ---------- */
@@ -480,9 +645,41 @@ function trySpeak(){
   playTry(document.getElementById("tryWord").value);
 }
 
+loadChainPrefs();
+document.querySelectorAll("#voiceSeg button").forEach(function(x){ x.classList.toggle("on", +x.dataset.v===vType); });
+document.getElementById("masterBox").checked = onlyMaster;
+syncChainSteppers();
+document.getElementById("prefsBtn").addEventListener("click", function(e){
+  e.stopPropagation();
+  var wrap = document.getElementById("prefsWrap");
+  setPrefsOpen(!(wrap && wrap.classList.contains("open")));
+});
+document.getElementById("prefsPanel").addEventListener("click", function(e){ e.stopPropagation(); });
+document.addEventListener("click", function(){ setPrefsOpen(false); });
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") setPrefsOpen(false);
+});
+window.addEventListener("resize", placePrefsPanel);
+window.addEventListener("scroll", placePrefsPanel, true);
 document.getElementById("autoPlayBox").addEventListener("change", function(e){
   autoPlay = e.target.checked;
   if(!autoPlay) stopChain();
+  syncChainSteppers();
+});
+document.getElementById("chainOpts").addEventListener("click", function(e){
+  var btn = e.target.closest(".sbtn");
+  if(!btn || btn.disabled) return;
+  var box = btn.closest(".stepper");
+  if(!box) return;
+  var dir = +btn.getAttribute("data-dir");
+  var kind = box.getAttribute("data-step");
+  if(kind === "repeat"){
+    chainRepeat = clampInt(chainRepeat + dir, 1, 5, 1);
+  }else{
+    chainGap = clampInt(chainGap + dir, 1, 5, 2);
+  }
+  saveChainPrefs();
+  syncChainSteppers();
 });
 document.getElementById("tryBtn").addEventListener("click", trySpeak);
 document.getElementById("tryWord").addEventListener("keydown", function(e){
