@@ -101,10 +101,17 @@ body.quiz .word.reveal .w-me{filter:none}
   .brand .t2{display:none}
   /* 手机上搜索/试听占屏多、用得少，先藏起 */
   .searchbar{display:none}
+  /* 一行：四册 + 随机 + 设置 */
+  .controls{margin-left:0;width:100%;flex-wrap:nowrap;gap:6px}
+  .controls .books{order:1;flex:none}
+  .controls #randBtn{order:2;flex:none;padding:6px 8px;font-size:12px}
+  .controls .prefs{order:3;flex:none}
+  .controls .prefs-btn{width:auto;padding:6px 8px;font-size:12px;gap:2px}
+  .controls .prefs-btn .prefs-sum{display:none}
+  .controls .books button{padding:6px 7px;font-size:12px}
 }
 @media(max-width:480px){
   .hd{gap:8px 10px}
-  .controls{margin-left:0;width:100%}
   .w-word{font-size:16px}
   .lhead{flex-wrap:wrap}
   .lhead .nw{width:100%}
@@ -125,7 +132,7 @@ body.quiz .word.reveal .w-me{filter:none}
 .ctrl-btn{border:0;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
 .ctrl-btn:hover{background:var(--ink)}
 .prefs{position:relative;flex:none}
-.prefs-btn{display:inline-flex;align-items:center;gap:4px;width:132px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:6px 7px;background:var(--card);color:var(--ink);cursor:pointer;font-size:13px}
+.prefs-btn{display:inline-flex;align-items:center;gap:4px;width:148px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:6px 7px;background:var(--card);color:var(--ink);cursor:pointer;font-size:13px}
 .prefs-btn:hover{border-color:var(--accent2)}
 .prefs.open .prefs-btn{border-color:var(--ink);background:var(--paper2)}
 .prefs-btn .prefs-label{font-weight:600;flex:none}
@@ -201,10 +208,6 @@ body.quiz .word.reveal .w-me{filter:none}
         <button data-b="3" onclick="switchBook(3)">第三册</button>
         <button data-b="4" onclick="switchBook(4)">第四册</button>
       </div>
-      <div class="seg" id="voiceSeg" role="group" aria-label="发音选择">
-        <button data-v="1" id="vBr" onclick="setVoice(1)">英音</button>
-        <button data-v="2" class="on" id="vAm" onclick="setVoice(2)">美音</button>
-      </div>
       <div class="prefs" id="prefsWrap">
         <button type="button" class="prefs-btn" id="prefsBtn" aria-expanded="false" aria-controls="prefsPanel">
           <span class="prefs-label">设置</span>
@@ -212,6 +215,12 @@ body.quiz .word.reveal .w-me{filter:none}
           <span class="prefs-caret" aria-hidden="true"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M2.1 4.2a1.1 1.1 0 0 1 1.56-.08L6 6.2l2.34-2.08a1.1 1.1 0 1 1 1.44 1.66l-3.06 2.72a1.1 1.1 0 0 1-1.44 0L2.22 5.78a1.1 1.1 0 0 1-.12-1.58z"/></svg></span>
         </button>
         <div class="prefs-panel" id="prefsPanel" role="dialog" aria-label="学习设置">
+          <div class="row">
+            <div class="seg" id="voiceSeg" role="group" aria-label="发音选择">
+              <button type="button" data-v="1" id="vBr" onclick="setVoice(1)">英音</button>
+              <button type="button" data-v="2" class="on" id="vAm" onclick="setVoice(2)">美音</button>
+            </div>
+          </div>
           <div class="row toggles">
             <label class="toggle"><input type="checkbox" id="quizBox"> 自测</label>
             <label class="toggle"><input type="checkbox" id="masterBox"> 只看易忘</label>
@@ -359,6 +368,7 @@ function saveChainPrefs(){
 }
 function updatePrefsSummary(){
   var parts = [];
+  parts.push(vType === 1 ? "英" : "美");
   if(quiz) parts.push("测");
   if(onlyMaster) parts.push("忘");
   parts.push(autoPlay ? "开" : "关");
@@ -749,6 +759,7 @@ function setVoice(t){
   vType=t;
   try{ if(ls) ls.setItem("nceVoice", String(t)); }catch(e){}
   document.querySelectorAll("#voiceSeg button").forEach(function(x){x.classList.toggle("on", +x.dataset.v===t);});
+  updatePrefsSummary();
 }
 document.querySelector(".rail .all").addEventListener("click",function(){ pick("all"); });
 /* 册别 tab 先按当前 bk 同步；口音 / 易忘等在 loadChainPrefs 之后再刷 */
