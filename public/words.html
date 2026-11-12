@@ -91,20 +91,22 @@ body.quiz .word.reveal .w-me{filter:none}
     background:var(--paper);
   }
   body{padding-top:var(--mobile-header-h, 120px)}
-  .layout{grid-template-columns:1fr;padding:16px 12px 70px}
-  .rail{position:static;max-height:none;overflow:visible;display:flex;flex-wrap:wrap;gap:6px;border-radius:12px;padding:8px;margin-bottom:6px}
+  /* minmax(0,1fr)：避免 grid 子项 min-content 被长标题撑出横向滚动条 */
+  .layout{grid-template-columns:minmax(0,1fr);padding:16px 12px 70px;min-width:0}
+  .rail{position:static;max-height:none;overflow:hidden;display:flex;flex-wrap:wrap;gap:6px;border-radius:12px;padding:8px;margin-bottom:6px;min-width:0}
   .rail h3{width:100%}
-  .rail .all{order:-1;margin-bottom:0}
-  .rail .n{flex:0 0 auto;max-width:168px}
-  .rail .n .tt{max-width:150px}
+  .rail .all{order:-1;margin-bottom:0;max-width:100%}
+  .rail .n{flex:0 1 auto;max-width:100%;min-width:0;overflow:hidden}
+  .lhead{min-width:0}
+  .lhead .tt{flex:1;min-width:0;overflow-wrap:anywhere}
   .words{grid-template-columns:1fr}
   .brand .t2{display:none}
   /* 手机上搜索/试听占屏多、用得少，先藏起 */
   .searchbar{display:none}
-  /* 一行：四册 + 随机 + 设置 */
-  .controls{margin-left:0;width:100%;flex-wrap:nowrap;gap:6px}
+  /* 一行：四册 | 随机 | 设置，按内容宽度两端拉开 */
+  .controls{margin-left:0;width:100%;flex-wrap:nowrap;gap:6px;justify-content:space-between}
   .controls .books{order:1;flex:none}
-  .controls #randBtn{order:2;flex:none;padding:6px 8px;font-size:12px}
+  .controls #randBtn{order:2;flex:none;padding:6px 10px;font-size:12px}
   .controls .prefs{order:3;flex:none}
   .controls .prefs-btn{width:auto;padding:6px 8px;font-size:12px;gap:2px}
   .controls .prefs-btn .prefs-sum{display:none}
@@ -631,15 +633,15 @@ function rectInView(r, top, bottom){
 }
 function syncRailFromScroll(){
   if(railLock || railBooting) return;
-  // 手机上看不见侧栏跟滚，跳过整段计算
-  if(isMobileLayout()) return;
+  // 手机也跟滚记当前课（写 nce4lessons）；侧栏居中仍由 setRailActive 跳过
   var lessons = document.querySelectorAll("#content .lesson");
   if(!lessons.length){
     if(cur !== "all") setRailActive("all");
     return;
   }
+  // 桌面滚到页顶视为「全部」；手机 fixed 顶栏易误触，保留当前课进度
   if(window.pageYOffset <= 12){
-    if(cur !== "all") setRailActive("all");
+    if(!isMobileLayout() && cur !== "all") setRailActive("all");
     return;
   }
   var top = headerOffset();
@@ -680,7 +682,6 @@ function syncRailFromScroll(){
   if(String(cur) !== String(primary)) setRailActive(primary);
 }
 function onWindowScrollRail(){
-  if(isMobileLayout()) return;
   if(railScrollRaf) return;
   railScrollRaf = requestAnimationFrame(function(){
     railScrollRaf = 0;
