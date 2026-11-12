@@ -318,6 +318,9 @@ var cur = "all", q = "", quiz = false, onlyMaster = false, autoPlay = false, vTy
 var railLock = false, railLockTimer = null, railScrollRaf = 0, railBooting = true;
 var lessonMap = {};
 var player = new Audio();
+var prefetchPlayer = new Audio();
+var prefetchWord = "";
+try{ prefetchPlayer.preload = "auto"; }catch(e){}
 var chainTimer = null, chainQueue = [], chainIdx = 0, chainWordCount = 0;
 var chainGap = 2, chainRepeat = 1;
 var randMaskPtrDown = false;
@@ -454,17 +457,64 @@ function syncChainSteppers(){
 function stopChain(){
   if(chainTimer){ clearTimeout(chainTimer); chainTimer=null; }
   chainQueue=[]; chainIdx=0; chainWordCount=0;
+  prefetchWord = "";
   player.onended=null;
+  prefetchPlayer.onended=null;
+  player._nceWord = "";
+  prefetchPlayer._nceWord = "";
   clearPlaying();
   try{ player.pause(); }catch(e){}
+  try{ prefetchPlayer.pause(); }catch(e){}
+}
+function peekNextChainWord(){
+  if(!autoPlay || !chainQueue.length) return "";
+  var need = clampInt(chainRepeat, 1, 5, 1);
+  if(chainWordCount + 1 < need){
+    // 还要连读同一词：不必预加载，重播当前即可
+    return "";
+  }
+  var nextEl = chainQueue[chainIdx + 1];
+  return nextEl ? nextEl.getAttribute("data-w") : "";
+}
+function prefetchChainWord(w){
+  if(!w) return;
+  if(prefetchWord === w) return;
+  prefetchWord = w;
+  try{
+    prefetchPlayer.src = vurl(w);
+    prefetchPlayer._nceWord = w;
+    prefetchPlayer.load();
+  }catch(e){}
 }
 function playOne(w, onEnded){
+  try{ player.onended = null; }catch(e){}
+  // 同一词连读：直接从头播，不再请求网络
+  if(player._nceWord === w && player.src){
+    player.onended = onEnded || null;
+    try{ player.currentTime = 0; }catch(e){}
+    player.play().then(function(){}, function(){ if(onEnded) onEnded(); });
+    return;
+  }
+  // 若该词已预加载，换到预加载实例
+  if(prefetchWord === w){
+    var tmp = player;
+    player = prefetchPlayer;
+    prefetchPlayer = tmp;
+    prefetchWord = "";
+    try{ prefetchPlayer.onended = null; prefetchPlayer.pause(); }catch(e){}
+  } else {
+    player.src = vurl(w);
+  }
+  player._nceWord = w;
   player.onended = onEnded || null;
-  player.src = vurl(w);
   player.play().then(function(){}, function(){ if(onEnded) onEnded(); });
 }
 function scheduleNextChain(){
   if(chainTimer){ clearTimeout(chainTimer); chainTimer=null; }
+  var el = chainQueue[chainIdx];
+  var w = el ? el.getAttribute("data-w") : "";
+  // 下一发若是新词才预取；同一词连读走 currentTime=0
+  if(w && player._nceWord !== w) prefetchChainWord(w);
   var ms = clampGap(chainGap, 0.5, 5, 2) * 1000;
   chainTimer = setTimeout(function(){ playChainStep(); }, ms);
 }
@@ -473,7 +523,8 @@ function playChainStep(){
   var el = chainQueue[chainIdx];
   if(!el || !el.isConnected){ stopChain(); return; }
   revealPlaying(el);
-  playOne(el.getAttribute("data-w"), function(){
+  var w = el.getAttribute("data-w");
+  playOne(w, function(){
     if(!autoPlay){ stopChain(); return; }
     chainWordCount++;
     var need = clampInt(chainRepeat, 1, 5, 1);
@@ -486,6 +537,7 @@ function playChainStep(){
     if(chainIdx >= chainQueue.length){ stopChain(); return; }
     scheduleNextChain();
   });
+  prefetchChainWord(peekNextChainWord());
 }
 function playMain(w){
   if(!autoPlay){ stopChain(); playOne(w); return; }
