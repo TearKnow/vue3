@@ -16,7 +16,7 @@ html{scroll-behavior:auto;overflow-anchor:none}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
 .wrap{max-width:1240px;margin:0 auto;padding:0 16px}
 /* ===== header ===== */
-.site-header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,rgba(246,241,231,.98),rgba(246,241,231,.96));border-bottom:1px solid var(--line)}
+.site-header{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line)}
 .hd{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:14px 16px}
 .brand{display:flex;gap:10px;align-items:center}
 .brand .logo{width:34px;height:34px;flex:none}
@@ -575,20 +575,10 @@ function scrollToLesson(lno){
   if(lno === "all"){ jumpScroll(0); return; }
   var el = document.getElementById("L"+lno);
   if(!el) return;
+  // 强制布局后一次算准：停在吸顶头下方，避免先顶到 0 再被顶栏盖住造成闪动
+  void el.offsetHeight;
   var off = headerOffset();
-  el.style.scrollMarginTop = off + "px";
-  try{
-    el.scrollIntoView({block:"start", inline:"nearest", behavior:"auto"});
-  }catch(e){
-    jumpScroll(el.getBoundingClientRect().top + window.pageYOffset - off);
-  }
-  requestAnimationFrame(function(){
-    var expected = headerOffset();
-    var actual = el.getBoundingClientRect().top;
-    if(Math.abs(actual - expected) > 6){
-      jumpScroll(actual + window.pageYOffset - expected);
-    }
-  });
+  jumpScroll(el.getBoundingClientRect().top + window.pageYOffset - off);
 }
 function restoreLessonView(){
   if(cur === "all"){
@@ -706,10 +696,9 @@ function switchBook(n){
   document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===n); });
   updateStats();
   render();
-  requestAnimationFrame(function(){
-    restoreLessonView();
-    requestAnimationFrame(function(){ railBooting = false; });
-  });
+  // 同帧内渲染并定位，避免先画到顶栏下方再校正的闪一下
+  restoreLessonView();
+  railBooting = false;
 }
 
 /* ---------- 交互 ---------- */
@@ -877,10 +866,8 @@ window.addEventListener("scroll", onWindowScrollRail, {passive:true});
 
 updateStats();
 render();
-requestAnimationFrame(function(){
-  restoreLessonView();
-  requestAnimationFrame(function(){ railBooting = false; });
-});
+restoreLessonView();
+railBooting = false;
 </script>
 </body>
 </html>
