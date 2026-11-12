@@ -85,6 +85,12 @@ body.quiz .word.reveal .w-me{filter:none}
 .empty{text-align:center;color:var(--muted);padding:60px 0;font-size:15px}
 /* ===== responsive ===== */
 @media(max-width:860px){
+  /* fixed + body 预留高度：顶栏始终在上层，避免 sticky「后盖上来」的闪动 */
+  .site-header{
+    position:fixed;top:0;left:0;right:0;width:100%;
+    background:var(--paper);
+  }
+  body{padding-top:var(--mobile-header-h, 120px)}
   .layout{grid-template-columns:1fr;padding:16px 12px 70px}
   .rail{position:static;max-height:none;overflow:visible;display:flex;flex-wrap:wrap;gap:6px;border-radius:12px;padding:8px;margin-bottom:6px}
   .rail h3{width:100%}
@@ -532,7 +538,19 @@ function numChip(lno){
 }
 function headerOffset(){
   var hd = document.querySelector(".site-header");
-  return (hd ? hd.getBoundingClientRect().height : 0) + 12;
+  return (hd ? hd.getBoundingClientRect().height : 0) + 8;
+}
+function syncMobileHeaderPad(){
+  if(!isMobileLayout()){
+    document.body.style.paddingTop = "";
+    document.documentElement.style.removeProperty("--mobile-header-h");
+    return;
+  }
+  var hd = document.querySelector(".site-header");
+  if(!hd) return;
+  var h = Math.ceil(hd.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--mobile-header-h", h + "px");
+  document.body.style.paddingTop = h + "px";
 }
 function ensureRailChipVisible(chip){
   var rail = document.querySelector(".rail");
@@ -555,6 +573,15 @@ function saveLessonPref(){
 function isMobileLayout(){
   return window.matchMedia && window.matchMedia("(max-width: 860px)").matches;
 }
+function scrollToLesson(lno){
+  if(lno === "all"){ jumpScroll(0); return; }
+  var el = document.getElementById("L"+lno);
+  if(!el) return;
+  void el.offsetHeight;
+  syncMobileHeaderPad();
+  var off = headerOffset();
+  jumpScroll(el.getBoundingClientRect().top + window.pageYOffset - off);
+}
 function setRailActive(l, scrollChip){
   var next = String(l);
   var changed = String(cur) !== next;
@@ -570,15 +597,6 @@ function setRailActive(l, scrollChip){
     var chip = document.querySelector('.rail .n[data-l="'+next+'"]');
     ensureRailChipVisible(chip);
   }
-}
-function scrollToLesson(lno){
-  if(lno === "all"){ jumpScroll(0); return; }
-  var el = document.getElementById("L"+lno);
-  if(!el) return;
-  // 强制布局后一次算准：停在吸顶头下方，避免先顶到 0 再被顶栏盖住造成闪动
-  void el.offsetHeight;
-  var off = headerOffset();
-  jumpScroll(el.getBoundingClientRect().top + window.pageYOffset - off);
 }
 function restoreLessonView(){
   if(cur === "all"){
@@ -696,7 +714,7 @@ function switchBook(n){
   document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===n); });
   updateStats();
   render();
-  // 同帧内渲染并定位，避免先画到顶栏下方再校正的闪一下
+  syncMobileHeaderPad();
   restoreLessonView();
   railBooting = false;
 }
@@ -863,9 +881,12 @@ document.getElementById("randList").addEventListener("click", function(e){
   });
 })();
 window.addEventListener("scroll", onWindowScrollRail, {passive:true});
+window.addEventListener("resize", syncMobileHeaderPad, {passive:true});
 
+syncMobileHeaderPad();
 updateStats();
 render();
+syncMobileHeaderPad();
 restoreLessonView();
 railBooting = false;
 </script>
