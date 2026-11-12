@@ -531,10 +531,12 @@ function headerOffset(){
 function ensureRailChipVisible(chip){
   var rail = document.querySelector(".rail");
   if(!rail || !chip) return;
+  if(rail.scrollHeight <= rail.clientHeight + 2) return;
   var rr = rail.getBoundingClientRect();
   var cr = chip.getBoundingClientRect();
-  if(cr.top < rr.top + 4) rail.scrollTop -= (rr.top - cr.top + 8);
-  else if(cr.bottom > rr.bottom - 4) rail.scrollTop += (cr.bottom - rr.bottom + 8);
+  var delta = (cr.top + cr.height / 2) - (rr.top + rr.height / 2);
+  if(Math.abs(delta) < 6) return;
+  rail.scrollTop += delta;
 }
 function setRailActive(l, scrollChip){
   cur = l;
