@@ -91,6 +91,8 @@ body.quiz .w-me{filter:blur(6px);user-select:none;transition:.15s}
 body.quiz .word.reveal .w-me{filter:none}
 /* empty */
 .empty{text-align:center;color:var(--muted);padding:60px 0;font-size:15px}
+/* 恢复课位完成前先藏内容，避免先闪目录再跳 */
+html.is-restoring .layout{opacity:0;pointer-events:none}
 /* ===== responsive ===== */
 @media(max-width:860px){
   /* fixed + body 预留高度：顶栏始终在上层，避免 sticky「后盖上来」的闪动 */
@@ -533,7 +535,9 @@ function lessonBlock(lno, items){
     '<div class="lhead"><span class="no">'+esc(g)+'</span><span class="tt">'+esc(title)+'</span><span class="nw">'+n+' 词</span></div>'+
     '<div class="words">'+cards+'</div></section>';
 }
-function render(){
+function render(opts){
+  opts = opts || {};
+  var jumpTo = opts.jumpTo;
   var token = ++renderToken;
   var list = filtered(), g = groupByLesson(list);
   var root = document.getElementById("content");
@@ -542,14 +546,31 @@ function render(){
   if(!g.order.length){
     root.innerHTML = '<div class="empty">没有匹配的单词，换个关键词试试</div>';
     clearRenderGuard();
+    document.documentElement.classList.remove("is-restoring");
     return Promise.resolve();
   }
+  var needJump = jumpTo != null && jumpTo !== "" && jumpTo !== "all";
+  if(needJump) document.documentElement.classList.add("is-restoring");
+  else document.documentElement.classList.remove("is-restoring");
   root.innerHTML = "";
   markRenderStart(bk);
-  var i = 0, BATCH = 3;
+  var i = 0, BATCH = 3, jumped = false;
+  function tryJumpEarly(){
+    if(jumped || !needJump) return;
+    if(!document.getElementById("L"+jumpTo)) return;
+    jumped = true;
+    lockRailBriefly();
+    setRailActive(jumpTo, false);
+    scrollToLesson(jumpTo);
+    document.documentElement.classList.remove("is-restoring");
+  }
   return new Promise(function(resolve){
     function step(){
-      if(token !== renderToken){ resolve(); return; }
+      if(token !== renderToken){
+        document.documentElement.classList.remove("is-restoring");
+        resolve();
+        return;
+      }
       var html = "", end = Math.min(i + BATCH, g.order.length);
       for(; i < end; i++) html += lessonBlock(g.order[i], g.map[g.order[i]]);
       var wrap = document.createElement("div");
@@ -557,10 +578,19 @@ function render(){
       var frag = document.createDocumentFragment();
       while(wrap.firstChild) frag.appendChild(wrap.firstChild);
       root.appendChild(frag);
+      tryJumpEarly();
       if(i < g.order.length){
         requestAnimationFrame(step);
       } else {
         clearRenderGuard();
+        if(needJump && !jumped){
+          lockRailBriefly();
+          setRailActive(jumpTo, false);
+          scrollToLesson(jumpTo);
+        } else if(jumpTo === "all"){
+          jumpScroll(0);
+        }
+        document.documentElement.classList.remove("is-restoring");
         syncRailFromScroll();
         resolve();
       }
@@ -790,13 +820,9 @@ function switchBook(n){
   document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===n); });
   updateStats();
   syncMobileHeaderPad();
-  render().then(function(){
+  render({ jumpTo: cur }).then(function(){
     syncMobileHeaderPad();
-    // 等一帧再跳转，减少「整册 DOM 刚插入就 scroll」把 iOS 卡死
-    requestAnimationFrame(function(){
-      restoreLessonView();
-      requestAnimationFrame(function(){ railBooting = false; });
-    });
+    railBooting = false;
   });
 }
 
@@ -973,13 +999,9 @@ updateStats();
     cur = "all";
     try{ saveLessonPref(); }catch(e){}
   }
-  render().then(function(){
+  render({ jumpTo: recover ? "all" : cur }).then(function(){
     syncMobileHeaderPad();
-    requestAnimationFrame(function(){
-      if(recover) jumpScroll(0);
-      else restoreLessonView();
-      requestAnimationFrame(function(){ railBooting = false; });
-    });
+    railBooting = false;
   });
 })();
 </script>
