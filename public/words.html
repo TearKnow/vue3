@@ -381,13 +381,13 @@ function clampGap(n, min, max, fallback){
   return Math.max(min, Math.min(max, n));
 }
 function formatGap(n){
-  n = clampGap(n, 0.5, 5, 2);
+  n = clampGap(n, 0, 5, 2);
   return (Math.round(n * 2) / 2).toFixed(1).replace(/\.0$/, "");
 }
 function loadChainPrefs(){
   try{
     if(ls){
-      chainGap = clampGap(ls.getItem("nceChainGap"), 0.5, 5, 2);
+      chainGap = clampGap(ls.getItem("nceChainGap"), 0, 5, 2);
       chainRepeat = clampInt(ls.getItem("nceChainRepeat"), 1, 5, 1);
       vType = clampInt(ls.getItem("nceVoice"), 1, 2, 2);
       onlyMaster = ls.getItem("nceOnlyMaster") === "1";
@@ -444,7 +444,7 @@ function syncChainSteppers(){
   document.querySelectorAll("#chainOpts .stepper").forEach(function(box){
     var kind = box.getAttribute("data-step");
     var val = kind === "repeat" ? chainRepeat : chainGap;
-    var min = kind === "repeat" ? 1 : 0.5, max = 5;
+    var min = kind === "repeat" ? 1 : 0, max = 5;
     box.querySelectorAll(".sbtn").forEach(function(btn){
       var dir = +btn.getAttribute("data-dir");
       btn.disabled = (dir < 0 && val <= min) || (dir > 0 && val >= max);
@@ -562,7 +562,8 @@ function scheduleNextChain(){
   var w = el ? el.getAttribute("data-w") : "";
   // 下一发若是新词才预取；同一词连读走 currentTime=0
   if(w && player._nceWord !== w) prefetchChainWord(w);
-  var ms = clampGap(chainGap, 0.5, 5, 2) * 1000;
+  var ms = clampGap(chainGap, 0, 5, 2) * 1000;
+  if(ms <= 0){ playChainStep(); return; }
   chainTimer = setTimeout(function(){ playChainStep(); }, ms);
 }
 function playChainStep(){
@@ -1048,7 +1049,7 @@ document.getElementById("chainOpts").addEventListener("click", function(e){
   if(kind === "repeat"){
     chainRepeat = clampInt(chainRepeat + dir, 1, 5, 1);
   }else{
-    chainGap = clampGap(chainGap + dir * 0.5, 0.5, 5, 2);
+    chainGap = clampGap(chainGap + dir * 0.5, 0, 5, 2);
   }
   saveChainPrefs();
   syncChainSteppers();

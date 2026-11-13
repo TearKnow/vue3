@@ -28,7 +28,8 @@
 
       <EnglishStudyPanel />
 
-      <WeightTracker />
+      <!-- 体重板块暂时不在首页加载 -->
+      <!-- <WeightTracker /> -->
     </div>
   </div>
 </template>
