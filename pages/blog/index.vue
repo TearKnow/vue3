@@ -1022,6 +1022,13 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
+/* 今天有文章：圆点放到圆正下方，不贴在圆边缘上 */
+.calendar-day.today:has(.calendar-day-dot) .calendar-day-dot {
+  bottom: auto;
+  top: calc(50% + 14px);
+  z-index: 1;
+}
+
 .calendar-day .calendar-day-number {
   width: 100%;
   display: inline-flex;
@@ -1067,11 +1074,7 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: var(--blog-blue-300);
   transform: translateX(-50%);
-}
-
-/* 有文章的日子给数字留底距放圆点；今天已是固定圆角背景，再加 padding 会把圆撑成椭圆 */
-.calendar-day:has(.calendar-day-dot):not(.today) .calendar-day-number {
-  padding-bottom: 6px;
+  pointer-events: none;
 }
 
 .calendar-day-dot.dot-level-1 {
