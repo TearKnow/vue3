@@ -13,10 +13,14 @@
   --chip:#e8e1d2; --chip-on:#1f2f4d; --ok:#1f7a4d; --card:#fffdf8;
 }
 html{scroll-behavior:auto;overflow-anchor:none}
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;padding-top:var(--header-h, 140px)}
 .wrap{max-width:1240px;margin:0 auto;padding:0 16px}
 /* ===== header ===== */
-.site-header{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line)}
+/* fixed + body 预留高度：顶栏始终在上层，避免 sticky「后盖上来」的闪动（含 iPad 桌面断点） */
+.site-header{
+  position:fixed;top:0;left:0;right:0;width:100%;z-index:50;
+  background:var(--paper);border-bottom:1px solid var(--line);
+}
 .hd{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:14px 16px}
 .brand{display:flex;gap:10px;align-items:center}
 .brand .logo{width:34px;height:34px;flex:none}
@@ -44,7 +48,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 
 /* ===== layout ===== */
 .layout{display:grid;grid-template-columns:200px 1fr;gap:24px;padding:22px 16px 80px;max-width:1240px;margin:0 auto}
-.rail{position:sticky;top:160px;align-self:start;max-height:calc(100vh - 180px);overflow:auto;background:var(--paper2);border:1px solid var(--line);border-radius:14px;padding:10px}
+.rail{position:sticky;top:calc(var(--header-h, 140px) + 16px);align-self:start;max-height:calc(100vh - var(--header-h, 140px) - 32px);overflow:auto;background:var(--paper2);border:1px solid var(--line);border-radius:14px;padding:10px}
 .rail h3{font-size:12px;letter-spacing:1px;color:var(--muted);padding:4px 6px 8px;font-weight:600}
 .rail .all{padding:5px 8px;margin-bottom:6px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--ink2)}
 .rail .all.on{background:var(--ink);color:#fff}
@@ -95,12 +99,6 @@ body.quiz .word.reveal .w-me{filter:none}
 html.is-restoring .layout{opacity:0;pointer-events:none}
 /* ===== responsive ===== */
 @media(max-width:860px){
-  /* fixed + body 预留高度：顶栏始终在上层，避免 sticky「后盖上来」的闪动 */
-  .site-header{
-    position:fixed;top:0;left:0;right:0;width:100%;
-    background:var(--paper);
-  }
-  body{padding-top:var(--mobile-header-h, 120px)}
   /* minmax(0,1fr)：避免 grid 子项 min-content 被长标题撑出横向滚动条 */
   .layout{grid-template-columns:minmax(0,1fr);padding:16px 12px 70px;min-width:0}
   .rail{position:static;max-height:none;overflow:hidden;display:flex;flex-wrap:wrap;gap:6px;border-radius:12px;padding:8px;margin-bottom:6px;min-width:0}
@@ -737,28 +735,22 @@ function headerOffset(){
   var hd = document.querySelector(".site-header");
   return (hd ? hd.getBoundingClientRect().height : 0) + 8;
 }
-var lastMobileHeaderH = -1, mobilePadResizeTimer = 0;
-function syncMobileHeaderPad(){
-  if(!isMobileLayout()){
-    lastMobileHeaderH = -1;
-    document.body.style.paddingTop = "";
-    document.documentElement.style.removeProperty("--mobile-header-h");
-    return;
-  }
+var lastHeaderH = -1, headerPadResizeTimer = 0;
+function syncHeaderPad(){
   var hd = document.querySelector(".site-header");
   if(!hd) return;
   var h = Math.ceil(hd.getBoundingClientRect().height);
-  // iOS 地址栏伸缩会连打 resize；高度没变就别改 padding，避免布局抖动把页面打死
-  if(h === lastMobileHeaderH) return;
-  lastMobileHeaderH = h;
-  document.documentElement.style.setProperty("--mobile-header-h", h + "px");
+  // iOS/iPad 地址栏伸缩会连打 resize；高度没变就别改 padding，避免布局抖动
+  if(h === lastHeaderH) return;
+  lastHeaderH = h;
+  document.documentElement.style.setProperty("--header-h", h + "px");
   document.body.style.paddingTop = h + "px";
 }
-function onMobileHeaderResize(){
-  if(mobilePadResizeTimer) clearTimeout(mobilePadResizeTimer);
-  mobilePadResizeTimer = setTimeout(function(){
-    mobilePadResizeTimer = 0;
-    syncMobileHeaderPad();
+function onHeaderPadResize(){
+  if(headerPadResizeTimer) clearTimeout(headerPadResizeTimer);
+  headerPadResizeTimer = setTimeout(function(){
+    headerPadResizeTimer = 0;
+    syncHeaderPad();
   }, 120);
 }
 function ensureRailChipVisible(chip){
@@ -930,9 +922,9 @@ function switchBook(n){
   closeRand();
   document.querySelectorAll("#bookTabs button").forEach(function(x){ x.classList.toggle("on", +x.dataset.b===n); });
   updateStats();
-  syncMobileHeaderPad();
+  syncHeaderPad();
   render({ jumpTo: cur }).then(function(){
-    syncMobileHeaderPad();
+    syncHeaderPad();
     railBooting = false;
   });
 }
@@ -1100,9 +1092,9 @@ document.getElementById("randList").addEventListener("click", function(e){
   });
 })();
 window.addEventListener("scroll", onWindowScrollRail, {passive:true});
-window.addEventListener("resize", onMobileHeaderResize, {passive:true});
+window.addEventListener("resize", onHeaderPadResize, {passive:true});
 
-syncMobileHeaderPad();
+syncHeaderPad();
 updateStats();
 (function bootPage(){
   var recover = wasRenderInterrupted(bk);
@@ -1111,7 +1103,7 @@ updateStats();
     try{ saveLessonPref(); }catch(e){}
   }
   render({ jumpTo: recover ? "all" : cur }).then(function(){
-    syncMobileHeaderPad();
+    syncHeaderPad();
     railBooting = false;
   });
 })();
