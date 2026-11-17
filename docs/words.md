@@ -6,7 +6,7 @@
 
 | 路径 | 说明 |
 |------|------|
-| `data/words/meta.json` | 各册课数、词数 |
+| `data/words/meta.json` | 各册课数、词数（源码；`prebuild` 同步到 `server/assets/words`） |
 | `data/words/book-{1-4}.json` | 分册词条 |
 | `public/nce/{2-4}/{课号}.json` | 课文正文 |
 | `GET /api/words/meta` | 元数据（长期缓存） |

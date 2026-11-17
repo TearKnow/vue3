@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "node scripts/generate-feeds.mjs",
+    "prebuild": "node scripts/generate-feeds.mjs && node scripts/sync-words-assets.mjs",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
