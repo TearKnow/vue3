@@ -1,4 +1,26 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const configDir = dirname(fileURLToPath(import.meta.url))
+
+function resolveAppBuildId(): string {
+  if (process.env.NUXT_PUBLIC_APP_BUILD_ID)
+    return process.env.NUXT_PUBLIC_APP_BUILD_ID
+  const versionFile = join(configDir, 'generated/app-version.json')
+  if (existsSync(versionFile)) {
+    try {
+      const { buildId } = JSON.parse(readFileSync(versionFile, 'utf8')) as { buildId?: string }
+      if (buildId) return buildId
+    }
+    catch { /* ignore */ }
+  }
+  return 'dev'
+}
+
+const appBuildId = resolveAppBuildId()
+
 export default defineNuxtConfig({
 
   // Nuxt 3.20+ / Vite 7：dev 首次预转换仍会解析 manifest.js 里死分支中的 import("#app-manifest")，
@@ -45,6 +67,8 @@ export default defineNuxtConfig({
     deepseekModel: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
     deepseekBaseUrl: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
     public: {
+      /** 每次 build 更新；客户端请求 /api/words、/nce 时带 ?v= 穿透长期缓存 */
+      appBuildId,
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       comments: {
         provider: process.env.NUXT_PUBLIC_COMMENT_PROVIDER || 'giscus', // giscus utterances

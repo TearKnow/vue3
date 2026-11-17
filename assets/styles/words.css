@@ -48,6 +48,20 @@
   color: var(--words-muted);
 }
 
+.words-build-id {
+  margin-left: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--words-muted);
+  opacity: 0.85;
+}
+
+.words-build-id--hd {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--words-chip);
+}
+
 .words-stats {
   display: flex;
   gap: 6px;

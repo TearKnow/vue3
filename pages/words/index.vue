@@ -12,12 +12,20 @@
             </div>
             <div class="t2">
               词汇总表 · 单词 / 音标 / 释义
+              <span
+                class="words-build-id"
+                :title="`站点构建 ${appBuildId}`"
+              >· {{ appBuildId }}</span>
             </div>
           </div>
         </div>
         <div class="words-stats">
           <span><b>{{ statLessons }}</b> 课</span>
           <span><b>{{ statWords }}</b> 词</span>
+          <span
+            class="words-build-id words-build-id--hd"
+            :title="`站点构建 ${appBuildId}`"
+          >{{ appBuildId }}</span>
         </div>
         <div class="words-controls">
           <div
@@ -501,6 +509,8 @@ import { removeNavigationLoadingOverlay } from '~/composables/useNavigationLoadi
 import '~/assets/styles/words.css'
 
 definePageMeta({ ssr: false })
+
+const appBuildId = useAppBuildId()
 
 useHead({
   title: '新概念英语1-4册 · 词汇学习',

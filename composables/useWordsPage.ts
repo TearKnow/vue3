@@ -114,10 +114,14 @@ export function useWordsPage() {
   let restoreToken = 0
   let restoreScheduleTimer: ReturnType<typeof setTimeout> | null = null
 
-  const { data: meta } = useFetch<WordsBookMeta>('/api/words/meta', { key: 'words-meta' })
+  const buildId = useAppBuildId()
+  const { data: meta } = useFetch<WordsBookMeta>(
+    () => `/api/words/meta?v=${buildId.value}`,
+    { key: () => `words-meta-${buildId.value}` },
+  )
   const { data: bookWords, pending: bookPending, error: bookError } = useFetch<WordEntry[]>(
-    () => `/api/words/${bk.value}`,
-    { watch: [bk], key: () => `words-book-${bk.value}` },
+    () => `/api/words/${bk.value}?v=${buildId.value}`,
+    { watch: [bk, buildId], key: () => `words-book-${bk.value}-${buildId.value}` },
   )
 
   const audio = useWordsAudio(vType, autoPlay, chainGap, chainRepeat, playingWord)
@@ -399,7 +403,7 @@ export function useWordsPage() {
       return
     }
     try {
-      const data = await $fetch<LessonTextPayload>(`/nce/${bk.value}/${lno}.json`)
+      const data = await $fetch<LessonTextPayload>(`/nce/${bk.value}/${lno}.json?v=${buildId.value}`)
       if (reqId !== lessonTextReq) return
       lessonTextCache.value = { ...lessonTextCache.value, [cacheKey]: data }
       if (data.title_en)

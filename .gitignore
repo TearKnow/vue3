@@ -5,6 +5,8 @@
 .nitro
 .cache
 dist
+generated
+public/build-id.txt
 
 # Node dependencies
 node_modules

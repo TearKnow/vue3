@@ -9,8 +9,10 @@
 | `data/words/meta.json` | 各册课数、词数（源码；`prebuild` 同步到 `server/assets/words`） |
 | `data/words/book-{1-4}.json` | 分册词条 |
 | `public/nce/{2-4}/{课号}.json` | 课文正文 |
-| `GET /api/words/meta` | 元数据（长期缓存） |
-| `GET /api/words/:book` | 分册词表（长期缓存） |
+| `GET /api/words/meta` | 元数据（长期缓存；客户端带 `?v={appBuildId}` 穿透） |
+| `GET /api/words/:book` | 分册词表（长期缓存；客户端带 `?v={appBuildId}` 穿透） |
+
+每次 `pnpm build` 的 `prebuild` 会写入 `generated/app-version.json`（默认取 git 短 SHA）。顶栏可见构建号，换版后请求 URL 会变，无需手动清缓存。
 
 ## 代码
 
