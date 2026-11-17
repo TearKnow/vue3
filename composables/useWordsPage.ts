@@ -202,6 +202,33 @@ export function useWordsPage() {
     nextTick(() => rail.syncRailFromScroll())
   })
 
+  const activeBookWords = computed(() => {
+    if (bookPending.value) return []
+    return bookWords.value ?? []
+  })
+
+  const filteredList = computed(() => {
+    const all = activeBookWords.value
+    let list = all
+    const Q = qDebounced.value
+    if (Q) {
+      const ql = Q.toLowerCase()
+      list = list.filter(r => `${r.w} ${r.m} ${r.p}`.toLowerCase().includes(ql))
+    }
+    if (onlyMaster.value)
+      list = list.filter(r => saved.value.includes(mkey(r)))
+    return list
+  })
+
+  const lessonGroups = computed(() => groupByLesson(filteredList.value))
+  const matchCount = computed(() => (qDebounced.value ? filteredList.value.length : 0))
+
+  const lessonRender = useWordsLessonRender(
+    computed(() => lessonGroups.value.order),
+    bookRestoring,
+    cur,
+  )
+
   function tryScheduleBookRestore() {
     if (bookPending.value) return
     if (!lessonRender.renderReadyForRestore.value) return
@@ -241,33 +268,6 @@ export function useWordsPage() {
       rail.finishRailBoot()
     }, 12000)
   }
-
-  const activeBookWords = computed(() => {
-    if (bookPending.value) return []
-    return bookWords.value ?? []
-  })
-
-  const filteredList = computed(() => {
-    const all = activeBookWords.value
-    let list = all
-    const Q = qDebounced.value
-    if (Q) {
-      const ql = Q.toLowerCase()
-      list = list.filter(r => `${r.w} ${r.m} ${r.p}`.toLowerCase().includes(ql))
-    }
-    if (onlyMaster.value)
-      list = list.filter(r => saved.value.includes(mkey(r)))
-    return list
-  })
-
-  const lessonGroups = computed(() => groupByLesson(filteredList.value))
-  const matchCount = computed(() => (qDebounced.value ? filteredList.value.length : 0))
-
-  const lessonRender = useWordsLessonRender(
-    computed(() => lessonGroups.value.order),
-    bookRestoring,
-    cur,
-  )
 
   const statLessons = computed(() => meta.value?.[String(bk.value)]?.[0] ?? 0)
   const statWords = computed(() => meta.value?.[String(bk.value)]?.[1] ?? 0)
