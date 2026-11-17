@@ -773,25 +773,43 @@
 
   .words-rail {
     position: static;
-    max-height: none;
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
     margin-bottom: 6px;
+    min-width: 0;
+    max-height: min(36vh, 260px);
+    overflow: auto;
+    padding: 8px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .words-rail h3 {
     width: 100%;
+    flex-shrink: 0;
+    padding-bottom: 4px;
   }
 
   .words-rail .all {
     order: -1;
-    margin-bottom: 0;
+    margin-bottom: 2px;
+    width: 100%;
+    flex-shrink: 0;
+    padding: 4px 8px;
   }
 
   .words-rail .n {
-    flex: 0 1 auto;
-    max-width: 100%;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 3px 8px;
+  }
+
+  .words-rail .n .tt {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .words-grid {
@@ -807,12 +825,40 @@
   .words-controls {
     margin-left: 0;
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
     justify-content: space-between;
-    flex-wrap: nowrap;
+  }
+
+  .words-books {
+    flex: 1 1 100%;
+    min-width: 0;
+    flex-direction: row;
+  }
+
+  .words-books button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  .words-prefs {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .words-prefs-btn {
     width: auto;
+    max-width: 100%;
     padding: 6px 8px;
+  }
+
+  .words-ctrl-btn {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    font-size: 13px;
   }
 }
