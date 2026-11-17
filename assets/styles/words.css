@@ -278,6 +278,10 @@ html:has(.words-page)::-webkit-scrollbar-corner {
   transition: opacity 0.15s ease;
 }
 
+.words-layout.is-preparing {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 #words-content {
   position: relative;
 }

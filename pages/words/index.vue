@@ -211,8 +211,12 @@
       </div>
     </header>
 
-    <div class="words-layout">
+    <div
+      class="words-layout"
+      :class="{ 'is-preparing': lessonGroups.order.length > 0 && !wordsRenderComplete }"
+    >
       <nav
+        v-if="wordsRenderComplete && lessonGroups.order.length"
         class="words-rail"
         aria-label="按课浏览"
       >
