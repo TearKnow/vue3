@@ -265,7 +265,7 @@
           <div class="words-lhead">
             <span class="no">{{ lessonGroups.map.get(lno)?.[0]?.g }}</span>
             <span class="tt">
-              {{ lessonGroups.map.get(lno)?.[0]?.t }}
+              <span class="words-lhead-title">{{ lessonGroups.map.get(lno)?.[0]?.t }}</span>
               <button
                 v-if="bk >= 2"
                 type="button"
