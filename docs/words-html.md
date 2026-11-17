@@ -3,7 +3,7 @@
 > **2026-11**：已迁至 Nuxt 路由 **`/words`**，数据见 `data/words/` 与 `/api/words/*`。本文档仅保留功能说明。
 
 **页面路径**: ~~`public/words.html`~~ → **`/words`**  
-**数据**: 四册词汇内嵌于页面脚本（`RAW` + `PER`），课文 JSON 位于 `public/nce/{2|3|4}/{课号}.json`  
+**数据**: 词汇见 `data/words/`；课文 JSON 位于 `public/nce/{2|3|4}/{课号}.json`（第二册可用 `node scripts/sync-nce-from-supernce.mjs` 从 [SuperNCE](https://supernce.com/) 同步）  
 **音源**: 有道词典 API `https://dict.youdao.com/dictvoice`
 
 ---
