@@ -46,7 +46,7 @@ export function useWordsLessonRender(
       }
       const chunk = total <= INSTANT_LESSON_THRESHOLD ? total : LESSONS_PER_FRAME
       renderedCount.value = Math.min(total, renderedCount.value + chunk)
-      if (next < total)
+      if (renderedCount.value < total)
         rafId = requestAnimationFrame(step)
     }
     rafId = requestAnimationFrame(step)
