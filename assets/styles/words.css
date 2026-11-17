@@ -1,3 +1,33 @@
+html:has(.words-page) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--blog-scrollbar-thumb) transparent;
+}
+
+html:has(.words-page)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html:has(.words-page)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html:has(.words-page)::-webkit-scrollbar-thumb {
+  background-color: var(--blog-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+html:has(.words-page)::-webkit-scrollbar-thumb:hover {
+  background-color: var(--blog-scrollbar-thumb-hover);
+}
+
+html:has(.words-page)::-webkit-scrollbar-button,
+html:has(.words-page)::-webkit-scrollbar-corner {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .words-page {
   --words-header-h: 140px;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
@@ -248,7 +278,17 @@
   transition: opacity 0.15s ease;
 }
 
-.words-layout.is-restoring {
+#words-content {
+  position: relative;
+}
+
+.words-lessons-stage.is-offstage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
   opacity: 0;
   pointer-events: none;
 }
@@ -259,10 +299,37 @@
   align-self: start;
   max-height: calc(100vh - var(--words-header-h) - 32px);
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blog-scrollbar-thumb) transparent;
   background: var(--words-paper-2);
   border: 1px solid var(--words-line);
   border-radius: 14px;
   padding: 10px;
+}
+
+.words-rail::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.words-rail::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.words-rail::-webkit-scrollbar-thumb {
+  background-color: var(--blog-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.words-rail::-webkit-scrollbar-thumb:hover {
+  background-color: var(--blog-scrollbar-thumb-hover);
+}
+
+.words-rail::-webkit-scrollbar-button,
+.words-rail::-webkit-scrollbar-corner {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .words-rail h3 {
@@ -657,11 +724,38 @@
   width: min(640px, 100%);
   max-height: min(80vh, 720px);
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blog-scrollbar-thumb) transparent;
   background: var(--words-card);
   border: 1px solid var(--words-line);
   border-radius: 14px;
   padding: 16px;
   box-shadow: 0 12px 40px var(--blog-shadow-lg);
+}
+
+.words-modal::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.words-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.words-modal::-webkit-scrollbar-thumb {
+  background-color: var(--blog-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.words-modal::-webkit-scrollbar-thumb:hover {
+  background-color: var(--blog-scrollbar-thumb-hover);
+}
+
+.words-modal::-webkit-scrollbar-button,
+.words-modal::-webkit-scrollbar-corner {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .words-modal.wide {

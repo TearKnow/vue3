@@ -231,7 +231,7 @@ export function useWordsPage() {
 
   function tryScheduleBookRestore() {
     if (bookPending.value) return
-    if (!lessonRender.renderReadyForRestore.value) return
+    if (!lessonRender.renderComplete.value) return
     scheduleBookRestore()
   }
 
@@ -247,7 +247,7 @@ export function useWordsPage() {
     },
   )
 
-  watch(lessonRender.renderReadyForRestore, (ready) => {
+  watch(lessonRender.renderComplete, (ready) => {
     if (ready) tryScheduleBookRestore()
   })
 
@@ -516,7 +516,7 @@ export function useWordsPage() {
     syncHeaderPad()
     window.addEventListener('resize', onHeaderResize, { passive: true })
     rail.mountScrollListener()
-    if (!bookPending.value) scheduleBookRestore()
+    if (!bookPending.value) tryScheduleBookRestore()
   })
 
   onUnmounted(() => {
@@ -549,7 +549,10 @@ export function useWordsPage() {
     prefsSummary,
     revealQuiz,
     lessonGroups,
+    wordsRenderComplete: lessonRender.renderComplete,
     visibleLessonOrder: lessonRender.visibleLessonOrder,
+    isLessonWordsVisible: lessonRender.isLessonWordsVisible,
+    lessonWordsGridStyle: lessonRender.lessonWordsGridStyle,
     matchCount,
     statLessons,
     statWords,

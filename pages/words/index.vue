@@ -12,10 +12,6 @@
             </div>
             <div class="t2">
               词汇总表 · 单词 / 音标 / 释义
-              <span
-                class="words-build-id"
-                :title="`站点构建 ${appBuildId}`"
-              >· {{ appBuildId }}</span>
             </div>
           </div>
         </div>
@@ -215,10 +211,7 @@
       </div>
     </header>
 
-    <div
-      class="words-layout"
-      :class="{ 'is-restoring': bookRestoring }"
-    >
+    <div class="words-layout">
       <nav
         class="words-rail"
         aria-label="按课浏览"
@@ -263,15 +256,25 @@
         >
           没有匹配的单词，换个关键词试试
         </div>
-        <section
-          v-for="lno in visibleLessonOrder"
-          v-else
-          :id="`L${lno}`"
-          :key="`${bk}-${lno}`"
-          class="words-lesson"
-          :data-l="lno"
-        >
-          <div class="words-lhead">
+        <template v-else>
+          <div
+            v-if="!wordsRenderComplete"
+            class="words-loading"
+          >
+            正在准备词条…
+          </div>
+          <div
+            class="words-lessons-stage"
+            :class="{ 'is-offstage': !wordsRenderComplete }"
+          >
+            <section
+              v-for="lno in lessonGroups.order"
+              :id="`L${lno}`"
+              :key="`${bk}-${lno}`"
+              class="words-lesson"
+              :data-l="lno"
+            >
+              <div class="words-lhead">
             <span class="no">{{ lessonGroups.map.get(lno)?.[0]?.g }}</span>
             <span class="tt">
               <span class="words-lhead-title">{{ lessonGroups.map.get(lno)?.[0]?.t }}</span>
@@ -294,54 +297,61 @@
             </span>
             <span class="nw">{{ lessonGroups.map.get(lno)?.length }} 词</span>
           </div>
-          <div class="words-grid">
-            <div
-              v-for="entry in lessonGroups.map.get(lno)"
-              :key="cardKey(entry)"
-              class="words-word word"
-              :class="{
-                playing: playingWord === entry.w,
-                'is-reveal': revealQuiz.has(cardKey(entry)),
-              }"
-              :data-w="entry.w"
-              @click="onWordClick(entry)"
-            >
-              <button
-                type="button"
-                class="words-vbtn"
-                :aria-label="`播放 ${entry.w}`"
-                @click.stop="audio.playMain(entry.w, '#words-content')"
+          <div
+            class="words-grid"
+            :style="lessonWordsGridStyle(lessonGroups.map.get(lno)?.length ?? 0, lno)"
+          >
+            <template v-if="isLessonWordsVisible(lno)">
+              <div
+                v-for="entry in lessonGroups.map.get(lno)"
+                :key="cardKey(entry)"
+                class="words-word word"
+                :class="{
+                  playing: playingWord === entry.w,
+                  'is-reveal': revealQuiz.has(cardKey(entry)),
+                }"
+                :data-w="entry.w"
+                @click="onWordClick(entry)"
               >
-                <span class="sr-only">播放</span>
-              </button>
-              <div class="w-main">
-                <div class="words-w-word">
-                  {{ entry.w }}
-                  <span class="words-w-ph">{{ entry.p }}</span>
-                </div>
-                <div class="words-w-me w-me">
-                  {{ entry.m }}
-                </div>
-                <div
-                  v-if="entry.e"
-                  class="w-ex"
-                  style="font-size:13px;color:var(--words-muted);font-style:italic;margin-top:4px"
+                <button
+                  type="button"
+                  class="words-vbtn"
+                  :aria-label="`播放 ${entry.w}`"
+                  @click.stop="audio.playMain(entry.w, '#words-content')"
                 >
-                  {{ entry.e }}
+                  <span class="sr-only">播放</span>
+                </button>
+                <div class="w-main">
+                  <div class="words-w-word">
+                    {{ entry.w }}
+                    <span class="words-w-ph">{{ entry.p }}</span>
+                  </div>
+                  <div class="words-w-me w-me">
+                    {{ entry.m }}
+                  </div>
+                  <div
+                    v-if="entry.e"
+                    class="w-ex"
+                    style="font-size:13px;color:var(--words-muted);font-style:italic;margin-top:4px"
+                  >
+                    {{ entry.e }}
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  class="words-master"
+                  :class="{ on: isMastered(entry) }"
+                  :aria-label="isMastered(entry) ? '取消易忘' : '标记易忘'"
+                  @click.stop="toggleMaster(entry)"
+                >
+                  {{ isMastered(entry) ? '★' : '☆' }}
+                </button>
               </div>
-              <button
-                type="button"
-                class="words-master"
-                :class="{ on: isMastered(entry) }"
-                :aria-label="isMastered(entry) ? '取消易忘' : '标记易忘'"
-                @click.stop="toggleMaster(entry)"
-              >
-                {{ isMastered(entry) ? '★' : '☆' }}
-              </button>
-            </div>
+            </template>
+              </div>
+            </section>
           </div>
-        </section>
+        </template>
       </main>
     </div>
 
@@ -568,7 +578,9 @@ const {
   prefsSummary,
   revealQuiz,
   lessonGroups,
-  visibleLessonOrder,
+  wordsRenderComplete,
+  isLessonWordsVisible,
+  lessonWordsGridStyle,
   matchCount,
   statLessons,
   statWords,
