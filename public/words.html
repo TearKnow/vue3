@@ -64,7 +64,10 @@ main{min-width:0}
 .lesson{margin-bottom:26px}
 .lhead{display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:12px}
 .lhead .no{font-family:Georgia,serif;font-size:26px;font-weight:700;color:var(--accent);letter-spacing:.5px;white-space:nowrap}
-.lhead .tt{font-family:Georgia,"Songti SC",serif;font-size:19px;font-weight:700;color:var(--ink)}
+.lhead .tt{font-family:Georgia,"Songti SC",serif;font-size:19px;font-weight:700;color:var(--ink);display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.ltext-btn{flex:none;width:28px;height:28px;border:0;border-radius:8px;background:var(--chip);color:var(--accent2);cursor:pointer;display:grid;place-items:center;padding:0;vertical-align:middle}
+.ltext-btn:hover{background:var(--accent2);color:#fff}
+.ltext-btn svg{width:15px;height:15px;display:block}
 .lhead .nw{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
 .words{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
 .word{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;position:relative;transition:box-shadow .15s}
@@ -194,6 +197,14 @@ html.is-restoring .layout{opacity:0;pointer-events:none}
 .modal .word .w-me{filter:blur(6px);user-select:none;transition:.15s}
 .modal .word.reveal .w-me{filter:none}
 .modal .w-lesson{display:inline-block;margin-left:2px;padding:1px 7px;border-radius:6px;background:var(--chip);color:var(--ink2);font-size:11px;font-weight:600;font-family:Georgia,serif;vertical-align:middle}
+.modal.lesson-text-modal{width:min(720px,100%)}
+.nce-text-body{font-size:15px;line-height:1.75;color:var(--ink)}
+.nce-text-body .nce-en{font-family:Georgia,"Times New Roman",serif;margin:0 0 12px}
+.nce-text-body .nce-cn{margin:0 0 20px;padding:10px 12px;border-radius:10px;background:var(--paper2);color:var(--ink2);font-size:14px;line-height:1.7;display:none}
+.lesson-text-modal.show-cn .nce-text-body .nce-cn{display:block}
+.nce-text-body .nce-cn{margin-top:-4px;margin-bottom:16px}
+.nce-text-status{text-align:center;color:var(--muted);padding:24px 8px;font-size:14px}
+.nce-text-status.err{color:var(--accent)}
 
 </style>
 </head>
@@ -296,6 +307,18 @@ html.is-restoring .layout{opacity:0;pointer-events:none}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
 </button>
 
+<div class="modal-mask" id="textMask" hidden>
+  <div class="modal lesson-text-modal" id="textModal" role="dialog" aria-modal="true" aria-labelledby="textTitle">
+    <h2 id="textTitle">课文</h2>
+    <div class="sub" id="textSub"></div>
+    <div class="actions">
+      <button type="button" class="secondary" id="textReveal">显示翻译</button>
+      <button type="button" class="secondary" id="textClose">关闭</button>
+    </div>
+    <div id="textBody" class="nce-text-body"><div class="nce-text-status">加载中…</div></div>
+  </div>
+</div>
+
 <div class="modal-mask" id="randMask" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="randTitle">
     <h2 id="randTitle">随机练习</h2>
@@ -321,7 +344,9 @@ var prefetchWord = "";
 try{ prefetchPlayer.preload = "auto"; }catch(e){}
 var chainTimer = null, chainQueue = [], chainIdx = 0, chainWordCount = 0;
 var chainGap = 2, chainRepeat = 1;
-var randMaskPtrDown = false;
+var randMaskPtrDown = false, textMaskPtrDown = false;
+var lessonTextCache = Object.create(null);
+var lessonTextReq = 0;
 /* 安全 localStorage（file:// 或禁用时返回 null，不白屏） */
 var ls = (function(){try{return window.localStorage;}catch(e){return null;}})();
 var saved = [];
@@ -625,6 +650,11 @@ function groupByLesson(list){
   order.sort(function(a,b){return a-b});
   return {map:map, order:order};
 }
+var LESSON_TEXT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6.5A2.5 2.5 0 0 1 4 17.5z"/><path d="M8 7h9M8 11h9M8 15h6"/></svg>';
+function lessonTextBtn(lno){
+  if(bk < 2 || bk > 4) return "";
+  return '<button type="button" class="ltext-btn" aria-label="阅读课文" title="阅读课文" onclick="openLessonText('+lno+')">'+LESSON_TEXT_ICON+'</button>';
+}
 function lessonBlock(lno, items){
   var g = items[0].g, title = items[0].t, n = items.length;
   var cards = items.map(function(r){
@@ -641,7 +671,7 @@ function lessonBlock(lno, items){
     '</div>';
   }).join("");
   return '<section class="lesson" id="L'+lno+'" data-l="'+lno+'">'+
-    '<div class="lhead"><span class="no">'+esc(g)+'</span><span class="tt">'+esc(title)+'</span><span class="nw">'+n+' 词</span></div>'+
+    '<div class="lhead"><span class="no">'+esc(g)+'</span><span class="tt">'+esc(title)+lessonTextBtn(lno)+'</span><span class="nw">'+n+' 词</span></div>'+
     '<div class="words">'+cards+'</div></section>';
 }
 function render(opts){
@@ -905,7 +935,89 @@ function pick(l){
   if(l==="all"){ jumpScroll(0); return; }
   scrollToLesson(l);
 }
+function lessonTextUrl(book, lno){
+  return "/nce/"+book+"/"+lno+".json";
+}
+function lessonTextCacheKey(book, lno){
+  return book+"_"+lno;
+}
+function splitParagraphs(text){
+  if(!text) return [];
+  return String(text).split(/\n\s*\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+}
+function renderLessonTextBody(data){
+  var en = data.paragraphs && data.paragraphs.length ? data.paragraphs : splitParagraphs(data.text);
+  var cn = data.paragraphs_cn && data.paragraphs_cn.length ? data.paragraphs_cn : splitParagraphs(data.text_cn);
+  if(!en.length) return '<div class="nce-text-status">暂无课文正文</div>';
+  var html = "", i;
+  for(i = 0; i < en.length; i++){
+    html += '<p class="nce-en">'+esc(en[i])+'</p>';
+    if(cn[i]) html += '<p class="nce-cn">'+esc(cn[i])+'</p>';
+  }
+  return html;
+}
+function setLessonTextReveal(on){
+  var modal = document.getElementById("textModal");
+  var btn = document.getElementById("textReveal");
+  if(!modal || !btn) return;
+  modal.classList.toggle("show-cn", !!on);
+  btn.textContent = on ? "隐藏翻译" : "显示翻译";
+  btn.dataset.on = on ? "1" : "0";
+}
+function closeLessonText(){
+  var mask = document.getElementById("textMask");
+  if(mask) mask.hidden = true;
+  textMaskPtrDown = false;
+  lessonTextReq++;
+  setLessonTextReveal(false);
+}
+function openLessonText(lno){
+  var mask = document.getElementById("textMask");
+  var titleEl = document.getElementById("textTitle");
+  var subEl = document.getElementById("textSub");
+  var body = document.getElementById("textBody");
+  var modal = document.getElementById("textModal");
+  if(!mask || !body) return;
+  if(modal) modal.classList.remove("show-cn");
+  setLessonTextReveal(false);
+  var lessonNo = +lno;
+  var cacheKey = lessonTextCacheKey(bk, lessonNo);
+  mask.hidden = false;
+  if(titleEl) titleEl.textContent = "第 "+lessonNo+" 课 · 课文";
+  if(subEl) subEl.textContent = "第"+bk+"册";
+  body.innerHTML = '<div class="nce-text-status">加载中…</div>';
+  var reqId = ++lessonTextReq;
+  function showData(data){
+    if(reqId !== lessonTextReq) return;
+    if(titleEl && data.title_en){
+      titleEl.textContent = (data.title_en || "") + (data.title_cn ? " · "+data.title_cn : "");
+    }
+    if(subEl && data.title_pos) subEl.textContent = data.title_pos;
+  }
+  function showHtml(html){
+    if(reqId !== lessonTextReq) return;
+    body.innerHTML = html;
+  }
+  if(lessonTextCache[cacheKey]){
+    var cached = lessonTextCache[cacheKey];
+    showData(cached);
+    showHtml(renderLessonTextBody(cached));
+    return;
+  }
+  fetch(lessonTextUrl(bk, lessonNo)).then(function(r){
+    if(!r.ok) throw new Error("notfound");
+    return r.json();
+  }).then(function(data){
+    lessonTextCache[cacheKey] = data;
+    showData(data);
+    showHtml(renderLessonTextBody(data));
+  }).catch(function(){
+    if(reqId !== lessonTextReq) return;
+    body.innerHTML = '<div class="nce-text-status err">未找到课文（'+esc(lessonTextUrl(bk, lessonNo))+'）</div>';
+  });
+}
 function switchBook(n){
+  closeLessonText();
   railBooting = true;
   bk = n; try{ ls.setItem("nce4book", String(n)); }catch(e){}
   var savedLesson = lessonMap[String(n)];
@@ -1022,7 +1134,10 @@ document.getElementById("prefsBtn").addEventListener("click", function(e){
 document.getElementById("prefsPanel").addEventListener("click", function(e){ e.stopPropagation(); });
 document.addEventListener("click", function(){ setPrefsOpen(false); });
 document.addEventListener("keydown", function(e){
-  if(e.key === "Escape") setPrefsOpen(false);
+  if(e.key !== "Escape") return;
+  var textMask = document.getElementById("textMask");
+  if(textMask && !textMask.hidden){ closeLessonText(); return; }
+  setPrefsOpen(false);
 });
 window.addEventListener("resize", placePrefsPanel);
 window.addEventListener("scroll", placePrefsPanel, true);
@@ -1050,6 +1165,24 @@ document.getElementById("tryBtn").addEventListener("click", trySpeak);
 document.getElementById("tryWord").addEventListener("keydown", function(e){
   if(e.key==="Enter"){ e.preventDefault(); trySpeak(); }
 });
+document.getElementById("textClose").addEventListener("click", closeLessonText);
+document.getElementById("textReveal").addEventListener("click", function(){
+  var btn = document.getElementById("textReveal");
+  var on = btn && btn.dataset.on === "1";
+  setLessonTextReveal(!on);
+});
+(function(){
+  var mask = document.getElementById("textMask");
+  if(!mask) return;
+  mask.addEventListener("pointerdown", function(e){
+    textMaskPtrDown = (e.target === mask);
+  });
+  mask.addEventListener("pointerup", function(e){
+    if(textMaskPtrDown && e.target === mask) closeLessonText();
+    textMaskPtrDown = false;
+  });
+  mask.addEventListener("pointercancel", function(){ textMaskPtrDown = false; });
+})();
 document.getElementById("randBtn").addEventListener("click", openRand);
 document.getElementById("randAgain").addEventListener("click", function(){ renderRandList(sampleBook(10)); });
 document.getElementById("randReveal").addEventListener("click", function(){
