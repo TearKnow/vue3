@@ -84,6 +84,9 @@
   font-size: 13px;
   color: var(--words-ink-2);
   cursor: pointer;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .words-books button.on {
@@ -509,17 +512,27 @@
   align-items: center;
   gap: 4px;
   width: 148px;
-  border: 1px solid var(--words-line);
-  border-radius: 10px;
-  padding: 6px 7px;
-  background: var(--words-card);
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: var(--words-chip);
+  color: var(--words-ink);
   cursor: pointer;
   font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .words-prefs.open .words-prefs-btn {
-  border-color: var(--words-ink);
   background: var(--words-paper-2);
+  color: var(--words-ink);
+  box-shadow: inset 0 0 0 1px var(--words-line);
+}
+
+.words-prefs-label {
+  color: var(--words-ink);
 }
 
 .words-prefs-sum {
@@ -527,6 +540,7 @@
   min-width: 0;
   color: var(--words-muted);
   font-size: 12px;
+  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

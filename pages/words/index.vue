@@ -45,7 +45,7 @@
               :aria-expanded="prefsOpen"
               @click.stop="prefsOpen = !prefsOpen"
             >
-              <span style="font-weight:600">设置</span>
+              <span class="words-prefs-label">设置</span>
               <span class="words-prefs-sum">{{ prefsSummary }}</span>
               <span aria-hidden="true">▼</span>
             </button>
