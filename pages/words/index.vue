@@ -224,7 +224,7 @@
         </div>
         <div
           v-for="chip in railChips"
-          :key="chip.l"
+          :key="`${bk}-${chip.l}`"
           class="n"
           :class="{ on: cur === String(chip.l) }"
           :data-l="chip.l"
@@ -258,7 +258,7 @@
           v-for="lno in lessonGroups.order"
           v-else
           :id="`L${lno}`"
-          :key="lno"
+          :key="`${bk}-${lno}`"
           class="words-lesson"
           :data-l="lno"
         >

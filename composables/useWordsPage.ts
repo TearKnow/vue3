@@ -110,6 +110,7 @@ export function useWordsPage() {
   let qTimer: ReturnType<typeof setTimeout> | null = null
   let lessonTextReq = 0
   let restoreToken = 0
+  let restoreScheduleTimer: ReturnType<typeof setTimeout> | null = null
 
   const { data: meta } = useFetch<WordsBookMeta>('/api/words/meta', { key: 'words-meta' })
   const { data: bookWords, pending: bookPending, error: bookError } = useFetch<WordEntry[]>(
@@ -150,9 +151,14 @@ export function useWordsPage() {
   }
 
   function scheduleBookRestore() {
-    const token = restoreToken
-    rail.setRailBooting(true)
-    finishBookRestore(token)
+    if (restoreScheduleTimer) clearTimeout(restoreScheduleTimer)
+    restoreScheduleTimer = setTimeout(() => {
+      restoreScheduleTimer = null
+      if (bookPending.value) return
+      const token = restoreToken
+      rail.setRailBooting(true)
+      finishBookRestore(token)
+    }, 0)
   }
 
   function loadPrefs() {
@@ -186,19 +192,17 @@ export function useWordsPage() {
     nextTick(() => rail.syncRailFromScroll())
   })
 
-  watch(bookPending, (pending) => {
-    if (pending) {
-      rail.setRailBooting(true)
-      return
-    }
-    nextTick(() => scheduleBookRestore())
-  })
-
-  watch(bk, () => {
-    nextTick(() => {
-      if (!bookPending.value) scheduleBookRestore()
-    })
-  })
+  watch(
+    () => [bk.value, bookPending.value] as const,
+    ([, pending]) => {
+      if (pending) {
+        bookRestoring.value = true
+        rail.setRailBooting(true)
+        return
+      }
+      scheduleBookRestore()
+    },
+  )
 
   const activeBookWords = computed(() => {
     if (bookPending.value) return []
@@ -277,11 +281,17 @@ export function useWordsPage() {
   function switchBook(n: number) {
     if (n === bk.value) return
     bumpRestoreGeneration()
+    if (restoreScheduleTimer) {
+      clearTimeout(restoreScheduleTimer)
+      restoreScheduleTimer = null
+    }
     bookRestoring.value = true
     rail.setRailBooting(true)
+    playingWord.value = null
     closeLessonText()
     closeRand()
     audio.stopChain()
+    prefsOpen.value = false
     bk.value = n
     const ls = lsGet()
     if (ls) try { ls.setItem('nce4book', String(n)) } catch { /* ignore */ }
@@ -450,11 +460,12 @@ export function useWordsPage() {
     syncHeaderPad()
     window.addEventListener('resize', onHeaderResize, { passive: true })
     rail.mountScrollListener()
-    if (!bookPending.value) nextTick(() => scheduleBookRestore())
+    if (!bookPending.value) scheduleBookRestore()
   })
 
   onUnmounted(() => {
     window.removeEventListener('resize', onHeaderResize)
+    if (restoreScheduleTimer) clearTimeout(restoreScheduleTimer)
     bumpRestoreGeneration()
     rail.cleanup()
     audio.stopChain()
@@ -512,6 +523,6 @@ export function useWordsPage() {
     shuffleRand,
     saveChainPrefs,
     syncHeaderPad,
-    cardKey: (r: WordEntry) => `${r.l}_${r.w}`,
+    cardKey: (r: WordEntry) => `${r.b}_${r.l}_${r.w}`,
   }
 }
