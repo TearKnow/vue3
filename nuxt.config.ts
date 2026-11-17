@@ -87,6 +87,18 @@ export default defineNuxtConfig({
       '/api/jjshouse/**': {
         proxy: 'https://www.jjshouse.com/api/**',
       },
+      '/words': { ssr: false },
+      '/words.html': { redirect: { to: '/words', statusCode: 301 } },
+      '/api/words/**': {
+        headers: {
+          'Cache-Control': 'public, max-age=31536000, stale-while-revalidate=86400',
+        },
+      },
+      '/nce/**': {
+        headers: {
+          'Cache-Control': 'public, max-age=31536000, stale-while-revalidate=86400',
+        },
+      },
     },
   },
 })

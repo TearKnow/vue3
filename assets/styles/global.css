@@ -79,6 +79,18 @@ html {
   --wiki-hero-accent: rgb(37 99 235 / 0.12);
   --wiki-sidebar-shadow: rgb(15 23 42 / 0.04);
   --blog-annotation-bg: #EA9999;
+  --words-paper: #f6f1e7;
+  --words-paper-2: #fbf7ef;
+  --words-ink: #1f2f4d;
+  --words-ink-2: #3a4a63;
+  --words-muted: #7a879b;
+  --words-line: #e3dccc;
+  --words-accent: #cf4d3a;
+  --words-accent-2: #1f6f8b;
+  --words-chip: #e8e1d2;
+  --words-card: #fffdf8;
+  --words-star: #e0a11e;
+  --words-star-dim: #cbbca0;
 }
 
 /* 暗色模式 */

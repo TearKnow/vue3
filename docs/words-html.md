@@ -1,6 +1,8 @@
-# words.html 功能说明
+# words.html 功能说明（已迁移）
 
-**页面路径**: `public/words.html`（静态单页，由 Nuxt 以 `/words.html` 提供）  
+> **2026-11**：已迁至 Nuxt 路由 **`/words`**，数据见 `data/words/` 与 `/api/words/*`。本文档仅保留功能说明。
+
+**页面路径**: ~~`public/words.html`~~ → **`/words`**  
 **数据**: 四册词汇内嵌于页面脚本（`RAW` + `PER`），课文 JSON 位于 `public/nce/{2|3|4}/{课号}.json`  
 **音源**: 有道词典 API `https://dict.youdao.com/dictvoice`
 

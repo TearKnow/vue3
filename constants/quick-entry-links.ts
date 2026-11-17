@@ -42,9 +42,8 @@ export const quickEntryLinks: QuickEntryLinkItem[] = [
   },
   {
     label: '词汇学习',
-    to: '/words.html',
+    to: '/words',
     icon: '📖',
-    openInNewTab: true,
     cardClass: 'card-words',
   },
 ]
