@@ -106,6 +106,8 @@ export function useWordsPage() {
   const randItems = ref<WordEntry[]>([])
   const randRevealSet = ref<Set<string>>(new Set())
   const bookRestoring = ref(false)
+  /** 换册恢复完成前禁止连点，减轻移动端 WebKit 反复崩溃 */
+  const bookSwitchLock = ref(false)
 
   let qTimer: ReturnType<typeof setTimeout> | null = null
   let lessonTextReq = 0
@@ -145,6 +147,7 @@ export function useWordsPage() {
         if (token !== restoreToken) return
         rail.centerRailChipForLesson(cur.value)
         bookRestoring.value = false
+        bookSwitchLock.value = false
         rail.finishRailBoot()
       })
     })
@@ -280,6 +283,8 @@ export function useWordsPage() {
 
   function switchBook(n: number) {
     if (n === bk.value) return
+    if (bookSwitchLock.value) return
+    bookSwitchLock.value = true
     bumpRestoreGeneration()
     if (restoreScheduleTimer) {
       clearTimeout(restoreScheduleTimer)
@@ -303,6 +308,13 @@ export function useWordsPage() {
     const savedLesson = lessonMap.value[String(n)]
     cur.value = (savedLesson === 'all' || savedLesson) ? String(savedLesson) : 'all'
   }
+
+  watch(bookError, (err) => {
+    if (!err) return
+    bookRestoring.value = false
+    bookSwitchLock.value = false
+    rail.finishRailBoot()
+  })
 
   function toggleMaster(entry: WordEntry) {
     const k = mkey(entry)
@@ -476,6 +488,7 @@ export function useWordsPage() {
     bk,
     bookPending,
     bookRestoring,
+    bookSwitchLock,
     bookError,
     cur,
     q,

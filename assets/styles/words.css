@@ -94,6 +94,11 @@
   color: var(--blog-white);
 }
 
+.words-books button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .words-prefs-voice-row {
   display: flex;
   align-items: center;

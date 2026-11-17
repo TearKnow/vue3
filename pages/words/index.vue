@@ -30,6 +30,7 @@
               :key="n"
               type="button"
               :class="{ on: bk === n }"
+              :disabled="bookSwitchLock"
               @click="switchBook(n)"
             >
               第{{ ['一', '二', '三', '四'][n - 1] }}册
@@ -237,16 +238,16 @@
 
       <main id="words-content">
         <div
-          v-if="bookPending && !bookRestoring"
-          class="words-loading"
-        >
-          加载词表中…
-        </div>
-        <div
-          v-else-if="bookError"
+          v-if="bookError"
           class="words-err"
         >
           词表加载失败，请刷新重试
+        </div>
+        <div
+          v-else-if="(bookPending || bookRestoring) && !lessonGroups.order.length"
+          class="words-loading"
+        >
+          加载词表中…
         </div>
         <div
           v-else-if="!lessonGroups.order.length"
@@ -542,6 +543,7 @@ const {
   bk,
   bookPending,
   bookRestoring,
+  bookSwitchLock,
   bookError,
   cur,
   q,
