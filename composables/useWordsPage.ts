@@ -2,6 +2,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } fr
 import type { LessonTextPayload, WordEntry, WordsBookMeta } from '~/types/words'
 import { useWordsAudio } from '~/composables/useWordsAudio'
 import { runAfterRestoreScroll, useWordsRailScroll } from '~/composables/useWordsRailScroll'
+import { useWordsLessonRender } from '~/composables/useWordsLessonRender'
 
 function lsGet() {
   try { return window.localStorage } catch { return null }
@@ -113,6 +114,7 @@ export function useWordsPage() {
   let lessonTextReq = 0
   let restoreToken = 0
   let restoreScheduleTimer: ReturnType<typeof setTimeout> | null = null
+  let switchLockFailsafe: ReturnType<typeof setTimeout> | null = null
 
   const buildId = useAppBuildId()
   const { data: meta } = useFetch<WordsBookMeta>(
@@ -152,6 +154,7 @@ export function useWordsPage() {
         rail.centerRailChipForLesson(cur.value)
         bookRestoring.value = false
         bookSwitchLock.value = false
+        clearSwitchLockFailsafe()
         rail.finishRailBoot()
       })
     })
@@ -199,6 +202,12 @@ export function useWordsPage() {
     nextTick(() => rail.syncRailFromScroll())
   })
 
+  function tryScheduleBookRestore() {
+    if (bookPending.value) return
+    if (!lessonRender.renderReadyForRestore.value) return
+    scheduleBookRestore()
+  }
+
   watch(
     () => [bk.value, bookPending.value] as const,
     ([, pending]) => {
@@ -207,9 +216,31 @@ export function useWordsPage() {
         rail.setRailBooting(true)
         return
       }
-      scheduleBookRestore()
+      tryScheduleBookRestore()
     },
   )
+
+  watch(lessonRender.renderReadyForRestore, (ready) => {
+    if (ready) tryScheduleBookRestore()
+  })
+
+  function clearSwitchLockFailsafe() {
+    if (switchLockFailsafe) {
+      clearTimeout(switchLockFailsafe)
+      switchLockFailsafe = null
+    }
+  }
+
+  function armSwitchLockFailsafe() {
+    clearSwitchLockFailsafe()
+    switchLockFailsafe = setTimeout(() => {
+      switchLockFailsafe = null
+      if (!bookSwitchLock.value) return
+      bookRestoring.value = false
+      bookSwitchLock.value = false
+      rail.finishRailBoot()
+    }, 12000)
+  }
 
   const activeBookWords = computed(() => {
     if (bookPending.value) return []
@@ -231,6 +262,12 @@ export function useWordsPage() {
 
   const lessonGroups = computed(() => groupByLesson(filteredList.value))
   const matchCount = computed(() => (qDebounced.value ? filteredList.value.length : 0))
+
+  const lessonRender = useWordsLessonRender(
+    computed(() => lessonGroups.value.order),
+    bookRestoring,
+    cur,
+  )
 
   const statLessons = computed(() => meta.value?.[String(bk.value)]?.[0] ?? 0)
   const statWords = computed(() => meta.value?.[String(bk.value)]?.[1] ?? 0)
@@ -289,7 +326,9 @@ export function useWordsPage() {
     if (n === bk.value) return
     if (bookSwitchLock.value) return
     bookSwitchLock.value = true
+    armSwitchLockFailsafe()
     bumpRestoreGeneration()
+    lessonRender.bumpRenderGeneration()
     if (restoreScheduleTimer) {
       clearTimeout(restoreScheduleTimer)
       restoreScheduleTimer = null
@@ -317,6 +356,7 @@ export function useWordsPage() {
     if (!err) return
     bookRestoring.value = false
     bookSwitchLock.value = false
+    clearSwitchLockFailsafe()
     rail.finishRailBoot()
   })
 
@@ -482,7 +522,9 @@ export function useWordsPage() {
   onUnmounted(() => {
     window.removeEventListener('resize', onHeaderResize)
     if (restoreScheduleTimer) clearTimeout(restoreScheduleTimer)
+    clearSwitchLockFailsafe()
     bumpRestoreGeneration()
+    lessonRender.onUnmount()
     rail.cleanup()
     audio.stopChain()
     document.documentElement.style.removeProperty('--words-header-h')
@@ -507,6 +549,7 @@ export function useWordsPage() {
     prefsSummary,
     revealQuiz,
     lessonGroups,
+    visibleLessonOrder: lessonRender.visibleLessonOrder,
     matchCount,
     statLessons,
     statWords,

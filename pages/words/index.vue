@@ -264,7 +264,7 @@
           没有匹配的单词，换个关键词试试
         </div>
         <section
-          v-for="lno in lessonGroups.order"
+          v-for="lno in visibleLessonOrder"
           v-else
           :id="`L${lno}`"
           :key="`${bk}-${lno}`"
@@ -568,6 +568,7 @@ const {
   prefsSummary,
   revealQuiz,
   lessonGroups,
+  visibleLessonOrder,
   matchCount,
   statLessons,
   statWords,

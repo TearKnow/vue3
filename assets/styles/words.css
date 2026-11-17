@@ -333,6 +333,8 @@
 
 .words-lesson {
   margin-bottom: 26px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
 }
 
 .words-lhead {
