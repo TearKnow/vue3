@@ -1,7 +1,7 @@
 <template>
   <div
     class="words-page"
-    :class="{ 'is-quiz': quiz, 'is-restore-pending': bookRestoring }"
+    :class="{ 'is-quiz': quiz }"
   >
     <header class="words-site-header">
       <div class="words-hd words-wrap">

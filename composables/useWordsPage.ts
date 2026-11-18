@@ -202,10 +202,6 @@ export function useWordsPage() {
     qTimer = setTimeout(() => { qDebounced.value = v.trim() }, 300)
   })
 
-  watch([qDebounced, onlyMaster], () => {
-    rail.invalidateLessonAnchorCache()
-  })
-
   const activeBookWords = computed(() => {
     if (bookPending.value) return []
     return bookWords.value ?? []
@@ -229,7 +225,6 @@ export function useWordsPage() {
 
   const lessonRender = useWordsLessonRender(
     computed(() => lessonGroups.value.order),
-    bookRestoring,
     cur,
   )
 
@@ -305,8 +300,6 @@ export function useWordsPage() {
     () => {
       syncWordsUiReady()
       tryScheduleBookRestore()
-      if (lessonRender.renderComplete.value)
-        rail.invalidateLessonAnchorCache()
     },
     { flush: 'post' },
   )
@@ -567,7 +560,6 @@ export function useWordsPage() {
     headerPadTimer = setTimeout(() => {
       headerPadTimer = null
       syncHeaderPad()
-      rail.invalidateLessonAnchorCache()
     }, 120)
   }
 
@@ -626,7 +618,6 @@ export function useWordsPage() {
     lessonGroups,
     wordsRenderComplete: lessonRender.renderComplete,
     wordsUiReady,
-    visibleLessonOrder: lessonRender.visibleLessonOrder,
     isLessonWordsVisible: lessonRender.isLessonWordsVisible,
     lessonWordsGridStyle: lessonRender.lessonWordsGridStyle,
     matchCount,

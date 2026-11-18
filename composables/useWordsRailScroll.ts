@@ -22,64 +22,15 @@ export function useWordsRailScroll(options: {
     return (hd?.getBoundingClientRect().height || 0) + 8
   }
 
-  function invalidateLessonAnchorCache() {
-    /* 保留 API，供筛选/换册后无操作占位 */
-  }
-
   function lessonSection(lno: string): HTMLElement | null {
     if (lno === 'all') return null
     return document.getElementById(`L${lno}`)
-  }
-
-  function lessonScrollTop(lno: string): number | null {
-    if (lno === 'all') return 0
-    const section = lessonSection(lno)
-    if (!section) return null
-    const off = headerOffset()
-    return Math.max(0, section.getBoundingClientRect().top + window.scrollY - off)
   }
 
   function scrollToLesson(lno: string) {
     const section = lessonSection(lno)
     if (!section) return
     section.scrollIntoView({ block: 'start', behavior: 'auto' })
-  }
-
-  function scrollToLessonWhenStable(lno: string, onDone?: () => void) {
-    if (lno === 'all') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-      onDone?.()
-      return
-    }
-    let last: number | null = null
-    let stable = 0
-    let frames = 0
-    const maxFrames = 12
-    const step = () => {
-      frames++
-      const top = lessonScrollTop(lno)
-      if (top == null) {
-        if (frames >= maxFrames) onDone?.()
-        else requestAnimationFrame(step)
-        return
-      }
-      if (last !== null && Math.abs(top - last) <= 1)
-        stable++
-      else
-        stable = 0
-      last = top
-      if (stable >= 1 || frames >= maxFrames) {
-        const section = lessonSection(lno)
-        if (section)
-          section.scrollIntoView({ block: 'start', behavior: 'auto' })
-        else
-          window.scrollTo({ top, left: 0, behavior: 'auto' })
-        onDone?.()
-        return
-      }
-      requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
   }
 
   function ensureRailChipVisible(chip: Element) {
@@ -104,7 +55,6 @@ export function useWordsRailScroll(options: {
     }
   }
 
-  /** 根据正文滚动更新侧栏高亮与 nce4lessons，不滚动正文 */
   function syncRailFromScroll() {
     if (railLock || railBooting) return
     const lessons = document.querySelectorAll<HTMLElement>('#words-content .words-lesson')
@@ -162,13 +112,17 @@ export function useWordsRailScroll(options: {
     }, ms ?? (isMobileLayout() ? 600 : 480))
   }
 
-  function finishRailBoot() {
+  function endBoot() {
     railBooting = false
+  }
+
+  function finishRailBoot() {
+    endBoot()
     syncRailFromScroll()
   }
 
   function finishRestoreBoot(lesson: string) {
-    railBooting = false
+    endBoot()
     saveLessonPref()
     if (lesson !== 'all' && !isMobileLayout())
       centerRailChipForLesson(lesson)
@@ -212,14 +166,10 @@ export function useWordsRailScroll(options: {
 
   return {
     scrollToLesson,
-    scrollToLessonWhenStable,
-    setRailActive,
-    invalidateLessonAnchorCache,
     finishRailBoot,
     finishRestoreBoot,
     setRailBooting,
     pickLesson,
-    centerRailChipForLesson,
     mountScrollListener,
     cleanup,
     isMobileLayout,

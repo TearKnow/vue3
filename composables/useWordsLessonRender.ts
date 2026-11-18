@@ -32,7 +32,6 @@ export function estimateWordsGridMinHeight(wordCount: number): string | undefine
 
 export function useWordsLessonRender(
   lessonOrder: ComputedRef<number[]>,
-  restorePending: Ref<boolean>,
   targetLesson: Ref<string>,
 ) {
   const renderedCount = ref(0)
@@ -87,8 +86,6 @@ export function useWordsLessonRender(
     { flush: 'post' },
   )
 
-  const visibleLessonOrder = computed(() => lessonOrder.value.slice(0, renderedCount.value))
-
   const renderComplete = computed(
     () => renderedCount.value >= lessonOrder.value.length,
   )
@@ -117,7 +114,6 @@ export function useWordsLessonRender(
   }
 
   return {
-    visibleLessonOrder,
     isLessonWordsVisible,
     lessonWordsGridStyle,
     renderComplete,
