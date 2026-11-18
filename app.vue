@@ -347,8 +347,8 @@ body {
   display: grid;
   place-items: center;
   padding: 0;
-  background: var(--blog-code-btn-bg);
-  color: var(--blog-white);
+  background: var(--blog-quick-fab-bg, var(--blog-code-btn-bg));
+  color: var(--blog-quick-fab-fg);
   font-size: 22px;
   font-weight: 500;
   line-height: 1;
@@ -357,7 +357,11 @@ body {
 }
 
 .quick-entry-fab:active {
-  background: var(--blog-slate-700);
+  background: var(--blog-code-btn-bg-hover);
+}
+
+html.dark .quick-entry-fab:active {
+  background: rgb(100 116 139 / 0.95);
 }
 
 @media (min-width: 900px) {

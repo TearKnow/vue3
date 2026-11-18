@@ -92,6 +92,7 @@ html {
   --words-star: #e0a11e;
   --words-star-dim: #cbbca0;
   --words-playing-ring: rgb(207 77 58 / 0.22);
+  --blog-quick-fab-fg: #ffffff;
 }
 
 /* 暗色模式 */
@@ -184,6 +185,8 @@ html.dark {
   --words-star: #b89a62;
   --words-star-dim: #6d6148;
   --words-playing-ring: rgb(184 155 150 / 0.22);
+  --blog-quick-fab-bg: rgb(71 85 105 / 0.94);
+  --blog-quick-fab-fg: #f1f5f9;
 }
 
 /* 细滚动条：代码块、表格等溢出区域（无两端箭头） */
