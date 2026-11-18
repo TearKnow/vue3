@@ -498,7 +498,7 @@ html:has(.words-page)::-webkit-scrollbar-corner {
 
 .words-word.playing {
   border-color: var(--words-accent);
-  box-shadow: 0 0 0 2px rgb(207 77 58 / 0.22);
+  box-shadow: 0 0 0 2px var(--words-playing-ring);
 }
 
 .words-vbtn {
@@ -716,7 +716,7 @@ html:has(.words-page)::-webkit-scrollbar-corner {
 .words-modal-mask {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 200;
   background: var(--blog-overlay-dark);
   display: flex;
   align-items: center;

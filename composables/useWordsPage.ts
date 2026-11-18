@@ -229,6 +229,14 @@ export function useWordsPage() {
     cur,
   )
 
+  const lessonOrderKey = computed(() => lessonGroups.value.order.join(','))
+  /** 词条已展示过后保持侧栏，避免无关重算触发分批渲染导致目录闪没 */
+  const wordsUiReady = ref(false)
+
+  watch(lessonOrderKey, () => {
+    wordsUiReady.value = false
+  })
+
   function tryScheduleBookRestore() {
     if (bookPending.value) return
     if (!lessonRender.renderComplete.value) return
@@ -248,7 +256,9 @@ export function useWordsPage() {
   )
 
   watch(lessonRender.renderComplete, (ready) => {
-    if (ready) tryScheduleBookRestore()
+    if (!ready) return
+    wordsUiReady.value = true
+    tryScheduleBookRestore()
   })
 
   function clearSwitchLockFailsafe() {
@@ -329,6 +339,7 @@ export function useWordsPage() {
     armSwitchLockFailsafe()
     bumpRestoreGeneration()
     lessonRender.bumpRenderGeneration()
+    wordsUiReady.value = false
     if (restoreScheduleTimer) {
       clearTimeout(restoreScheduleTimer)
       restoreScheduleTimer = null
@@ -550,6 +561,7 @@ export function useWordsPage() {
     revealQuiz,
     lessonGroups,
     wordsRenderComplete: lessonRender.renderComplete,
+    wordsUiReady,
     visibleLessonOrder: lessonRender.visibleLessonOrder,
     isLessonWordsVisible: lessonRender.isLessonWordsVisible,
     lessonWordsGridStyle: lessonRender.lessonWordsGridStyle,

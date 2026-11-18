@@ -213,10 +213,10 @@
 
     <div
       class="words-layout"
-      :class="{ 'is-preparing': lessonGroups.order.length > 0 && !wordsRenderComplete }"
+      :class="{ 'is-preparing': lessonGroups.order.length > 0 && !wordsUiReady }"
     >
       <nav
-        v-if="wordsRenderComplete && lessonGroups.order.length"
+        v-if="wordsUiReady && lessonGroups.order.length"
         class="words-rail"
         aria-label="按课浏览"
       >
@@ -262,7 +262,7 @@
         </div>
         <template v-else>
           <div
-            v-if="!wordsRenderComplete"
+            v-if="!wordsUiReady"
             class="words-loading"
           >
             正在准备词条…
@@ -359,9 +359,10 @@
       </main>
     </div>
 
-    <div
-      v-if="lessonTextOpen"
-      class="words-modal-mask"
+    <Teleport to="body">
+      <div
+        v-if="lessonTextOpen"
+        class="words-modal-mask"
       @pointerdown.self="textMaskDown = true"
       @pointerup.self="onTextMaskUp"
       @pointercancel="textMaskDown = false"
@@ -426,11 +427,11 @@
           v-html="lessonTextHtml"
         />
       </div>
-    </div>
+      </div>
 
-    <div
-      v-if="randOpen"
-      class="words-modal-mask"
+      <div
+        v-if="randOpen"
+        class="words-modal-mask"
       @pointerdown.self="randMaskDown = true"
       @pointerup.self="onRandMaskUp"
       @pointercancel="randMaskDown = false"
@@ -512,7 +513,8 @@
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -533,35 +535,6 @@ useHead({
 const tryWord = ref('')
 const textMaskDown = ref(false)
 const randMaskDown = ref(false)
-const lockedScrollTop = ref(0)
-
-function setBodyScrollLock(locked: boolean) {
-  if (!import.meta.client) return
-  const html = document.documentElement
-  const body = document.body
-  if (locked) {
-    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth
-    lockedScrollTop.value = window.scrollY || window.pageYOffset || 0
-    html.style.overflow = 'hidden'
-    body.style.overflow = 'hidden'
-    body.style.position = 'fixed'
-    body.style.top = `-${lockedScrollTop.value}px`
-    body.style.left = '0'
-    body.style.right = '0'
-    if (scrollBarWidth > 0)
-      body.style.paddingRight = `${scrollBarWidth}px`
-  }
-  else {
-    html.style.overflow = ''
-    body.style.overflow = ''
-    body.style.position = ''
-    body.style.top = ''
-    body.style.left = ''
-    body.style.right = ''
-    body.style.paddingRight = ''
-    window.scrollTo(0, lockedScrollTop.value)
-  }
-}
 
 const {
   bk,
@@ -583,6 +556,7 @@ const {
   revealQuiz,
   lessonGroups,
   wordsRenderComplete,
+  wordsUiReady,
   isLessonWordsVisible,
   lessonWordsGridStyle,
   matchCount,
@@ -685,13 +659,7 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', onDocClick)
   document.removeEventListener('keydown', onKeydown)
-  setBodyScrollLock(false)
 })
-
-watch(
-  () => lessonTextOpen.value || randOpen.value,
-  open => setBodyScrollLock(open),
-)
 
 watch(bookPending, (p) => {
   if (!p) removeNavigationLoadingOverlay()

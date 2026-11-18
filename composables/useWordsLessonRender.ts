@@ -66,10 +66,10 @@ export function useWordsLessonRender(
   }
 
   watch(
-    lessonOrder,
-    (order) => {
+    () => lessonOrder.value.join(','),
+    (key) => {
       const gen = bumpRenderGeneration()
-      if (order.length) runPump(gen)
+      if (key) runPump(gen)
     },
     { flush: 'post' },
   )

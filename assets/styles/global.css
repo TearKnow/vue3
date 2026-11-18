@@ -91,6 +91,7 @@ html {
   --words-card: #fffdf8;
   --words-star: #e0a11e;
   --words-star-dim: #cbbca0;
+  --words-playing-ring: rgb(207 77 58 / 0.22);
 }
 
 /* 暗色模式 */
@@ -167,6 +168,19 @@ html.dark {
   --wiki-hero-accent: rgb(59 130 246 / 0.18);
   --wiki-sidebar-shadow: rgb(0 0 0 / 0.28);
   --blog-annotation-bg: #c47878;
+  --words-paper: #12161f;
+  --words-paper-2: #181d28;
+  --words-ink: #e8ecf4;
+  --words-ink-2: #b8c2d4;
+  --words-muted: #7d8aa3;
+  --words-line: #2f3849;
+  --words-accent: #e86856;
+  --words-accent-2: #5bb4d4;
+  --words-chip: #232b3a;
+  --words-card: #1a2030;
+  --words-star: #e8b339;
+  --words-star-dim: #6d6148;
+  --words-playing-ring: rgb(232 104 86 / 0.35);
 }
 
 /* 细滚动条：代码块、表格等溢出区域（无两端箭头） */
