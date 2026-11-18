@@ -242,9 +242,30 @@ export function useWordsPage() {
     wordsUiReady.value = false
   })
 
+  function syncWordsUiReady() {
+    const order = lessonGroups.value.order
+    if (bookPending.value || !order.length) {
+      wordsUiReady.value = false
+      return
+    }
+    if (lessonRender.renderComplete.value) {
+      wordsUiReady.value = true
+      return
+    }
+    if (bookRestoring.value && cur.value !== 'all') {
+      wordsUiReady.value = lessonRender.renderReadyForRestore.value
+      return
+    }
+    wordsUiReady.value = lessonRender.renderedCount.value > 0
+  }
+
   function tryScheduleBookRestore() {
     if (bookPending.value) return
-    if (!lessonRender.renderComplete.value) return
+    if (cur.value === 'all') {
+      scheduleBookRestore()
+      return
+    }
+    if (!lessonRender.renderReadyForRestore.value) return
     scheduleBookRestore()
   }
 
@@ -261,10 +282,17 @@ export function useWordsPage() {
   )
 
   watch(
-    lessonRender.renderComplete,
-    (ready) => {
-      if (!ready) return
-      wordsUiReady.value = true
+    [
+      () => lessonRender.renderComplete.value,
+      () => lessonRender.renderReadyForRestore.value,
+      () => lessonRender.renderedCount.value,
+      () => bookPending.value,
+      () => bookRestoring.value,
+      () => cur.value,
+      lessonOrderKey,
+    ],
+    () => {
+      syncWordsUiReady()
       tryScheduleBookRestore()
     },
     { flush: 'post' },

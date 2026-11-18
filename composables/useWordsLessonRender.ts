@@ -3,6 +3,19 @@ import { computed, ref, watch, type ComputedRef, type Ref } from 'vue'
 /** 每帧挂载词表的课数（课节标题先全部挂载，避免滚动条随高度增长而缩短） */
 const LESSONS_PER_FRAME = 3
 const INSTANT_LESSON_THRESHOLD = 20
+/** 桌面换册一次挂完；移动端保持每帧 3 课，减轻 WebKit 压力 */
+const WORDS_MOBILE_MAX_WIDTH = 860
+
+function isWordsMobileLayout() {
+  if (import.meta.server) return false
+  return window.matchMedia?.(`(max-width: ${WORDS_MOBILE_MAX_WIDTH}px)`).matches ?? false
+}
+
+function lessonsChunkSize(total: number) {
+  if (!isWordsMobileLayout()) return total
+  if (total <= INSTANT_LESSON_THRESHOLD) return total
+  return LESSONS_PER_FRAME
+}
 
 /** 与 .words-grid 列宽配套的保守预估，用于未挂词表前占位高度 */
 const WORD_CARD_ROW_PX = 118
@@ -57,7 +70,7 @@ export function useWordsLessonRender(
         renderedCount.value = 0
         return
       }
-      const chunk = total <= INSTANT_LESSON_THRESHOLD ? total : LESSONS_PER_FRAME
+      const chunk = lessonsChunkSize(total)
       renderedCount.value = Math.min(total, renderedCount.value + chunk)
       if (renderedCount.value < total)
         rafId = requestAnimationFrame(step)
@@ -109,6 +122,7 @@ export function useWordsLessonRender(
     lessonWordsGridStyle,
     renderComplete,
     renderReadyForRestore,
+    renderedCount,
     bumpRenderGeneration,
     cleanup: cancelPump,
     onUnmount: cleanup,
