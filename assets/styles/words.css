@@ -73,11 +73,6 @@ html:has(.words-page)::-webkit-scrollbar-corner {
   font-weight: 700;
 }
 
-.words-brand .t2 {
-  font-size: 12px;
-  color: var(--words-muted);
-}
-
 .words-build-id {
   margin-left: 4px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -94,15 +89,36 @@ html:has(.words-page)::-webkit-scrollbar-corner {
 
 .words-stats {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  align-items: baseline;
+  flex-shrink: 0;
   font-size: 12px;
   color: var(--words-ink-2);
 }
 
-.words-stats b {
+.words-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.words-stat b {
   font-size: 14px;
   color: var(--words-accent);
   font-family: Georgia, serif;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  text-align: right;
+}
+
+/* 四册最大：96 课、1108 词，固定数字槽避免换册时顶栏横跳 */
+.words-stat-lessons b {
+  min-width: 2ch;
+}
+
+.words-stat-words b {
+  min-width: 4ch;
 }
 
 .words-controls {
@@ -400,6 +416,35 @@ html:has(.words-page)::-webkit-scrollbar-corner {
 
 .words-rail .n.on .tt {
   color: rgb(255 255 255 / 0.88);
+}
+
+html.dark .words-rail .n.on {
+  background: var(--words-accent-surface);
+}
+
+html.dark .words-rail .n.on .num {
+  color: var(--words-accent);
+}
+
+html.dark .words-rail .n.on .tt {
+  color: var(--words-ink-2);
+}
+
+html.dark .words-books button.on {
+  background: var(--words-accent-surface);
+  color: var(--words-accent);
+  box-shadow: inset 0 0 0 1px var(--words-accent-edge);
+}
+
+html.dark .words-ctrl-btn {
+  background: var(--words-accent-surface);
+  color: var(--words-accent);
+  box-shadow: inset 0 0 0 1px var(--words-accent-edge);
+}
+
+html.dark .words-ctrl-btn:hover {
+  background: var(--words-accent-surface-hover);
+  color: var(--words-ink);
 }
 
 .words-lesson {
@@ -997,7 +1042,6 @@ html:has(.words-page)::-webkit-scrollbar-corner {
     height: 14px;
   }
 
-  .words-brand .t2,
   .words-searchbar,
   .words-prefs-sum {
     display: none;

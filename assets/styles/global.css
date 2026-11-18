@@ -174,13 +174,16 @@ html.dark {
   --words-ink-2: #b8c2d4;
   --words-muted: #7d8aa3;
   --words-line: #2f3849;
-  --words-accent: #e86856;
-  --words-accent-2: #5bb4d4;
+  --words-accent: #b89b96;
+  --words-accent-surface: rgb(184 155 150 / 0.14);
+  --words-accent-surface-hover: rgb(184 155 150 / 0.22);
+  --words-accent-edge: rgb(184 155 150 / 0.3);
+  --words-accent-2: #6aa3bc;
   --words-chip: #232b3a;
   --words-card: #1a2030;
-  --words-star: #e8b339;
+  --words-star: #b89a62;
   --words-star-dim: #6d6148;
-  --words-playing-ring: rgb(232 104 86 / 0.35);
+  --words-playing-ring: rgb(184 155 150 / 0.22);
 }
 
 /* 细滚动条：代码块、表格等溢出区域（无两端箭头） */
