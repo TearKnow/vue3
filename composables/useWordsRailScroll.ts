@@ -1,16 +1,17 @@
 import { nextTick, type Ref } from 'vue'
 
+const SCROLL_SPY_MS = 180
+
 export function useWordsRailScroll(options: {
   cur: Ref<string>
   saveLessonPref: () => void
 }) {
   const { cur, saveLessonPref } = options
 
+  let railBooting = true
   let railLock = false
   let railLockTimer: ReturnType<typeof setTimeout> | null = null
-  let railScrollRaf = 0
-  let railBooting = true
-  let mobileSpyTimer: ReturnType<typeof setTimeout> | null = null
+  let scrollSpyTimer: ReturnType<typeof setTimeout> | null = null
 
   function isMobileLayout() {
     return window.matchMedia?.('(max-width: 860px)').matches ?? false
@@ -21,29 +22,29 @@ export function useWordsRailScroll(options: {
     return (hd?.getBoundingClientRect().height || 0) + 8
   }
 
-  function lessonAnchorEl(lno: string): HTMLElement | null {
-    if (lno === 'all') return null
-    const section = document.getElementById(`L${lno}`)
-    if (!section) return null
-    return section.querySelector<HTMLElement>('.words-lhead .no') ?? section
+  function invalidateLessonAnchorCache() {
+    /* 保留 API，供筛选/换册后无操作占位 */
   }
 
-  /** 与 syncRailFromScroll 一致：按课号标签锚点对齐顶栏 */
+  function lessonSection(lno: string): HTMLElement | null {
+    if (lno === 'all') return null
+    return document.getElementById(`L${lno}`)
+  }
+
   function lessonScrollTop(lno: string): number | null {
     if (lno === 'all') return 0
-    const el = lessonAnchorEl(lno)
-    if (!el) return null
+    const section = lessonSection(lno)
+    if (!section) return null
     const off = headerOffset()
-    return Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - off)
+    return Math.max(0, section.getBoundingClientRect().top + window.scrollY - off)
   }
 
   function scrollToLesson(lno: string) {
-    const top = lessonScrollTop(lno)
-    if (top == null) return
-    window.scrollTo({ top, left: 0, behavior: 'auto' })
+    const section = lessonSection(lno)
+    if (!section) return
+    section.scrollIntoView({ block: 'start', behavior: 'auto' })
   }
 
-  /** 等课节锚点纵向位置连续稳定后再滚动，用于分批渲染结束后的恢复定位 */
   function scrollToLessonWhenStable(lno: string, onDone?: () => void) {
     if (lno === 'all') {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -68,7 +69,11 @@ export function useWordsRailScroll(options: {
         stable = 0
       last = top
       if (stable >= 1 || frames >= maxFrames) {
-        window.scrollTo({ top, left: 0, behavior: 'auto' })
+        const section = lessonSection(lno)
+        if (section)
+          section.scrollIntoView({ block: 'start', behavior: 'auto' })
+        else
+          window.scrollTo({ top, left: 0, behavior: 'auto' })
         onDone?.()
         return
       }
@@ -99,85 +104,62 @@ export function useWordsRailScroll(options: {
     }
   }
 
-  function rectInView(r: DOMRect, top: number, bottom: number) {
-    return r.bottom > top && r.top < bottom
-  }
-
+  /** 根据正文滚动更新侧栏高亮与 nce4lessons，不滚动正文 */
   function syncRailFromScroll() {
     if (railLock || railBooting) return
     const lessons = document.querySelectorAll<HTMLElement>('#words-content .words-lesson')
     if (!lessons.length) {
-      if (cur.value !== 'all') setRailActive('all')
+      if (cur.value !== 'all') setRailActive('all', false)
       return
     }
     if (window.pageYOffset <= 12) {
-      if (!isMobileLayout() && cur.value !== 'all') setRailActive('all')
+      if (!isMobileLayout() && cur.value !== 'all') setRailActive('all', false)
       return
     }
-    const top = headerOffset()
+    const railTop = headerOffset()
     const bottom = window.innerHeight || document.documentElement.clientHeight
+    const anchorDocY = window.scrollY + railTop + 6
     let primary: string | null = null
-    let primaryNoTop = Infinity
-    let coverPrimary: string | null = null
-    let firstVisible: string | null = null
 
     for (let i = 0; i < lessons.length; i++) {
       const les = lessons[i]!
       const id = les.getAttribute('data-l')
       if (!id) continue
-      const lr = les.getBoundingClientRect()
-      if (!rectInView(lr, top, bottom)) continue
-      if (!firstVisible) firstVisible = id
-      if (lr.top <= top + 8 && lr.bottom > top + 8) coverPrimary = id
-
       const no = les.querySelector('.words-lhead .no')
       if (!no) continue
-      const nr = no.getBoundingClientRect()
-      if (rectInView(nr, top, bottom) && nr.top < primaryNoTop) {
-        primaryNoTop = nr.top
-        primary = id
-      }
+      const noDocY = no.getBoundingClientRect().top + window.scrollY
+      if (noDocY <= anchorDocY) primary = id
     }
 
-    if (!primary) primary = coverPrimary || firstVisible
     if (!primary) {
       const docH = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)
-      if (window.pageYOffset + bottom >= docH - 48) {
+      if (window.pageYOffset + bottom >= docH - 48)
         primary = lessons[lessons.length - 1]?.getAttribute('data-l') ?? null
-      }
     }
     if (!primary) {
-      if (cur.value !== 'all') setRailActive('all')
+      if (cur.value !== 'all') setRailActive('all', false)
       return
     }
-    if (String(cur.value) !== String(primary)) setRailActive(primary)
+    if (String(cur.value) !== String(primary))
+      setRailActive(primary, false)
   }
 
   function onWindowScrollRail() {
-    if (isMobileLayout()) {
-      if (mobileSpyTimer) clearTimeout(mobileSpyTimer)
-      mobileSpyTimer = setTimeout(() => {
-        mobileSpyTimer = null
-        syncRailFromScroll()
-      }, 180)
-      return
-    }
-    if (railScrollRaf) return
-    railScrollRaf = requestAnimationFrame(() => {
-      railScrollRaf = 0
+    if (railLock) return
+    if (scrollSpyTimer) clearTimeout(scrollSpyTimer)
+    scrollSpyTimer = setTimeout(() => {
+      scrollSpyTimer = null
       syncRailFromScroll()
-    })
+    }, SCROLL_SPY_MS)
   }
 
-  function lockRailBriefly(ms?: number, opts?: { syncOnUnlock?: boolean }) {
+  function lockRailBriefly(ms?: number) {
     railLock = true
     if (railLockTimer) clearTimeout(railLockTimer)
-    const syncOnUnlock = opts?.syncOnUnlock !== false
     railLockTimer = setTimeout(() => {
       railLock = false
       railLockTimer = null
-      if (syncOnUnlock) syncRailFromScroll()
-    }, ms ?? (isMobileLayout() ? 700 : 450))
+    }, ms ?? (isMobileLayout() ? 600 : 480))
   }
 
   function finishRailBoot() {
@@ -185,9 +167,9 @@ export function useWordsRailScroll(options: {
     syncRailFromScroll()
   }
 
-  /** 恢复课后结束 boot：信任 localStorage 课号，不按视口重写 cur */
   function finishRestoreBoot(lesson: string) {
     railBooting = false
+    saveLessonPref()
     if (lesson !== 'all' && !isMobileLayout())
       centerRailChipForLesson(lesson)
   }
@@ -197,13 +179,19 @@ export function useWordsRailScroll(options: {
   }
 
   function pickLesson(l: string) {
-    lockRailBriefly()
-    setRailActive(l, false)
-    if (l === 'all') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-      return
+    if (scrollSpyTimer) {
+      clearTimeout(scrollSpyTimer)
+      scrollSpyTimer = null
     }
-    scrollToLesson(l)
+    lockRailBriefly()
+    setRailActive(l, true)
+    nextTick(() => {
+      if (l === 'all') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+        return
+      }
+      scrollToLesson(l)
+    })
   }
 
   function centerRailChipForLesson(lno: string) {
@@ -219,16 +207,14 @@ export function useWordsRailScroll(options: {
   function cleanup() {
     window.removeEventListener('scroll', onWindowScrollRail)
     if (railLockTimer) clearTimeout(railLockTimer)
-    if (mobileSpyTimer) clearTimeout(mobileSpyTimer)
-    if (railScrollRaf) cancelAnimationFrame(railScrollRaf)
+    if (scrollSpyTimer) clearTimeout(scrollSpyTimer)
   }
 
   return {
     scrollToLesson,
     scrollToLessonWhenStable,
     setRailActive,
-    syncRailFromScroll,
-    lockRailBriefly,
+    invalidateLessonAnchorCache,
     finishRailBoot,
     finishRestoreBoot,
     setRailBooting,
@@ -248,7 +234,6 @@ function afterPaintFrames(frames: number, run: () => void) {
   requestAnimationFrame(() => afterPaintFrames(frames - 1, run))
 }
 
-/** 侧栏与主栏 DOM 更新并完成至少两帧绘制后再测量滚动目标，避免 is-offstage 解除后的错位 */
 export function runAfterRestoreScroll(token: number, expectedToken: number, run: () => void) {
   if (token !== expectedToken) return
   nextTick(() => {

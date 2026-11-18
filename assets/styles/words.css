@@ -454,11 +454,7 @@ html.dark .words-ctrl-btn:hover {
 
 .words-lesson {
   margin-bottom: 26px;
-}
-
-/* 恢复滚动前禁止对整课做 content-visibility，避免估高导致课位偏移 */
-.words-page.is-restore-pending .words-lesson {
-  content-visibility: visible;
+  scroll-margin-top: calc(var(--words-header-h) + 6px);
 }
 
 .words-lhead {

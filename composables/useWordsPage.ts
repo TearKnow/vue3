@@ -147,20 +147,19 @@ export function useWordsPage() {
 
   function finishBookRestore(token: number) {
     runAfterRestoreScroll(token, restoreToken, () => {
+      if (token !== restoreToken) return
       syncHeaderPad()
       const lesson = cur.value
-      rail.scrollToLessonWhenStable(lesson, () => {
+      if (lesson === 'all')
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      else
+        rail.scrollToLesson(lesson)
+      nextTick(() => {
         if (token !== restoreToken) return
-        runAfterRestoreScroll(token, restoreToken, () => {
-          if (token !== restoreToken) return
-          syncHeaderPad()
-          rail.scrollToLesson(lesson)
-          bookRestoring.value = false
-          bookSwitchLock.value = false
-          clearSwitchLockFailsafe()
-          rail.lockRailBriefly(undefined, { syncOnUnlock: false })
-          rail.finishRestoreBoot(lesson)
-        })
+        bookRestoring.value = false
+        bookSwitchLock.value = false
+        clearSwitchLockFailsafe()
+        rail.finishRestoreBoot(lesson)
       })
     })
   }
@@ -204,7 +203,7 @@ export function useWordsPage() {
   })
 
   watch([qDebounced, onlyMaster], () => {
-    nextTick(() => rail.syncRailFromScroll())
+    rail.invalidateLessonAnchorCache()
   })
 
   const activeBookWords = computed(() => {
@@ -261,11 +260,23 @@ export function useWordsPage() {
 
   function tryScheduleBookRestore() {
     if (bookPending.value) return
-    if (cur.value === 'all') {
-      scheduleBookRestore()
-      return
+    /** 仅换册/首进恢复课位；日常滚动手改 cur 不再触发滚动 */
+    if (!bookRestoring.value) return
+    const order = lessonGroups.value.order
+    if (!order.length) return
+    if (cur.value !== 'all') {
+      const l = Number(cur.value)
+      if (!Number.isFinite(l) || !order.includes(l)) {
+        cur.value = 'all'
+        bookRestoring.value = false
+        bookSwitchLock.value = false
+        clearSwitchLockFailsafe()
+        rail.finishRestoreBoot('all')
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+        return
+      }
+      if (!lessonRender.renderReadyForRestore.value) return
     }
-    if (!lessonRender.renderReadyForRestore.value) return
     scheduleBookRestore()
   }
 
@@ -273,7 +284,7 @@ export function useWordsPage() {
     () => [bk.value, bookPending.value] as const,
     ([, pending]) => {
       if (pending) {
-        bookRestoring.value = true
+        if (cur.value !== 'all') bookRestoring.value = true
         rail.setRailBooting(true)
         return
       }
@@ -294,6 +305,8 @@ export function useWordsPage() {
     () => {
       syncWordsUiReady()
       tryScheduleBookRestore()
+      if (lessonRender.renderComplete.value)
+        rail.invalidateLessonAnchorCache()
     },
     { flush: 'post' },
   )
@@ -554,7 +567,16 @@ export function useWordsPage() {
     headerPadTimer = setTimeout(() => {
       headerPadTimer = null
       syncHeaderPad()
+      rail.invalidateLessonAnchorCache()
     }, 120)
+  }
+
+  function persistBookVisit() {
+    saveLessonPref()
+    const ls = lsGet()
+    if (ls) {
+      try { ls.setItem('nce4book', String(bk.value)) } catch { /* ignore */ }
+    }
   }
 
   onMounted(() => {
@@ -566,11 +588,13 @@ export function useWordsPage() {
     syncHeaderPad()
     nextTick(() => syncHeaderPad())
     window.addEventListener('resize', onHeaderResize, { passive: true })
+    window.addEventListener('pagehide', persistBookVisit)
     rail.mountScrollListener()
     if (!bookPending.value) tryScheduleBookRestore()
   })
 
   onUnmounted(() => {
+    window.removeEventListener('pagehide', persistBookVisit)
     window.removeEventListener('resize', onHeaderResize)
     if (restoreScheduleTimer) clearTimeout(restoreScheduleTimer)
     clearSwitchLockFailsafe()
