@@ -21,16 +21,60 @@ export function useWordsRailScroll(options: {
     return (hd?.getBoundingClientRect().height || 0) + 8
   }
 
+  function lessonAnchorEl(lno: string): HTMLElement | null {
+    if (lno === 'all') return null
+    const section = document.getElementById(`L${lno}`)
+    if (!section) return null
+    return section.querySelector<HTMLElement>('.words-lhead .no') ?? section
+  }
+
+  /** 与 syncRailFromScroll 一致：按课号标签锚点对齐顶栏 */
+  function lessonScrollTop(lno: string): number | null {
+    if (lno === 'all') return 0
+    const el = lessonAnchorEl(lno)
+    if (!el) return null
+    const off = headerOffset()
+    return Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - off)
+  }
+
   function scrollToLesson(lno: string) {
+    const top = lessonScrollTop(lno)
+    if (top == null) return
+    window.scrollTo({ top, left: 0, behavior: 'auto' })
+  }
+
+  /** 等课节锚点纵向位置连续稳定后再滚动，用于分批渲染结束后的恢复定位 */
+  function scrollToLessonWhenStable(lno: string, onDone?: () => void) {
     if (lno === 'all') {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      onDone?.()
       return
     }
-    const el = document.getElementById(`L${lno}`)
-    if (!el) return
-    const off = headerOffset()
-    const top = el.getBoundingClientRect().top + window.pageYOffset - off
-    window.scrollTo({ top: Math.max(0, top), left: 0, behavior: 'auto' })
+    let last: number | null = null
+    let stable = 0
+    let frames = 0
+    const maxFrames = 12
+    const step = () => {
+      frames++
+      const top = lessonScrollTop(lno)
+      if (top == null) {
+        if (frames >= maxFrames) onDone?.()
+        else requestAnimationFrame(step)
+        return
+      }
+      if (last !== null && Math.abs(top - last) <= 1)
+        stable++
+      else
+        stable = 0
+      last = top
+      if (stable >= 1 || frames >= maxFrames) {
+        window.scrollTo({ top, left: 0, behavior: 'auto' })
+        onDone?.()
+        return
+      }
+      requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
   }
 
   function ensureRailChipVisible(chip: Element) {
@@ -125,19 +169,27 @@ export function useWordsRailScroll(options: {
     })
   }
 
-  function lockRailBriefly(ms?: number) {
+  function lockRailBriefly(ms?: number, opts?: { syncOnUnlock?: boolean }) {
     railLock = true
     if (railLockTimer) clearTimeout(railLockTimer)
+    const syncOnUnlock = opts?.syncOnUnlock !== false
     railLockTimer = setTimeout(() => {
       railLock = false
       railLockTimer = null
-      syncRailFromScroll()
+      if (syncOnUnlock) syncRailFromScroll()
     }, ms ?? (isMobileLayout() ? 700 : 450))
   }
 
   function finishRailBoot() {
     railBooting = false
     syncRailFromScroll()
+  }
+
+  /** 恢复课后结束 boot：信任 localStorage 课号，不按视口重写 cur */
+  function finishRestoreBoot(lesson: string) {
+    railBooting = false
+    if (lesson !== 'all' && !isMobileLayout())
+      centerRailChipForLesson(lesson)
   }
 
   function setRailBooting(on: boolean) {
@@ -173,10 +225,12 @@ export function useWordsRailScroll(options: {
 
   return {
     scrollToLesson,
+    scrollToLessonWhenStable,
     setRailActive,
     syncRailFromScroll,
     lockRailBriefly,
     finishRailBoot,
+    finishRestoreBoot,
     setRailBooting,
     pickLesson,
     centerRailChipForLesson,
@@ -186,11 +240,20 @@ export function useWordsRailScroll(options: {
   }
 }
 
+function afterPaintFrames(frames: number, run: () => void) {
+  if (frames <= 0) {
+    run()
+    return
+  }
+  requestAnimationFrame(() => afterPaintFrames(frames - 1, run))
+}
+
+/** 侧栏与主栏 DOM 更新并完成至少两帧绘制后再测量滚动目标，避免 is-offstage 解除后的错位 */
 export function runAfterRestoreScroll(token: number, expectedToken: number, run: () => void) {
   if (token !== expectedToken) return
   nextTick(() => {
     if (token !== expectedToken) return
-    requestAnimationFrame(() => {
+    afterPaintFrames(2, () => {
       if (token !== expectedToken) return
       run()
     })

@@ -1,6 +1,7 @@
 html:has(.words-page) {
   scrollbar-width: thin;
   scrollbar-color: var(--blog-scrollbar-thumb) transparent;
+  scrollbar-gutter: stable;
 }
 
 html:has(.words-page)::-webkit-scrollbar {
@@ -29,7 +30,7 @@ html:has(.words-page)::-webkit-scrollbar-corner {
 }
 
 .words-page {
-  --words-header-h: 140px;
+  --words-header-h: 168px;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   background: var(--words-paper);
   color: var(--words-ink);
@@ -291,26 +292,30 @@ html:has(.words-page)::-webkit-scrollbar-corner {
   padding: 22px 16px 80px;
   max-width: 1240px;
   margin: 0 auto;
-  transition: opacity 0.15s ease;
-}
-
-.words-layout.is-preparing {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 #words-content {
   position: relative;
+  min-width: 0;
 }
 
-.words-lessons-stage.is-offstage {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
+/* 恢复课位：在文档流中完成布局与滚动，再显示词条，避免用户看到跳动 */
+.words-lessons-stage.is-pre-reveal {
+  visibility: hidden;
   pointer-events: none;
+}
+
+.words-rail--booting {
+  visibility: hidden;
+  pointer-events: none;
+  min-height: 120px;
+}
+
+.words-rail-boot {
+  margin: 0;
+  padding: 8px 0 0;
+  font-size: 12px;
+  color: var(--words-muted);
 }
 
 .words-rail {
@@ -449,8 +454,11 @@ html.dark .words-ctrl-btn:hover {
 
 .words-lesson {
   margin-bottom: 26px;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 120px;
+}
+
+/* 恢复滚动前禁止对整课做 content-visibility，避免估高导致课位偏移 */
+.words-page.is-restore-pending .words-lesson {
+  content-visibility: visible;
 }
 
 .words-lhead {
@@ -631,7 +639,21 @@ html.dark .words-ctrl-btn:hover {
 .words-loading {
   text-align: center;
   color: var(--words-muted);
-  padding: 48px 16px;
+}
+
+.words-loading--cover {
+  position: fixed;
+  z-index: 40;
+  left: 0;
+  right: 0;
+  top: var(--words-header-h);
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--words-paper);
+  pointer-events: none;
 }
 
 .words-err {

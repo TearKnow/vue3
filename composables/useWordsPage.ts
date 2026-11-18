@@ -147,15 +147,20 @@ export function useWordsPage() {
 
   function finishBookRestore(token: number) {
     runAfterRestoreScroll(token, restoreToken, () => {
-      if (cur.value !== 'all') rail.scrollToLesson(cur.value)
-      else window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-      requestAnimationFrame(() => {
+      syncHeaderPad()
+      const lesson = cur.value
+      rail.scrollToLessonWhenStable(lesson, () => {
         if (token !== restoreToken) return
-        rail.centerRailChipForLesson(cur.value)
-        bookRestoring.value = false
-        bookSwitchLock.value = false
-        clearSwitchLockFailsafe()
-        rail.finishRailBoot()
+        runAfterRestoreScroll(token, restoreToken, () => {
+          if (token !== restoreToken) return
+          syncHeaderPad()
+          rail.scrollToLesson(lesson)
+          bookRestoring.value = false
+          bookSwitchLock.value = false
+          clearSwitchLockFailsafe()
+          rail.lockRailBriefly(undefined, { syncOnUnlock: false })
+          rail.finishRestoreBoot(lesson)
+        })
       })
     })
   }
@@ -255,11 +260,15 @@ export function useWordsPage() {
     },
   )
 
-  watch(lessonRender.renderComplete, (ready) => {
-    if (!ready) return
-    wordsUiReady.value = true
-    tryScheduleBookRestore()
-  })
+  watch(
+    lessonRender.renderComplete,
+    (ready) => {
+      if (!ready) return
+      wordsUiReady.value = true
+      tryScheduleBookRestore()
+    },
+    { flush: 'post' },
+  )
 
   function clearSwitchLockFailsafe() {
     if (switchLockFailsafe) {
@@ -403,10 +412,12 @@ export function useWordsPage() {
   }
 
   function syncHeaderPad() {
+    const page = document.querySelector('.words-page') as HTMLElement | null
     const hd = document.querySelector('.words-site-header') as HTMLElement | null
-    if (!hd) return
+    if (!page || !hd) return
     const h = Math.ceil(hd.getBoundingClientRect().height)
-    document.documentElement.style.setProperty('--words-header-h', `${h}px`)
+    if (h <= 0) return
+    page.style.setProperty('--words-header-h', `${h}px`)
   }
 
   function splitParagraphs(text?: string) {
@@ -525,6 +536,7 @@ export function useWordsPage() {
       cur.value = String(savedLesson)
     if (cur.value !== 'all') bookRestoring.value = true
     syncHeaderPad()
+    nextTick(() => syncHeaderPad())
     window.addEventListener('resize', onHeaderResize, { passive: true })
     rail.mountScrollListener()
     if (!bookPending.value) tryScheduleBookRestore()
@@ -538,7 +550,7 @@ export function useWordsPage() {
     lessonRender.onUnmount()
     rail.cleanup()
     audio.stopChain()
-    document.documentElement.style.removeProperty('--words-header-h')
+    document.querySelector('.words-page')?.style.removeProperty('--words-header-h')
   })
 
   return {

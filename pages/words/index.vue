@@ -1,7 +1,7 @@
 <template>
   <div
     class="words-page"
-    :class="{ 'is-quiz': quiz }"
+    :class="{ 'is-quiz': quiz, 'is-restore-pending': bookRestoring }"
   >
     <header class="words-site-header">
       <div class="words-hd words-wrap">
@@ -208,34 +208,41 @@
       </div>
     </header>
 
-    <div
-      class="words-layout"
-      :class="{ 'is-preparing': lessonGroups.order.length > 0 && !wordsUiReady }"
-    >
+    <div class="words-layout">
       <nav
-        v-if="wordsUiReady && lessonGroups.order.length"
+        v-show="lessonGroups.order.length || bookPending"
         class="words-rail"
+        :class="{ 'words-rail--booting': !wordsUiReady }"
+        :aria-hidden="!wordsUiReady"
         aria-label="按课浏览"
       >
         <h3>按课浏览</h3>
-        <div
-          class="all"
-          :class="{ on: cur === 'all' }"
-          @click="pick('all')"
+        <template v-if="wordsUiReady && lessonGroups.order.length">
+          <div
+            class="all"
+            :class="{ on: cur === 'all' }"
+            @click="pick('all')"
+          >
+            全部
+          </div>
+          <div
+            v-for="chip in railChips"
+            :key="`${bk}-${chip.l}`"
+            class="n"
+            :class="{ on: cur === String(chip.l) }"
+            :data-l="chip.l"
+            @click="pick(String(chip.l))"
+          >
+            <span class="num">{{ chip.g }}</span>
+            <span class="tt">{{ chip.t }}</span>
+          </div>
+        </template>
+        <p
+          v-else
+          class="words-rail-boot"
         >
-          全部
-        </div>
-        <div
-          v-for="chip in railChips"
-          :key="`${bk}-${chip.l}`"
-          class="n"
-          :class="{ on: cur === String(chip.l) }"
-          :data-l="chip.l"
-          @click="pick(String(chip.l))"
-        >
-          <span class="num">{{ chip.g }}</span>
-          <span class="tt">{{ chip.t }}</span>
-        </div>
+          目录加载中…
+        </p>
       </nav>
 
       <main id="words-content">
@@ -247,7 +254,7 @@
         </div>
         <div
           v-else-if="(bookPending || bookRestoring) && !lessonGroups.order.length"
-          class="words-loading"
+          class="words-loading words-loading--cover"
         >
           加载词表中…
         </div>
@@ -259,14 +266,14 @@
         </div>
         <template v-else>
           <div
-            v-if="!wordsUiReady"
-            class="words-loading"
+            v-if="!wordsUiReady || bookRestoring"
+            class="words-loading words-loading--cover"
           >
-            正在准备词条…
+            加载词表中…
           </div>
           <div
             class="words-lessons-stage"
-            :class="{ 'is-offstage': !wordsRenderComplete }"
+            :class="{ 'is-pre-reveal': bookRestoring && wordsRenderComplete }"
           >
             <section
               v-for="lno in lessonGroups.order"
