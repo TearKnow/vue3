@@ -406,23 +406,25 @@
             </button>
           </div>
         </div>
-        <div
-          v-if="lessonTextLoading"
-          class="words-text-status"
-        >
-          加载中…
+        <div class="words-modal-body words-modal-body--scroll">
+          <div
+            v-if="lessonTextLoading"
+            class="words-text-status"
+          >
+            加载中…
+          </div>
+          <div
+            v-else-if="lessonTextError"
+            class="words-text-status err"
+          >
+            {{ lessonTextError }}
+          </div>
+          <div
+            v-else
+            class="words-nce-text"
+            v-html="lessonTextHtml"
+          />
         </div>
-        <div
-          v-else-if="lessonTextError"
-          class="words-text-status err"
-        >
-          {{ lessonTextError }}
-        </div>
-        <div
-          v-else
-          class="words-nce-text"
-          v-html="lessonTextHtml"
-        />
       </div>
       </div>
 
@@ -465,46 +467,48 @@
             ><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
-        <div class="actions">
-          <button
-            type="button"
-            class="secondary"
-            @click="toggleRandReveal"
-          >
-            {{ randReveal ? '隐藏翻译' : '显示翻译' }}
-          </button>
-          <button
-            type="button"
-            class="primary"
-            @click="shuffleRand"
-          >
-            换一批
-          </button>
-        </div>
-        <div style="display:grid;gap:8px">
-          <div
-            v-for="item in randItems"
-            :key="randKey(item)"
-            class="words-word word"
-            :class="{ reveal: randReveal || randRevealSet.has(randKey(item)) }"
-            @click="onRandCardClick(item)"
-          >
+        <div class="words-modal-body words-modal-body--scroll">
+          <div class="actions">
             <button
               type="button"
-              class="words-vbtn"
-              :aria-label="`播放 ${item.w}`"
-              @click.stop="audio.playTry(item.w)"
-            />
-            <div class="w-main">
-              <div class="words-w-word">
-                {{ item.w }}
-                <span class="words-w-ph">{{ item.p }}</span>
-                <span
-                  style="display:inline-block;margin-left:4px;padding:1px 7px;border-radius:6px;background:var(--words-chip);font-size:11px"
-                >第{{ item.g }}课</span>
-              </div>
-              <div class="w-me blur">
-                {{ item.m }}
+              class="secondary"
+              @click="toggleRandReveal"
+            >
+              {{ randReveal ? '隐藏翻译' : '显示翻译' }}
+            </button>
+            <button
+              type="button"
+              class="primary"
+              @click="shuffleRand"
+            >
+              换一批
+            </button>
+          </div>
+          <div style="display:grid;gap:8px">
+            <div
+              v-for="item in randItems"
+              :key="randKey(item)"
+              class="words-word word"
+              :class="{ reveal: randReveal || randRevealSet.has(randKey(item)) }"
+              @click="onRandCardClick(item)"
+            >
+              <button
+                type="button"
+                class="words-vbtn"
+                :aria-label="`播放 ${item.w}`"
+                @click.stop="audio.playTry(item.w)"
+              />
+              <div class="w-main">
+                <div class="words-w-word">
+                  {{ item.w }}
+                  <span class="words-w-ph">{{ item.p }}</span>
+                  <span
+                    style="display:inline-block;margin-left:4px;padding:1px 7px;border-radius:6px;background:var(--words-chip);font-size:11px"
+                  >第{{ item.g }}课</span>
+                </div>
+                <div class="w-me blur">
+                  {{ item.m }}
+                </div>
               </div>
             </div>
           </div>
