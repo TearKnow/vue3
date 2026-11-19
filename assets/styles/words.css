@@ -895,6 +895,18 @@ html.dark .words-ctrl-btn:hover {
   margin: 4px 0 0;
 }
 
+.words-lesson-audio-err {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--words-accent);
+}
+
+.words-modal-text-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .words-modal-close {
   flex-shrink: 0;
   width: 32px;

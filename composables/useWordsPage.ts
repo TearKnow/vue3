@@ -102,6 +102,10 @@ export function useWordsPage() {
   const lessonTextTitle = ref('课文')
   const lessonTextSub = ref('')
   const lessonTextHtml = ref('')
+  const lessonTextLno = ref(0)
+  const lessonAudioPlaying = ref(false)
+  const lessonAudioError = ref('')
+  let lessonAudio: HTMLAudioElement | null = null
   const randOpen = ref(false)
   const randReveal = ref(false)
   const randItems = ref<WordEntry[]>([])
@@ -479,7 +483,88 @@ export function useWordsPage() {
       .replace(/"/g, '&quot;')
   }
 
+  function isLocalAudioHost(hostname: string) {
+    return !hostname
+      || hostname === 'localhost'
+      || hostname.endsWith('.localhost')
+      || hostname.endsWith('.vercel.app')
+      || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)
+  }
+
+  /** 当前站点把 www 换成 nceaudio；裸域名则挂在 nceaudio 子域。不写死具体域名。 */
+  function nceAudioHost(hostname: string) {
+    if (isLocalAudioHost(hostname)) return ''
+    if (/^www\./i.test(hostname)) return hostname.replace(/^www\./i, 'nceaudio.')
+    if (/^nceaudio\./i.test(hostname)) return hostname
+    return `nceaudio.${hostname}`
+  }
+
+  function lessonAudioUrl(book: number, lesson: number) {
+    if (!import.meta.client || !book || !lesson) return ''
+    let hostname = window.location.hostname
+    let protocol = window.location.protocol
+    let host = nceAudioHost(hostname)
+    if (!host) {
+      try {
+        const site = useRuntimeConfig().public.siteUrl as string
+        const u = new URL(site)
+        hostname = u.hostname
+        protocol = u.protocol || protocol
+        host = nceAudioHost(hostname)
+      }
+      catch { /* ignore */ }
+    }
+    if (!host) return ''
+    return `${protocol}//${host}/${book}/${lesson}.mp3`
+  }
+
+  function stopLessonAudio() {
+    lessonAudioPlaying.value = false
+    if (!lessonAudio) return
+    lessonAudio.onended = null
+    lessonAudio.onerror = null
+    try { lessonAudio.pause() } catch { /* ignore */ }
+    lessonAudio.removeAttribute('src')
+    try { lessonAudio.load() } catch { /* ignore */ }
+  }
+
+  function toggleLessonAudio() {
+    if (!lessonTextLno.value) return
+    if (lessonAudioPlaying.value) {
+      try { lessonAudio?.pause() } catch { /* ignore */ }
+      lessonAudioPlaying.value = false
+      return
+    }
+    const url = lessonAudioUrl(bk.value, lessonTextLno.value)
+    if (!url) {
+      lessonAudioError.value = '当前环境无法拼出课文音频地址'
+      return
+    }
+    if (!lessonAudio) lessonAudio = new Audio()
+    audio.stopChain()
+    lessonAudioError.value = ''
+    const same = lessonAudio.src === url
+    if (!same) {
+      lessonAudio.src = url
+      try { lessonAudio.load() } catch { /* ignore */ }
+    }
+    lessonAudio.onended = () => { lessonAudioPlaying.value = false }
+    lessonAudio.onerror = () => {
+      lessonAudioPlaying.value = false
+      lessonAudioError.value = '课文音频加载失败'
+    }
+    lessonAudio.play().then(() => {
+      lessonAudioPlaying.value = true
+    }).catch(() => {
+      lessonAudioPlaying.value = false
+      lessonAudioError.value = '课文音频无法播放'
+    })
+  }
+
   async function openLessonText(lno: number) {
+    stopLessonAudio()
+    lessonAudioError.value = ''
+    lessonTextLno.value = lno
     lessonTextOpen.value = true
     lessonTextReveal.value = false
     lessonTextLoading.value = true
@@ -517,6 +602,8 @@ export function useWordsPage() {
   }
 
   function closeLessonText() {
+    stopLessonAudio()
+    lessonAudioError.value = ''
     lessonTextOpen.value = false
     lessonTextReveal.value = false
     lessonTextReq++
@@ -593,6 +680,7 @@ export function useWordsPage() {
     bumpRestoreGeneration()
     lessonRender.onUnmount()
     rail.cleanup()
+    stopLessonAudio()
     audio.stopChain()
     document.querySelector('.words-page')?.style.removeProperty('--words-header-h')
   })
@@ -633,6 +721,10 @@ export function useWordsPage() {
     lessonTextTitle,
     lessonTextSub,
     lessonTextHtml,
+    lessonTextLno,
+    lessonAudioPlaying,
+    lessonAudioError,
+    toggleLessonAudio,
     randOpen,
     randReveal,
     randItems,

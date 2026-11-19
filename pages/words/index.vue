@@ -387,8 +387,23 @@
             <div class="sub">
               {{ lessonTextSub }}
             </div>
+            <p
+              v-if="lessonAudioError"
+              class="words-lesson-audio-err"
+            >
+              {{ lessonAudioError }}
+            </p>
           </div>
           <div class="words-modal-head-actions">
+            <button
+              type="button"
+              class="words-modal-text-toggle"
+              :disabled="!lessonTextLno"
+              :aria-pressed="lessonAudioPlaying"
+              @click="toggleLessonAudio"
+            >
+              {{ lessonAudioPlaying ? '暂停课文' : '课文音频' }}
+            </button>
             <button
               type="button"
               class="words-modal-text-toggle"
@@ -580,6 +595,10 @@ const {
   lessonTextTitle,
   lessonTextSub,
   lessonTextHtml,
+  lessonTextLno,
+  lessonAudioPlaying,
+  lessonAudioError,
+  toggleLessonAudio,
   randOpen,
   randReveal,
   randItems,
