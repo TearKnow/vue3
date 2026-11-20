@@ -908,6 +908,63 @@ html.dark .words-ctrl-btn:hover {
   background: var(--words-chip);
 }
 
+.words-lesson-loop {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 8px 0 0;
+  font-size: 12px;
+  line-height: 1.25;
+  color: var(--words-ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.words-lesson-loop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.words-lesson-loop-track {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--words-ink) 18%, var(--words-paper));
+  transition: background 0.15s ease;
+}
+
+.words-lesson-loop-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--words-card);
+  transition: left 0.15s ease;
+}
+
+.words-lesson-loop:has(input:checked) .words-lesson-loop-track {
+  background: var(--words-accent);
+}
+
+.words-lesson-loop:has(input:checked) .words-lesson-loop-track::after {
+  left: 16px;
+}
+
+.words-lesson-loop:focus-within .words-lesson-loop-track {
+  outline: 2px solid var(--words-accent);
+  outline-offset: 2px;
+}
+
 .words-lesson-player-controls {
   display: flex;
   align-items: center;

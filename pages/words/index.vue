@@ -475,6 +475,20 @@
             </p>
           </div>
           <div class="words-modal-head-actions">
+            <label class="words-lesson-loop">
+              循环
+              <input
+                v-model="lessonAudioLoop"
+                type="checkbox"
+                role="switch"
+                :aria-checked="lessonAudioLoop"
+                aria-label="循环播放课文"
+              >
+              <span
+                class="words-lesson-loop-track"
+                aria-hidden="true"
+              />
+            </label>
             <button
               type="button"
               class="words-modal-text-toggle"
@@ -674,6 +688,7 @@ const {
   lessonAudioTime,
   lessonAudioDuration,
   lessonAudioRatio,
+  lessonAudioLoop,
   toggleLessonAudio,
   seekLessonAudio,
   seekLessonAudioTo,

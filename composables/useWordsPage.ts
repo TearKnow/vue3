@@ -107,6 +107,7 @@ export function useWordsPage() {
   const lessonAudioError = ref('')
   const lessonAudioTime = ref(0)
   const lessonAudioDuration = ref(0)
+  const lessonAudioLoop = ref(true)
   let lessonAudio: HTMLAudioElement | null = null
   let lessonSeekPending = 0
   let lessonSeekAbsolute: number | null = null
@@ -535,6 +536,10 @@ export function useWordsPage() {
     lessonAudioDuration.value > 0 ? formatAudioClock(lessonAudioDuration.value) : '0:00'
   ))
 
+  watch(lessonAudioLoop, (on) => {
+    if (lessonAudio) lessonAudio.loop = on
+  })
+
   const lessonAudioRatio = computed(() => {
     const dur = lessonAudioDuration.value
     if (!(dur > 0)) return 0
@@ -557,6 +562,7 @@ export function useWordsPage() {
     el.onloadedmetadata = () => {
       lessonAudioDuration.value = Number.isFinite(el.duration) ? el.duration : 0
     }
+    el.loop = lessonAudioLoop.value
     el.onended = () => { lessonAudioPlaying.value = false }
     el.onerror = () => {
       lessonAudioPlaying.value = false
@@ -860,6 +866,7 @@ export function useWordsPage() {
     lessonAudioTime,
     lessonAudioDuration,
     lessonAudioRatio,
+    lessonAudioLoop,
     toggleLessonAudio,
     seekLessonAudio,
     seekLessonAudioTo,
