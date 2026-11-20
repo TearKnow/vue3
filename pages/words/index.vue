@@ -387,6 +387,86 @@
             <div class="sub">
               {{ lessonTextSub }}
             </div>
+            <div
+              class="words-lesson-player"
+              role="group"
+              aria-label="课文音频"
+            >
+              <div class="words-lesson-player-controls">
+                <button
+                  type="button"
+                  class="words-lesson-player-btn is-jump"
+                  aria-label="后退 5 秒"
+                  :disabled="!lessonTextLno"
+                  @click="seekLessonAudio(-5)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  ><path d="M15 5 6 12l9 7z" /></svg>
+                </button>
+                <button
+                  type="button"
+                  class="words-lesson-player-btn is-play"
+                  :aria-label="lessonAudioPlaying ? '暂停课文' : '播放课文'"
+                  :aria-pressed="lessonAudioPlaying"
+                  :disabled="!lessonTextLno"
+                  @click="toggleLessonAudio"
+                >
+                  <svg
+                    v-if="lessonAudioPlaying"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  ><path d="M7 5h3v14H7zM14 5h3v14h-3z" /></svg>
+                  <svg
+                    v-else
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  ><path d="M8 5v14l11-7z" /></svg>
+                </button>
+                <button
+                  type="button"
+                  class="words-lesson-player-btn is-jump"
+                  aria-label="快进 5 秒"
+                  :disabled="!lessonTextLno"
+                  @click="seekLessonAudio(5)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  ><path d="M9 5l9 7-9 7z" /></svg>
+                </button>
+              </div>
+              <div class="words-lesson-player-scrub">
+                <span class="words-lesson-player-time">{{ lessonAudioNowLabel }}</span>
+                <div
+                  ref="lessonBarEl"
+                  class="words-lesson-player-track"
+                  role="slider"
+                  tabindex="0"
+                  aria-label="课文进度"
+                  :aria-valuemin="0"
+                  :aria-valuemax="Math.round(lessonAudioDuration)"
+                  :aria-valuenow="Math.round(lessonAudioTime)"
+                  :aria-disabled="lessonAudioDuration <= 0"
+                  @pointerdown="onLessonBarPointer"
+                  @pointermove="onLessonBarMove"
+                  @pointerup="onLessonBarUp"
+                  @pointercancel="onLessonBarUp"
+                  @keydown="onLessonBarKey"
+                >
+                  <span
+                    class="words-lesson-player-fill"
+                    :style="{ width: `calc((100% - 12px) * ${lessonAudioRatio})` }"
+                  />
+                  <span
+                    class="words-lesson-player-thumb"
+                    :style="{ left: `calc(6px + (100% - 12px) * ${lessonAudioRatio})` }"
+                  />
+                </div>
+                <span class="words-lesson-player-time">{{ lessonAudioDurLabel }}</span>
+              </div>
+            </div>
             <p
               v-if="lessonAudioError"
               class="words-lesson-audio-err"
@@ -395,15 +475,6 @@
             </p>
           </div>
           <div class="words-modal-head-actions">
-            <button
-              type="button"
-              class="words-modal-text-toggle"
-              :disabled="!lessonTextLno"
-              :aria-pressed="lessonAudioPlaying"
-              @click="toggleLessonAudio"
-            >
-              {{ lessonAudioPlaying ? '暂停课文' : '课文音频' }}
-            </button>
             <button
               type="button"
               class="words-modal-text-toggle"
@@ -598,7 +669,16 @@ const {
   lessonTextLno,
   lessonAudioPlaying,
   lessonAudioError,
+  lessonAudioNowLabel,
+  lessonAudioDurLabel,
+  lessonAudioTime,
+  lessonAudioDuration,
+  lessonAudioRatio,
   toggleLessonAudio,
+  seekLessonAudio,
+  seekLessonAudioTo,
+  beginLessonAudioScrub,
+  endLessonAudioScrub,
   randOpen,
   randReveal,
   randItems,
@@ -634,6 +714,50 @@ function stepRepeat(dir: number) {
 
 function trySpeak() {
   audio.playTry(tryWord.value)
+}
+
+const lessonBarEl = ref<HTMLElement | null>(null)
+let lessonBarDragging = false
+
+function lessonBarSeconds(e: PointerEvent) {
+  const el = lessonBarEl.value
+  if (!el || lessonAudioDuration.value <= 0) return null
+  const rect = el.getBoundingClientRect()
+  if (rect.width <= 0) return null
+  const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
+  return ratio * lessonAudioDuration.value
+}
+
+function onLessonBarPointer(e: PointerEvent) {
+  const sec = lessonBarSeconds(e)
+  if (sec == null) return
+  lessonBarDragging = true
+  beginLessonAudioScrub()
+  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  seekLessonAudioTo(sec)
+}
+
+function onLessonBarMove(e: PointerEvent) {
+  if (!lessonBarDragging) return
+  const sec = lessonBarSeconds(e)
+  if (sec != null) seekLessonAudioTo(sec)
+}
+
+function onLessonBarUp() {
+  if (!lessonBarDragging) return
+  lessonBarDragging = false
+  endLessonAudioScrub()
+}
+
+function onLessonBarKey(e: KeyboardEvent) {
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    seekLessonAudio(-5)
+  }
+  else if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    seekLessonAudio(5)
+  }
 }
 
 function onWordClick(entry: WordEntry) {

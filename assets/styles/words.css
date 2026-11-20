@@ -895,6 +895,160 @@ html.dark .words-ctrl-btn:hover {
   margin: 4px 0 0;
 }
 
+.words-lesson-player {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 10px;
+  padding: 10px 12px 8px;
+  border-radius: 12px;
+  background: var(--words-chip);
+}
+
+.words-lesson-player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.words-lesson-player-btn.is-jump {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: transparent;
+  color: var(--words-ink-2);
+}
+
+.words-lesson-player-btn.is-jump:hover {
+  background: transparent;
+  color: var(--words-ink);
+}
+
+.words-lesson-player-btn.is-jump:disabled,
+.words-lesson-player-btn.is-play:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.words-lesson-player-btn.is-play {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: var(--words-accent);
+  color: var(--blog-white);
+}
+
+.words-lesson-player-btn.is-play:hover {
+  background: var(--words-accent);
+  color: var(--blog-white);
+}
+
+.words-lesson-player-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  fill: currentColor;
+}
+
+.words-lesson-player-btn.is-play svg {
+  width: 16px;
+  height: 16px;
+}
+
+.words-lesson-player-btn.is-jump svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.words-lesson-player-scrub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.words-lesson-player-time {
+  flex-shrink: 0;
+  min-width: 28px;
+  font-size: 11px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--words-muted);
+}
+
+.words-lesson-player-time:last-child {
+  text-align: right;
+}
+
+.words-lesson-player-track {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 18px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.words-lesson-player-track[aria-disabled='true'] {
+  cursor: default;
+}
+
+.words-lesson-player-track:focus-visible {
+  outline: 2px solid var(--words-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.words-lesson-player-track::before,
+.words-lesson-player-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 4px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+
+.words-lesson-player-track::before {
+  left: 6px;
+  right: 6px;
+  background: color-mix(in srgb, var(--words-ink) 38%, var(--words-paper));
+}
+
+.words-lesson-player-fill {
+  left: 6px;
+  width: 0;
+  background: var(--words-accent);
+}
+
+.words-lesson-player-thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--words-accent);
+  box-shadow: 0 0 0 3px var(--words-playing-ring);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
 .words-lesson-audio-err {
   margin: 6px 0 0;
   font-size: 12px;

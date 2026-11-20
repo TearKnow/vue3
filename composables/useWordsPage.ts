@@ -105,7 +105,14 @@ export function useWordsPage() {
   const lessonTextLno = ref(0)
   const lessonAudioPlaying = ref(false)
   const lessonAudioError = ref('')
+  const lessonAudioTime = ref(0)
+  const lessonAudioDuration = ref(0)
   let lessonAudio: HTMLAudioElement | null = null
+  let lessonSeekPending = 0
+  let lessonSeekAbsolute: number | null = null
+  let lessonSeekWaiting = false
+  let lessonAudioScrubbing = false
+  let lessonAudioArmed = false
   const randOpen = ref(false)
   const randReveal = ref(false)
   const randItems = ref<WordEntry[]>([])
@@ -518,9 +525,75 @@ export function useWordsPage() {
     return `${protocol}//${host}/${book}/${lesson}.mp3`
   }
 
+  function formatAudioClock(sec: number) {
+    const s = Math.max(0, Math.floor(Number.isFinite(sec) ? sec : 0))
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+  }
+
+  const lessonAudioNowLabel = computed(() => formatAudioClock(lessonAudioTime.value))
+  const lessonAudioDurLabel = computed(() => (
+    lessonAudioDuration.value > 0 ? formatAudioClock(lessonAudioDuration.value) : '0:00'
+  ))
+
+  const lessonAudioRatio = computed(() => {
+    const dur = lessonAudioDuration.value
+    if (!(dur > 0)) return 0
+    return Math.min(1, Math.max(0, lessonAudioTime.value / dur))
+  })
+
+  function resetLessonSeek() {
+    lessonSeekPending = 0
+    lessonSeekAbsolute = null
+    lessonSeekWaiting = false
+    lessonAudioScrubbing = false
+    lessonAudioArmed = false
+  }
+
+  function bindLessonAudio(el: HTMLAudioElement) {
+    el.ontimeupdate = () => {
+      if (lessonAudioScrubbing) return
+      lessonAudioTime.value = el.currentTime || 0
+    }
+    el.onloadedmetadata = () => {
+      lessonAudioDuration.value = Number.isFinite(el.duration) ? el.duration : 0
+    }
+    el.onended = () => { lessonAudioPlaying.value = false }
+    el.onerror = () => {
+      lessonAudioPlaying.value = false
+      if (lessonAudioArmed)
+        lessonAudioError.value = '课文音频加载失败'
+    }
+  }
+
+  function ensureLessonAudio(quiet = false) {
+    if (!lessonTextLno.value) return null
+    const url = lessonAudioUrl(bk.value, lessonTextLno.value)
+    if (!url) {
+      if (!quiet)
+        lessonAudioError.value = '当前环境无法拼出课文音频地址'
+      return null
+    }
+    if (!lessonAudio) lessonAudio = new Audio()
+    bindLessonAudio(lessonAudio)
+    if (!quiet)
+      lessonAudioError.value = ''
+    if (lessonAudio.src !== url) {
+      lessonAudioTime.value = 0
+      lessonAudioDuration.value = 0
+      lessonAudio.src = url
+      try { lessonAudio.load() } catch { /* ignore */ }
+    }
+    return lessonAudio
+  }
+
   function stopLessonAudio() {
     lessonAudioPlaying.value = false
+    lessonAudioTime.value = 0
+    lessonAudioDuration.value = 0
+    resetLessonSeek()
     if (!lessonAudio) return
+    lessonAudio.ontimeupdate = null
+    lessonAudio.onloadedmetadata = null
     lessonAudio.onended = null
     lessonAudio.onerror = null
     try { lessonAudio.pause() } catch { /* ignore */ }
@@ -530,30 +603,16 @@ export function useWordsPage() {
 
   function toggleLessonAudio() {
     if (!lessonTextLno.value) return
+    lessonAudioArmed = true
     if (lessonAudioPlaying.value) {
       try { lessonAudio?.pause() } catch { /* ignore */ }
       lessonAudioPlaying.value = false
       return
     }
-    const url = lessonAudioUrl(bk.value, lessonTextLno.value)
-    if (!url) {
-      lessonAudioError.value = '当前环境无法拼出课文音频地址'
-      return
-    }
-    if (!lessonAudio) lessonAudio = new Audio()
+    const el = ensureLessonAudio()
+    if (!el) return
     audio.stopChain()
-    lessonAudioError.value = ''
-    const same = lessonAudio.src === url
-    if (!same) {
-      lessonAudio.src = url
-      try { lessonAudio.load() } catch { /* ignore */ }
-    }
-    lessonAudio.onended = () => { lessonAudioPlaying.value = false }
-    lessonAudio.onerror = () => {
-      lessonAudioPlaying.value = false
-      lessonAudioError.value = '课文音频加载失败'
-    }
-    lessonAudio.play().then(() => {
+    el.play().then(() => {
       lessonAudioPlaying.value = true
     }).catch(() => {
       lessonAudioPlaying.value = false
@@ -561,10 +620,82 @@ export function useWordsPage() {
     })
   }
 
+  function applyLessonSeekTo(sec: number) {
+    const el = lessonAudio
+    if (!el) return
+    let next = Math.max(0, sec)
+    if (Number.isFinite(el.duration) && el.duration > 0)
+      next = Math.min(next, el.duration)
+    try { el.currentTime = next } catch { /* ignore */ }
+    lessonAudioTime.value = Number.isFinite(el.currentTime) ? el.currentTime : next
+  }
+
+  function whenLessonAudioReady(el: HTMLAudioElement, run: () => void) {
+    if (el.readyState >= 1) {
+      run()
+      return
+    }
+    if (lessonSeekWaiting) return
+    lessonSeekWaiting = true
+    const onMeta = () => {
+      el.removeEventListener('loadedmetadata', onMeta)
+      lessonSeekWaiting = false
+      const absolute = lessonSeekAbsolute
+      const pending = lessonSeekPending
+      lessonSeekAbsolute = null
+      lessonSeekPending = 0
+      if (absolute != null) applyLessonSeekTo(absolute)
+      else if (pending) applyLessonSeekTo((el.currentTime || 0) + pending)
+      run()
+    }
+    el.addEventListener('loadedmetadata', onMeta)
+  }
+
+  function seekLessonAudio(delta: number) {
+    lessonAudioArmed = true
+    const el = ensureLessonAudio()
+    if (!el) return
+    if (el.readyState >= 1) {
+      applyLessonSeekTo((el.currentTime || 0) + delta)
+      return
+    }
+    lessonSeekPending += delta
+    whenLessonAudioReady(el, () => {})
+  }
+
+  function seekLessonAudioTo(sec: number) {
+    lessonAudioArmed = true
+    const el = ensureLessonAudio()
+    if (!el) return
+    if (el.readyState >= 1) {
+      applyLessonSeekTo(sec)
+      return
+    }
+    lessonSeekAbsolute = Math.max(0, sec)
+    whenLessonAudioReady(el, () => {})
+  }
+
+  function beginLessonAudioScrub() {
+    lessonAudioScrubbing = true
+  }
+
+  function endLessonAudioScrub() {
+    lessonAudioScrubbing = false
+    if (lessonAudio)
+      lessonAudioTime.value = lessonAudio.currentTime || lessonAudioTime.value
+  }
+
+  function primeLessonAudio() {
+    const el = ensureLessonAudio(true)
+    if (!el) return
+    try { el.preload = 'metadata' } catch { /* ignore */ }
+  }
+
   async function openLessonText(lno: number) {
     stopLessonAudio()
     lessonAudioError.value = ''
     lessonTextLno.value = lno
+    primeLessonAudio()
     lessonTextOpen.value = true
     lessonTextReveal.value = false
     lessonTextLoading.value = true
@@ -724,7 +855,16 @@ export function useWordsPage() {
     lessonTextLno,
     lessonAudioPlaying,
     lessonAudioError,
+    lessonAudioNowLabel,
+    lessonAudioDurLabel,
+    lessonAudioTime,
+    lessonAudioDuration,
+    lessonAudioRatio,
     toggleLessonAudio,
+    seekLessonAudio,
+    seekLessonAudioTo,
+    beginLessonAudioScrub,
+    endLessonAudioScrub,
     randOpen,
     randReveal,
     randItems,
