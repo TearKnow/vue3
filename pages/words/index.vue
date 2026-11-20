@@ -413,11 +413,11 @@
             <div class="sub">
               {{ lessonTextSub }}
             </div>
-            <div
-              class="words-lesson-player"
-              role="group"
-              aria-label="课文音频"
-            >
+          <div
+            class="words-lesson-player"
+            role="group"
+            aria-label="课文音频"
+          >
               <div class="words-lesson-player-controls">
                 <button
                   type="button"
