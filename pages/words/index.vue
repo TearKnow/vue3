@@ -80,29 +80,55 @@
                 </div>
               </div>
               <div
-                class="row"
-                style="display:flex;flex-wrap:wrap;gap:6px"
+                class="row words-toggle-row"
               >
-                <label class="words-toggle"><input
-                  v-model="quiz"
-                  type="checkbox"
-                > 自测</label>
-                <label class="words-toggle"><input
-                  :checked="onlyMaster"
-                  type="checkbox"
-                  @change="onOnlyMasterChange(($event.target as HTMLInputElement).checked)"
-                > 只看易忘</label>
+                <label class="words-toggle">
+                  <input
+                    v-model="quiz"
+                    type="checkbox"
+                    role="switch"
+                    :aria-checked="quiz"
+                  >
+                  <span
+                    class="words-toggle-track"
+                    aria-hidden="true"
+                  />
+                  自测
+                </label>
+                <label class="words-toggle">
+                  <input
+                    :checked="onlyMaster"
+                    type="checkbox"
+                    role="switch"
+                    :aria-checked="onlyMaster"
+                    @change="onOnlyMasterChange(($event.target as HTMLInputElement).checked)"
+                  >
+                  <span
+                    class="words-toggle-track"
+                    aria-hidden="true"
+                  />
+                  只看易忘
+                </label>
               </div>
               <div class="row">
                 <div
                   class="words-chain-block"
                   :class="{ 'is-idle': !autoPlay }"
                 >
-                  <label class="words-toggle"><input
-                    v-model="autoPlay"
-                    type="checkbox"
-                    @change="!autoPlay && audio.stopChain()"
-                  > 连播</label>
+                  <label class="words-toggle">
+                    <input
+                      v-model="autoPlay"
+                      type="checkbox"
+                      role="switch"
+                      :aria-checked="autoPlay"
+                      @change="!autoPlay && audio.stopChain()"
+                    >
+                    <span
+                      class="words-toggle-track"
+                      aria-hidden="true"
+                    />
+                    连播
+                  </label>
                   <div
                     style="display:flex;flex-direction:column;gap:6px;margin-top:8px"
                   >
